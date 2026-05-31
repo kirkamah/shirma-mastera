@@ -275,10 +275,10 @@ function colorValue(name: string): string | undefined {
   return TEXT_COLORS[k]
 }
 
-// **bold** | *italic* | {colour:text}
-const FORMAT_RE = /\*\*([\s\S]+?)\*\*|\*([\s\S]+?)\*|\{([^:{}]+):([\s\S]+?)\}/g
+// **bold** | __underline__ | *italic* | {colour:text}
+const FORMAT_RE = /\*\*([\s\S]+?)\*\*|__([\s\S]+?)__|\*([\s\S]+?)\*|\{([^:{}]+):([\s\S]+?)\}/g
 
-/** Top layer: applies bold/italic/colour markup, recursing into richNodes for inner text. */
+/** Top layer: applies bold/underline/italic/colour markup, recursing into richNodes for inner text. */
 function formatNodes(text: string, label: string, rollFormula: RollFormula, rollBonus: RollBonus): JSX.Element[] {
   const out: JSX.Element[] = []
   let last = 0
@@ -295,15 +295,19 @@ function formatNodes(text: string, label: string, rollFormula: RollFormula, roll
       )
     } else if (m[2] !== undefined) {
       out.push(
+        <u key={`u${i}`}>{richNodes(m[2], label, rollFormula, rollBonus, `u${i}`)}</u>
+      )
+    } else if (m[3] !== undefined) {
+      out.push(
         <em key={`i${i}`} className="italic">
-          {richNodes(m[2], label, rollFormula, rollBonus, `i${i}`)}
+          {richNodes(m[3], label, rollFormula, rollBonus, `i${i}`)}
         </em>
       )
-    } else if (m[3] !== undefined && m[4] !== undefined) {
-      const c = colorValue(m[3])
+    } else if (m[4] !== undefined && m[5] !== undefined) {
+      const c = colorValue(m[4])
       out.push(
         <span key={`c${i}`} style={c ? { color: c } : undefined}>
-          {richNodes(m[4], label, rollFormula, rollBonus, `c${i}`)}
+          {richNodes(m[5], label, rollFormula, rollBonus, `c${i}`)}
         </span>
       )
     }

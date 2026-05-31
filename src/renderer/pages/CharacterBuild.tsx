@@ -1,9 +1,10 @@
 import { useEffect, useState, type JSX } from 'react'
-import { GiStarMedal, GiBookCover } from 'react-icons/gi'
+import { GiScrollQuill } from 'react-icons/gi'
 import type { IconType } from 'react-icons'
 import PageFrame from '../components/PageFrame'
 import Portrait, { emblemForRace, emblemForClass } from '../components/Portrait'
 import DiceText from '../components/DiceText'
+import { featIcon, bgIcon } from '../data/build-icons'
 import {
   RACE_BUILDS,
   CLASS_BUILDS,
@@ -21,8 +22,9 @@ import { progressionFor, FULL_CASTER_SLOTS, HALF_CASTER_SLOTS, THIRD_CASTER_SLOT
 import type { CasterKind } from '../data/character-build'
 import { useFeatPopup } from '../store/featPopup'
 import { useNav } from '../store/nav'
+import CreateHub from '../components/character/CreateHub'
 
-type Tab = 'races' | 'classes' | 'feats' | 'backgrounds'
+type Tab = 'races' | 'classes' | 'feats' | 'backgrounds' | 'create'
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'races', label: 'Расы' },
@@ -465,8 +467,8 @@ export default function CharacterBuild(): JSX.Element {
   const iconFor = (id: string): IconType => {
     if (tab === 'races') return emblemForRace(id)
     if (tab === 'classes') return emblemForClass(id)
-    if (tab === 'feats') return GiStarMedal
-    return GiBookCover
+    if (tab === 'feats') return featIcon(id)
+    return bgIcon(id)
   }
 
   // Ensure selectedId is valid for the current tab; reset if not.
@@ -495,7 +497,7 @@ export default function CharacterBuild(): JSX.Element {
 
   return (
     <PageFrame title="Игрок" subtitle="Сборка персонажа: расы, классы, черты, предыстории">
-      <div className="mb-3 flex shrink-0 gap-1 border-b border-ink-brown/20">
+      <div className="mb-3 flex shrink-0 items-end gap-1 border-b border-ink-brown/20">
         {TABS.map((t) => (
           <button
             key={t.id}
@@ -513,28 +515,48 @@ export default function CharacterBuild(): JSX.Element {
             {t.label}
           </button>
         ))}
+        {/* «Создание персонажа» намеренно отделено: это не справочник, а
+            пошаговый гид — поэтому отдельная золочёная кнопка справа. */}
+        <span className="mx-2 self-stretch border-l border-ink-brown/20" />
+        <button
+          onClick={() => setTab('create')}
+          className={`-mb-px inline-flex items-center gap-1.5 rounded-t-lg border-x-2 border-t-2 px-3.5 py-1.5 font-serif text-sm font-bold transition-colors ${
+            tab === 'create'
+              ? 'border-gold/70 bg-gold/20 text-accent shadow-sm'
+              : 'border-gold/40 bg-gold/5 text-gold hover:bg-gold/15'
+          }`}
+        >
+          <GiScrollQuill className="text-base" />
+          Создание персонажа
+        </button>
       </div>
 
-      <div className="flex min-h-0 flex-1 gap-3">
-        <div className="w-52 shrink-0 overflow-y-auto rounded-lg border border-ink-brown/20 bg-parchment-dark/30 py-1">
-          {list.map((x) => (
-            <button
-              key={x.id}
-              onClick={() => setSelectedId(x.id)}
-              className={`flex w-full items-center gap-2 px-2 py-1.5 text-left font-serif transition-colors ${
-                selected?.id === x.id
-                  ? 'rounded bg-accent/20 font-semibold text-accent'
-                  : 'text-ink-brown/90 hover:bg-black/5'
-              }`}
-            >
-              <Portrait emblem={iconFor(x.id)} size={28} />
-              <span className="min-w-0 truncate">{x.name}</span>
-            </button>
-          ))}
+      {tab === 'create' ? (
+        <div className="min-h-0 flex-1 overflow-hidden pr-1">
+          <CreateHub />
         </div>
+      ) : (
+        <div className="flex min-h-0 flex-1 gap-3">
+          <div className="w-52 shrink-0 overflow-y-auto rounded-lg border border-ink-brown/20 bg-parchment-dark/30 py-1">
+            {list.map((x) => (
+              <button
+                key={x.id}
+                onClick={() => setSelectedId(x.id)}
+                className={`flex w-full items-center gap-2 px-2 py-1.5 text-left font-serif transition-colors ${
+                  selected?.id === x.id
+                    ? 'rounded bg-accent/20 font-semibold text-accent'
+                    : 'text-ink-brown/90 hover:bg-black/5'
+                }`}
+              >
+                <Portrait emblem={iconFor(x.id)} size={28} />
+                <span className="min-w-0 truncate">{x.name}</span>
+              </button>
+            ))}
+          </div>
 
-        <div className="min-w-0 flex-1 overflow-y-auto pr-1">{detail}</div>
-      </div>
+          <div className="min-w-0 flex-1 overflow-y-auto pr-1">{detail}</div>
+        </div>
+      )}
     </PageFrame>
   )
 }

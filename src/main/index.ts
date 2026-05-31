@@ -1,4 +1,5 @@
 import { app, shell, BrowserWindow, Menu } from 'electron'
+import { copyFileSync, existsSync, mkdirSync, readdirSync } from 'fs'
 import { join } from 'path'
 import { getKv, initDatabase, setKv } from './db/database'
 import { registerIpc } from './ipc'
@@ -19,6 +20,59 @@ function loadBounds(): Bounds {
     /* ignore */
   }
   return { width: 1440, height: 900 }
+}
+
+// Chromium качает hunspell-словари по сети при первом запуске, что часто не
+// срабатывает (firewall/антивирус) — тогда русский текст проверяется по
+// английскому словарю: подсветка везде и без вариантов исправления. Чтобы это
+// работало офлайн и на чужих машинах, мы кладём готовые .bdic в ресурсы сборки
+// и копируем их в профиль сессии до инициализации спеллчекера.
+function seedDictionaries(): void {
+  try {
+    const srcDir = app.isPackaged
+      ? join(process.resourcesPath, 'dictionaries')
+      : join(app.getAppPath(), 'resources', 'dictionaries')
+    if (!existsSync(srcDir)) return
+    const destDir = join(app.getPath('userData'), 'Dictionaries')
+    mkdirSync(destDir, { recursive: true })
+    for (const file of readdirSync(srcDir)) {
+      if (!file.endsWith('.bdic')) continue
+      const dest = join(destDir, file)
+      if (!existsSync(dest)) copyFileSync(join(srcDir, file), dest)
+    }
+  } catch {
+    /* не критично — Chromium попробует скачать словарь сам */
+  }
+}
+
+// Проверка орфографии (русский + английский). Контекстное меню «как T9»
+// (варианты замены + «Добавить в словарь») рисуется в самом приложении в его
+// стиле — нативное меню Electron нельзя стилизовать, поэтому мы лишь
+// пересылаем данные о слове в renderer по IPC. Пользовательский словарь
+// Chromium сохраняется в профиле сессии между запусками.
+function setupSpellcheck(window: BrowserWindow): void {
+  const ses = window.webContents.session
+  try {
+    const available = ses.availableSpellCheckerLanguages
+    const want = ['ru', 'en-US'].filter((l) => available.includes(l))
+    if (want.length) ses.setSpellCheckerLanguages(want)
+  } catch {
+    /* спеллчекер недоступен на этой платформе — игнорируем */
+  }
+
+  window.webContents.on('context-menu', (_event, params) => {
+    window.webContents.send('spell:context', {
+      x: params.x,
+      y: params.y,
+      misspelledWord: params.misspelledWord,
+      suggestions: params.dictionarySuggestions,
+      isEditable: params.isEditable,
+      selectionText: params.selectionText,
+      canCut: params.editFlags.canCut,
+      canCopy: params.editFlags.canCopy,
+      canPaste: params.editFlags.canPaste
+    })
+  })
 }
 
 function createWindow(): void {
@@ -42,9 +96,12 @@ function createWindow(): void {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,
       contextIsolation: true,
-      nodeIntegration: false
+      nodeIntegration: false,
+      spellcheck: true
     }
   })
+
+  setupSpellcheck(mainWindow)
 
   mainWindow.on('ready-to-show', () => {
     // Открывать в полный экран (максимизировать окно), как просил пользователь.
@@ -74,6 +131,7 @@ function createWindow(): void {
 app.whenReady().then(() => {
   initDatabase()
   registerIpc()
+  seedDictionaries()
 
   // Минимальное приложенческое меню: даёт стандартные акселераторы
   // Ctrl+C/Ctrl+V/Ctrl+X/Ctrl+A для копирования выделенного текста.

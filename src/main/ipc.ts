@@ -55,6 +55,19 @@ export function registerIpc(): void {
   ipcMain.handle('db:saveCustom', (_e, kind: string, entry: { key: string; name: string }) => saveCustom(kind, entry))
   ipcMain.handle('db:deleteCustom', (_e, key: string) => deleteCustom(key))
 
+  // ---- Spellcheck context menu actions (themed menu lives in the renderer) ----
+  ipcMain.on('spell:replace', (e, word: string) => e.sender.replaceMisspelling(word))
+  ipcMain.on('spell:addWord', (e, word: string) =>
+    e.sender.session.addWordToSpellCheckerDictionary(word)
+  )
+  ipcMain.on('spell:edit', (e, action: 'cut' | 'copy' | 'paste' | 'selectAll') => {
+    const wc = e.sender
+    if (action === 'cut') wc.cut()
+    else if (action === 'copy') wc.copy()
+    else if (action === 'paste') wc.paste()
+    else if (action === 'selectAll') wc.selectAll()
+  })
+
   // Online status
   ipcMain.handle('app:onlineStatus', () => net.isOnline() && isOnline())
 

@@ -3,7 +3,7 @@ import {
   GiFireball,
   GiPortal,
   GiCrystalBall,
-  GiHearts,
+  GiPsychicWaves,
   GiDominoMask,
   GiDeathSkull,
   GiMagicShield,
@@ -24,7 +24,7 @@ const VISUALS: Record<string, SchoolVisual> = {
   Воплощение: { Icon: GiFireball, color: '#b45309' }, // evocation — raw energy
   Вызов: { Icon: GiPortal, color: '#7e22ce' }, // conjuration — summoning
   Прорицание: { Icon: GiCrystalBall, color: '#1d4ed8' }, // divination — sight
-  Очарование: { Icon: GiHearts, color: '#be185d' }, // enchantment — mind
+  Очарование: { Icon: GiPsychicWaves, color: '#be185d' }, // enchantment — mind control / charm
   Иллюзия: { Icon: GiDominoMask, color: '#4338ca' }, // illusion — deception
   Некромантия: { Icon: GiDeathSkull, color: '#15803d' }, // necromancy — death
   Ограждение: { Icon: GiMagicShield, color: '#0369a1' }, // abjuration — protection

@@ -9,6 +9,7 @@ import SpellPopup from './components/SpellPopup'
 import ConditionPopup from './components/ConditionPopup'
 import FeatPopup from './components/FeatPopup'
 import GlossaryPopup from './components/GlossaryPopup'
+import SpellContextMenu from './components/SpellContextMenu'
 // Pages are code-split — each becomes its own JS chunk loaded on demand.
 // Bestiary still loads near-instantly because it's the landing route, but the
 // heavy data files behind CharacterBuild / MonsterEditor / Spells no longer
@@ -363,6 +364,7 @@ export default function App(): JSX.Element {
       <ConditionPopup />
       <FeatPopup />
       <GlossaryPopup />
+      <SpellContextMenu />
     </HashRouter>
   )
 }

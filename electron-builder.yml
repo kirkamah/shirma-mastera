@@ -4,6 +4,8 @@ copyright: © 2026 Kirkamah · no harm org
 directories:
   buildResources: build
   output: release
+# Ad-hoc sign the macOS .app so unsigned arm64/x64 builds actually launch.
+afterPack: scripts/afterPack.cjs
 files:
   - '!**/.vscode/*'
   - '!src/*'
@@ -12,8 +14,12 @@ files:
   - '!{.env,.env.*,.npmrc,pnpm-lock.yaml,package-lock.json}'
   - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
 asarUnpack:
-  - resources/**
   - '**/node_modules/better-sqlite3/**'
+# Hunspell-словари орфографии копируются рядом с приложением (вне asar), чтобы
+# проверка работала офлайн без докачки из сети. См. seedDictionaries() в main.
+extraResources:
+  - from: resources/dictionaries
+    to: dictionaries
 win:
   icon: build/icon.ico
   target:

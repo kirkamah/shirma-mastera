@@ -1,12 +1,17 @@
 name: Build macOS app
 
-# Builds unsigned macOS app archives of Ширма Мастера on a cloud macOS runner.
-# Output: two .zip files (Intel x64 and Apple Silicon arm64), each containing
-# the .app. The recipient unzips the one matching their Mac and drags it to
-# Applications. Runs on push to main, manually (Run workflow), or on a v* tag.
+# Builds UNSIGNED macOS .app archives of Ширма Мастера on cloud macOS runners.
+# IMPORTANT: each architecture is built on its OWN native runner so that the
+# better-sqlite3 native module matches the target — otherwise the app crashes on
+# launch (e.g. an arm64 .node inside an x64 build won't run on Intel Macs).
+#   - x64   → macos-13 (Intel runner)
+#   - arm64 → macos-14 (Apple Silicon runner)
+# Output: one .zip per arch, each containing the ad-hoc-signed .app (see
+# scripts/afterPack.cjs). Recipient unzips the matching one, then right-click →
+# Open (or `xattr -dr com.apple.quarantine App.app`) to clear Gatekeeper.
 #
-# Note: we ship a .zip rather than a .dmg because electron-builder's dmgbuild
-# styling step crashes on CI runners (APFS + Cyrillic volume name).
+# We ship .zip (not .dmg): electron-builder's dmg styling crashes on CI with the
+# APFS + Cyrillic volume name.
 
 on:
   push:
@@ -16,7 +21,15 @@ on:
 
 jobs:
   build-mac:
-    runs-on: macos-14
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-13
+            arch: x64
+          - runner: macos-14
+            arch: arm64
+    runs-on: ${{ matrix.runner }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -29,17 +42,18 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Build macOS app (x64 + arm64 zips)
+      - name: Build ${{ matrix.arch }} app
         run: |
           npx electron-vite build
-          npx electron-builder --mac --publish never
+          npx electron-builder --mac --${{ matrix.arch }} --publish never
         env:
-          # No Apple Developer certificate — do not attempt to code-sign.
+          # No Apple Developer certificate — skip real signing (afterPack does
+          # an ad-hoc signature so the app still launches).
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
 
-      - name: Upload app archives
+      - name: Upload ${{ matrix.arch }} archive
         uses: actions/upload-artifact@v4
         with:
-          name: shirma-mastera-mac
+          name: shirma-mastera-mac-${{ matrix.arch }}
           path: release/*.zip
           if-no-files-found: error

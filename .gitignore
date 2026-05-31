@@ -9,3 +9,6 @@ scripts/_descs.txt
 _rebuild_*.log
 pkg-err.log
 se.log
+# personal reference files at repo root (screenshots with serial numbers, PDFs)
+/*.png
+/*.pdf

@@ -5,6 +5,8 @@ import type {
   Edition,
   SearchParams,
   SearchResult,
+  SpellContextPayload,
+  SpellEditAction,
   StatBlock
 } from '../shared/types'
 
@@ -32,11 +34,22 @@ const api: BridgeApi = {
     searchSpells: (params: { search?: string; edition?: Edition; limit?: number }) =>
       ipcRenderer.invoke('open5e:spells', params)
   },
+  spell: {
+    onContext: (cb: (payload: SpellContextPayload) => void) => {
+      const listener = (_e: unknown, payload: SpellContextPayload): void => cb(payload)
+      ipcRenderer.on('spell:context', listener)
+      return () => ipcRenderer.removeListener('spell:context', listener)
+    },
+    replace: (word: string) => ipcRenderer.send('spell:replace', word),
+    addWord: (word: string) => ipcRenderer.send('spell:addWord', word),
+    edit: (action: SpellEditAction) => ipcRenderer.send('spell:edit', action)
+  },
   onlineStatus: () => ipcRenderer.invoke('app:onlineStatus'),
   exportData: () => ipcRenderer.invoke('app:exportData'),
   importData: () => ipcRenderer.invoke('app:importData'),
   exportPdf: (html: string, suggestedName: string) => ipcRenderer.invoke('app:exportPdf', html, suggestedName),
-  setZoom: (factor: number) => webFrame.setZoomFactor(factor)
+  setZoom: (factor: number) => webFrame.setZoomFactor(factor),
+  getZoom: () => webFrame.getZoomFactor()
 }
 
 if (process.contextIsolated) {

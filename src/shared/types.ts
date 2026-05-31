@@ -132,7 +132,13 @@ export interface RollLogEntry {
   crit?: 'hit' | 'miss'
 }
 
-export type CodexKind = 'npc' | 'location'
+// Category key. Built-in keys are 'npc' | 'location'; custom blocks use a generated uid.
+export type CodexKind = string
+
+export interface CodexCategory {
+  key: CodexKind
+  name: string
+}
 
 export interface CodexField {
   label: string
@@ -179,9 +185,40 @@ export interface BackupResult {
   error?: string
 }
 
+// ---- Spellcheck context menu (themed, drawn in the renderer) ----
+export type SpellEditAction = 'cut' | 'copy' | 'paste' | 'selectAll'
+
+export interface SpellContextPayload {
+  /** Cursor position in CSS pixels relative to the page. */
+  x: number
+  y: number
+  /** Non-empty when the right-clicked word is flagged as misspelled. */
+  misspelledWord: string
+  /** Spelling suggestions for the misspelled word. */
+  suggestions: string[]
+  isEditable: boolean
+  selectionText: string
+  canCut: boolean
+  canCopy: boolean
+  canPaste: boolean
+}
+
+export interface SpellApi {
+  /** Subscribe to native context-menu events forwarded from the main process.
+   *  Returns an unsubscribe function. */
+  onContext: (cb: (payload: SpellContextPayload) => void) => () => void
+  /** Replace the right-clicked misspelled word with a suggestion. */
+  replace: (word: string) => void
+  /** Add a word to the persistent custom dictionary (stops underlining it). */
+  addWord: (word: string) => void
+  /** Standard clipboard / selection actions on the focused field. */
+  edit: (action: SpellEditAction) => void
+}
+
 export interface BridgeApi {
   db: DbApi
   open5e: Open5eApi
+  spell: SpellApi
   onlineStatus: () => Promise<boolean>
   exportData: () => Promise<BackupResult>
   importData: () => Promise<BackupResult>
@@ -190,4 +227,7 @@ export interface BridgeApi {
    *  content together while keeping layout height and scrolling correct
    *  (unlike CSS `zoom`, which breaks 100vh and clips the page). */
   setZoom: (factor: number) => void
+  /** Current zoom factor. Needed to convert native context-menu coordinates
+   *  (reported in physical px) into CSS px for positioning overlays. */
+  getZoom: () => number
 }
