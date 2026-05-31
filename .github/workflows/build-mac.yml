@@ -1,11 +1,12 @@
 name: Build macOS app
 
-# Builds unsigned .dmg files of Ширма Мастера on cloud macOS runners.
-# Two separate builds (no universal "lipo" merge, which fails for the native
-# better-sqlite3 module): Intel (x64) on an Intel runner and Apple Silicon
-# (arm64) on an Apple Silicon runner. The friend downloads the .dmg matching
-# their Mac. Runs automatically on every push to main, or manually from the
-# Actions tab (Run workflow), or on a tag like v0.1.0.
+# Builds unsigned macOS app archives of Ширма Мастера on a cloud macOS runner.
+# Output: two .zip files (Intel x64 and Apple Silicon arm64), each containing
+# the .app. The recipient unzips the one matching their Mac and drags it to
+# Applications. Runs on push to main, manually (Run workflow), or on a v* tag.
+#
+# Note: we ship a .zip rather than a .dmg because electron-builder's dmgbuild
+# styling step crashes on CI runners (APFS + Cyrillic volume name).
 
 on:
   push:
@@ -15,15 +16,7 @@ on:
 
 jobs:
   build-mac:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - runner: macos-13   # Intel
-            arch: x64
-          - runner: macos-14   # Apple Silicon
-            arch: arm64
-    runs-on: ${{ matrix.runner }}
+    runs-on: macos-14
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -36,17 +29,17 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Build ${{ matrix.arch }} .dmg
+      - name: Build macOS app (x64 + arm64 zips)
         run: |
           npx electron-vite build
-          npx electron-builder --mac --${{ matrix.arch }}
+          npx electron-builder --mac
         env:
           # No Apple Developer certificate — do not attempt to code-sign.
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
 
-      - name: Upload .dmg
+      - name: Upload app archives
         uses: actions/upload-artifact@v4
         with:
-          name: shirma-mastera-mac-${{ matrix.arch }}
-          path: release/*.dmg
+          name: shirma-mastera-mac
+          path: release/*.zip
           if-no-files-found: error

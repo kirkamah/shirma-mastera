@@ -40,12 +40,13 @@ mac:
   # modules (better-sqlite3) for its own arch, so a universal "lipo" merge fails.
   # The workflow builds x64 on an Intel runner and arm64 on an Apple Silicon
   # runner, producing two separate .dmg files. The friend uses the matching one.
+  # Output a .zip of the .app rather than a .dmg: the dmgbuild styling step
+  # crashes on CI (APFS + Cyrillic volume name). A zipped .app is just as usable
+  # — the recipient unzips and drags it to Applications. Both arches are built.
   target:
-    - target: dmg
+    - target: zip
       arch:
         - x64
         - arm64
   artifactName: ${productName}-${version}-mac-${arch}.${ext}
-dmg:
-  title: ${productName} ${version}
 npmRebuild: true
