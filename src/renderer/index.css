@@ -1,0 +1,305 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   Colour palettes. Every theme colour is a space-separated RGB
+   triplet in a CSS variable so Tailwind (rgb(var(--c-x)/<alpha>))
+   and hand-written rgba() below can both recolour at runtime.
+   :root is the default «dark» palette; switching is done by
+   setting data-palette on <html> (see App.tsx / settings).
+   ============================================================ */
+:root {
+  color-scheme: dark;
+  --c-ink: 21 16 10;
+  --c-parchment: 239 229 207;
+  --c-accent: 122 20 20;
+  --c-accent-deep: 74 12 12;
+  --c-sidebar: 28 19 11;
+  --c-gold: 184 137 59;
+  --c-gold-soft: 217 184 120;
+  --c-parchment-dark: 227 212 176;
+  --c-parchment-line: 205 185 140;
+  --c-ink-brown: 44 33 20;
+  --c-ink-soft: 36 26 16;
+  --c-spell: 36 80 140;
+  --c-cond: 28 96 56;
+}
+
+[data-palette='light'] {
+  color-scheme: light;
+  --c-ink: 228 222 210;
+  --c-parchment: 252 249 242;
+  --c-accent: 150 32 32;
+  --c-accent-deep: 110 22 22;
+  --c-sidebar: 214 204 186;
+  --c-gold: 150 110 45;
+  --c-gold-soft: 92 66 30;
+  --c-parchment-dark: 240 233 220;
+  --c-parchment-line: 214 201 178;
+  --c-ink-brown: 54 42 30;
+  --c-ink-soft: 70 60 46;
+  --c-spell: 30 70 135;
+  --c-cond: 26 92 52;
+}
+
+[data-palette='blue'] {
+  color-scheme: dark;
+  --c-ink: 15 20 28;
+  --c-parchment: 210 221 234;
+  --c-accent: 56 116 178;
+  --c-accent-deep: 30 64 104;
+  --c-sidebar: 22 30 43;
+  --c-gold: 138 160 188;
+  --c-gold-soft: 188 205 226;
+  --c-parchment-dark: 192 206 224;
+  --c-parchment-line: 168 184 206;
+  --c-ink-brown: 24 38 60;
+  --c-ink-soft: 22 31 44;
+  --c-spell: 28 84 162;
+  --c-cond: 26 104 78;
+}
+
+[data-palette='ember'] {
+  color-scheme: dark;
+  --c-ink: 26 14 10;
+  --c-parchment: 244 226 200;
+  --c-accent: 200 72 26;
+  --c-accent-deep: 140 44 14;
+  --c-sidebar: 38 19 12;
+  --c-gold: 214 132 48;
+  --c-gold-soft: 240 182 112;
+  --c-parchment-dark: 232 208 176;
+  --c-parchment-line: 212 184 150;
+  --c-ink-brown: 64 36 18;
+  --c-ink-soft: 44 24 14;
+  --c-spell: 44 84 138;
+  --c-cond: 40 100 56;
+}
+
+[data-palette='forest'] {
+  color-scheme: dark;
+  --c-ink: 12 22 16;
+  --c-parchment: 224 233 209;
+  --c-accent: 40 120 72;
+  --c-accent-deep: 22 74 44;
+  --c-sidebar: 18 32 24;
+  --c-gold: 160 152 74;
+  --c-gold-soft: 202 210 150;
+  --c-parchment-dark: 206 220 188;
+  --c-parchment-line: 182 198 160;
+  --c-ink-brown: 26 48 30;
+  --c-ink-soft: 20 34 24;
+  --c-spell: 36 78 130;
+  --c-cond: 22 104 60;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  color: rgb(var(--c-parchment));
+  font-family: 'Inter', system-ui, sans-serif;
+  overflow: hidden;
+  /* Allow text selection and Ctrl+C copying throughout the app.
+     Drag handlers in App.tsx / Notebook.tsx temporarily flip this to 'none'
+     while a divider is being dragged, then restore it. */
+  user-select: text;
+  /* Aged-leather / wood backdrop with vignette */
+  background-color: rgb(var(--c-ink));
+  background-image:
+    radial-gradient(ellipse at 50% 0%, rgba(80, 55, 25, 0.18), transparent 60%),
+    radial-gradient(ellipse at 50% 120%, rgba(0, 0, 0, 0.4), transparent 60%),
+    repeating-linear-gradient(115deg, rgba(255, 255, 255, 0.012) 0 2px, transparent 2px 6px),
+    repeating-linear-gradient(20deg, rgba(0, 0, 0, 0.12) 0 3px, transparent 3px 9px);
+}
+
+h1,
+h2,
+h3,
+h4,
+.font-serif {
+  font-family: 'Crimson Text', 'IM Fell English', Georgia, serif;
+}
+
+/* ---------- Parchment page ---------- */
+.parchment-texture {
+  position: relative;
+  background-color: rgb(var(--c-parchment));
+  background-image:
+    radial-gradient(rgb(var(--c-gold) / 0.05) 1px, transparent 1px),
+    radial-gradient(rgb(var(--c-ink-brown) / 0.045) 1px, transparent 1px),
+    radial-gradient(ellipse at 25% 15%, rgb(var(--c-gold) / 0.12), transparent 55%),
+    radial-gradient(ellipse at 80% 85%, rgb(var(--c-gold) / 0.14), transparent 55%),
+    linear-gradient(180deg, rgb(var(--c-parchment)), rgb(var(--c-parchment-dark)));
+  background-size:
+    18px 18px,
+    24px 24px,
+    100% 100%,
+    100% 100%,
+    100% 100%;
+  background-position:
+    0 0,
+    9px 9px,
+    0 0,
+    0 0,
+    0 0;
+  color: rgb(var(--c-ink-brown));
+  box-shadow:
+    inset 0 0 60px rgb(var(--c-ink-brown) / 0.2),
+    inset 0 0 4px rgb(var(--c-ink-brown) / 0.35);
+}
+
+/* Texture toggle (Settings) — flatten parchment when disabled */
+.no-texture .parchment-texture {
+  background-image: linear-gradient(180deg, rgb(var(--c-parchment)), rgb(var(--c-parchment-dark)));
+}
+
+/* Gilded double-rule border used on pages and cards */
+.tome-border {
+  border: 1px solid rgb(var(--c-accent) / 0.55);
+  outline: 1px solid rgb(var(--c-gold) / 0.55);
+  outline-offset: 3px;
+}
+
+/* Ornamental corner flourishes on a page */
+.tome-page::before,
+.tome-page::after {
+  content: '❧';
+  position: absolute;
+  color: rgb(var(--c-accent) / 0.5);
+  font-size: 22px;
+  line-height: 1;
+}
+.tome-page::before {
+  top: 8px;
+  left: 12px;
+}
+.tome-page::after {
+  bottom: 8px;
+  right: 12px;
+  transform: rotate(180deg);
+}
+
+/* Section heading with a fleuron */
+.tome-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgb(var(--c-accent));
+}
+.tome-heading::after {
+  content: '';
+  flex: 1;
+  height: 2px;
+  background: linear-gradient(90deg, rgb(var(--c-accent) / 0.6), rgb(var(--c-gold) / 0.5), transparent);
+}
+
+/* Enlarged first letter of a paragraph. Sits inline on the baseline (bottom
+ *  aligned with the rest of the line) instead of floating left with its top
+ *  aligned to surrounding text — easier to read. */
+.drop-cap::first-letter {
+  font-family: 'Crimson Text', Georgia, serif;
+  font-size: 2.4em;
+  font-weight: 700;
+  line-height: 1;
+  margin-right: 0.04em;
+  color: rgb(var(--c-accent));
+  text-shadow: 1px 1px 0 rgb(var(--c-gold) / 0.4);
+}
+
+/* Fleuron divider (replaces plain hr) */
+.fleuron {
+  border: none;
+  height: 18px;
+  margin: 8px 0;
+  text-align: center;
+  position: relative;
+}
+.fleuron::before {
+  content: '❦';
+  color: rgb(var(--c-accent));
+  background: transparent;
+  padding: 0 10px;
+  font-size: 14px;
+}
+.fleuron::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgb(var(--c-accent) / 0.5), transparent);
+  z-index: -1;
+}
+
+.stat-divider {
+  height: 3px;
+  border: none;
+  background: linear-gradient(90deg, transparent, rgb(var(--c-accent)), rgb(var(--c-gold)), rgb(var(--c-accent)), transparent);
+  margin: 6px 0;
+}
+
+/* Wax-seal CR badge */
+.wax-seal {
+  background: radial-gradient(circle at 35% 30%, rgb(var(--c-accent)), rgb(var(--c-accent-deep)) 70%);
+  color: rgb(var(--c-parchment));
+  border: 1px solid rgba(0, 0, 0, 0.3);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+/* ---------- Scrollbars ---------- */
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+}
+*::-webkit-scrollbar-thumb {
+  background: linear-gradient(rgb(var(--c-accent)), rgb(var(--c-accent-deep)));
+  border-radius: 6px;
+  border: 1px solid rgb(var(--c-gold) / 0.3);
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: rgb(var(--c-accent));
+}
+
+textarea,
+input,
+[contenteditable='true'],
+.selectable {
+  user-select: text;
+}
+
+/* contentEditable placeholder */
+[contenteditable][data-placeholder]:empty::before {
+  content: attr(data-placeholder);
+  color: rgb(var(--c-parchment) / 0.35);
+  pointer-events: none;
+}
+
+/* Notes rich-text formatting */
+.prose-notes h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin: 0.4rem 0 0.2rem;
+  color: rgb(var(--c-gold-soft));
+}
+.prose-notes ul {
+  list-style: disc;
+  padding-left: 1.2rem;
+}
+.prose-notes ol {
+  list-style: decimal;
+  padding-left: 1.2rem;
+}
+.prose-notes b,
+.prose-notes strong {
+  color: rgb(var(--c-gold-soft));
+}

@@ -1,0 +1,45 @@
+{
+  "name": "shirma-mastera",
+  "version": "0.1.0",
+  "description": "Ширма Мастера — D&D 5e DM toolkit and encyclopedia",
+  "main": "./out/main/index.js",
+  "author": "Kirkamah (no harm org)",
+  "license": "UNLICENSED",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "start": "electron-vite preview",
+    "build": "electron-vite build && electron-builder --win",
+    "build:dir": "electron-vite build && electron-builder --win --dir",
+    "build:mac": "electron-vite build && electron-builder --mac --universal",
+    "compile": "electron-vite build",
+    "icon": "node scripts/make-icon.cjs",
+    "icon:mac": "node scripts/make-icns.cjs",
+    "typecheck": "tsc --noEmit -p tsconfig.web.json && tsc --noEmit -p tsconfig.node.json",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.8.1",
+    "react-icons": "^5.6.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/node": "^20.14.0",
+    "@types/react": "^18.3.5",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "autoprefixer": "^10.4.20",
+    "electron": "^31.3.1",
+    "electron-builder": "^24.13.3",
+    "electron-vite": "^2.3.0",
+    "i18next": "^23.14.0",
+    "postcss": "^8.4.45",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-i18next": "^14.1.3",
+    "react-router-dom": "^6.26.1",
+    "tailwindcss": "^3.4.10",
+    "typescript": "^5.5.4",
+    "vite": "^5.4.2",
+    "zustand": "^4.5.5"
+  }
+}

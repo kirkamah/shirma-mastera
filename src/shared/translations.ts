@@ -1,0 +1,406 @@
+// English -> Russian maps for the controlled vocabulary Open5e returns.
+
+export const SIZE_RU: Record<string, string> = {
+  tiny: 'Крошечный',
+  small: 'Маленький',
+  medium: 'Средний',
+  large: 'Большой',
+  huge: 'Огромный',
+  gargantuan: 'Громадный'
+}
+
+export const TYPE_RU: Record<string, string> = {
+  aberration: 'Аберрация',
+  beast: 'Зверь',
+  celestial: 'Небожитель',
+  construct: 'Конструкт',
+  dragon: 'Дракон',
+  elemental: 'Элементаль',
+  fey: 'Фея',
+  fiend: 'Исчадие',
+  giant: 'Великан',
+  humanoid: 'Гуманоид',
+  monstrosity: 'Чудовище',
+  ooze: 'Слизь',
+  plant: 'Растение',
+  undead: 'Нежить',
+  swarm: 'Рой'
+}
+
+const ALIGN_WORD: Record<string, string> = {
+  lawful: 'законопослушн',
+  chaotic: 'хаотичн',
+  neutral: 'нейтральн',
+  good: 'добр',
+  evil: 'зл',
+  any: 'любое',
+  unaligned: 'без мировоззрения',
+  alignment: 'мировоззрение'
+}
+
+// Common SRD monster names — used to russify the live Open5e tab where possible.
+export const MONSTER_NAME_RU: Record<string, string> = {
+  aboleth: 'Аболет',
+  acolyte: 'Прислужник',
+  'adult red dragon': 'Взрослый красный дракон',
+  'animated armor': 'Оживший доспех',
+  ankheg: 'Анкег',
+  ape: 'Обезьяна',
+  assassin: 'Убийца',
+  banshee: 'Банши',
+  basilisk: 'Василиск',
+  bandit: 'Бандит',
+  'bandit captain': 'Главарь разбойников',
+  bat: 'Летучая мышь',
+  bugbear: 'Багбир',
+  'black dragon': 'Чёрный дракон',
+  'blink dog': 'Мерцающий пёс',
+  boar: 'Кабан',
+  'brown bear': 'Бурый медведь',
+  bulette: 'Булетта',
+  centaur: 'Кентавр',
+  chimera: 'Химера',
+  chuul: 'Чуул',
+  cockatrice: 'Кокатрикс',
+  commoner: 'Простолюдин',
+  couatl: 'Коатль',
+  cultist: 'Культист',
+  cyclops: 'Циклоп',
+  'death dog': 'Пёс смерти',
+  'dire wolf': 'Жуткий волк',
+  doppelganger: 'Доппельгангер',
+  dretch: 'Дреч',
+  druid: 'Друид',
+  dryad: 'Дриада',
+  'dust mephit': 'Пыльный мефит',
+  eagle: 'Орёл',
+  'ettercap': 'Эттеркап',
+  ettin: 'Эттин',
+  'fire elemental': 'Огненный элементаль',
+  'flesh golem': 'Мясной голем',
+  'frost giant': 'Ледяной великан',
+  gargoyle: 'Горгулья',
+  ghast: 'Вурдалак',
+  ghost: 'Призрак',
+  ghoul: 'Гуль',
+  'giant spider': 'Гигантский паук',
+  'giant rat': 'Гигантская крыса',
+  gnoll: 'Гнолл',
+  goblin: 'Гоблин',
+  golem: 'Голем',
+  gorgon: 'Горгон',
+  'green dragon': 'Зелёный дракон',
+  griffon: 'Грифон',
+  guard: 'Стражник',
+  harpy: 'Гарпия',
+  hawk: 'Ястреб',
+  'hill giant': 'Холмовой великан',
+  hobgoblin: 'Хобгоблин',
+  'horned devil': 'Рогатый дьявол',
+  imp: 'Бес',
+  knight: 'Рыцарь',
+  kobold: 'Кобольд',
+  lich: 'Лич',
+  lion: 'Лев',
+  lizardfolk: 'Ящеролюд',
+  mage: 'Маг',
+  manticore: 'Мантикора',
+  medusa: 'Медуза',
+  mimic: 'Мимик',
+  minotaur: 'Минотавр',
+  mummy: 'Мумия',
+  'mummy lord': 'Владыка-мумия',
+  nightmare: 'Кошмар',
+  noble: 'Дворянин',
+  ogre: 'Огр',
+  orc: 'Орк',
+  owlbear: 'Совомедведь',
+  panther: 'Пантера',
+  pegasus: 'Пегас',
+  priest: 'Жрец',
+  pseudodragon: 'Псевдодракон',
+  'rakshasa': 'Ракшас',
+  rat: 'Крыса',
+  raven: 'Ворон',
+  roc: 'Рух',
+  'saber-toothed tiger': 'Саблезубый тигр',
+  satyr: 'Сатир',
+  scout: 'Разведчик',
+  shadow: 'Тень',
+  shrieker: 'Крикун',
+  skeleton: 'Скелет',
+  specter: 'Дух',
+  spider: 'Паук',
+  sprite: 'Спрайт',
+  'stone giant': 'Каменный великан',
+  succubus: 'Суккуб',
+  thug: 'Громила',
+  tiger: 'Тигр',
+  treant: 'Древень',
+  triceratops: 'Трицератопс',
+  troll: 'Тролль',
+  unicorn: 'Единорог',
+  vampire: 'Вампир',
+  'vampire spawn': 'Вампирский выкормыш',
+  veteran: 'Ветеран',
+  'water elemental': 'Водный элементаль',
+  wight: 'Умертвие',
+  'will-o-wisp': 'Болотный огонёк',
+  wolf: 'Волк',
+  wraith: 'Рейф',
+  wyvern: 'Виверна',
+  'young red dragon': 'Молодой красный дракон',
+  zombie: 'Зомби'
+}
+
+export function translateMonsterName(name: string): string {
+  return MONSTER_NAME_RU[name.trim().toLowerCase()] ?? name
+}
+
+export const SCHOOL_RU: Record<string, string> = {
+  abjuration: 'Ограждение',
+  conjuration: 'Вызов',
+  divination: 'Прорицание',
+  enchantment: 'Очарование',
+  evocation: 'Воплощение',
+  illusion: 'Иллюзия',
+  necromancy: 'Некромантия',
+  transmutation: 'Преобразование'
+}
+
+export function translateSchool(s: string): string {
+  return SCHOOL_RU[s.trim().toLowerCase()] ?? s
+}
+
+// Common SRD spell names EN -> RU (russifies names on the live Open5e tab).
+export const SPELL_NAME_RU: Record<string, string> = {
+  'acid splash': 'Брызги кислоты',
+  aid: 'Помощь',
+  alarm: 'Сигнал тревоги',
+  'animate dead': 'Оживление мёртвых (нежить)',
+  'animate objects': 'Оживление предметов',
+  'antimagic field': 'Поле антимагии',
+  'arcane eye': 'Магический глаз',
+  'arcane lock': 'Магический замок',
+  augury: 'Прорицание',
+  bane: 'Проклятие',
+  banishment: 'Изгнание',
+  barkskin: 'Кора',
+  bless: 'Благословение',
+  blight: 'Усыхание',
+  blindness: 'Слепота/глухота',
+  'blur': 'Размытый облик',
+  'burning hands': 'Огненные ладони',
+  'call lightning': 'Вызов молнии',
+  'chain lightning': 'Цепная молния',
+  'charm person': 'Очарование личности',
+  'chill touch': 'Холодное прикосновение',
+  'circle of death': 'Круг смерти',
+  clairvoyance: 'Ясновидение',
+  cloudkill: 'Губительное облако',
+  command: 'Приказ',
+  'comprehend languages': 'Понимание языков',
+  'cone of cold': 'Конус холода',
+  confusion: 'Смятение',
+  'conjure animals': 'Призыв животных',
+  'conjure elemental': 'Призыв элементаля',
+  counterspell: 'Контрзаклинание',
+  'create undead': 'Создание нежити',
+  'cure wounds': 'Лечение ран',
+  darkness: 'Тьма',
+  darkvision: 'Тёмное зрение',
+  daylight: 'Дневной свет',
+  'death ward': 'Защита от смерти',
+  'detect magic': 'Обнаружение магии',
+  'detect thoughts': 'Обнаружение мыслей',
+  'dimension door': 'Пространственная дверь',
+  'disguise self': 'Маскировка',
+  disintegrate: 'Дезинтеграция',
+  'dispel magic': 'Рассеивание магии',
+  divination: 'Откровение',
+  'dominate monster': 'Подчинение чудовища',
+  'dominate person': 'Подчинение личности',
+  'eldritch blast': 'Мистический заряд',
+  enlarge: 'Увеличение/уменьшение',
+  entangle: 'Опутывание',
+  'expeditious retreat': 'Поспешное отступление',
+  'faerie fire': 'Огонь фей',
+  'fear': 'Страх',
+  'feather fall': 'Падение пёрышком',
+  fireball: 'Огненный шар',
+  'fire bolt': 'Огненный снаряд',
+  'fire shield': 'Огненный щит',
+  'flame strike': 'Огненный столп',
+  'flaming sphere': 'Огненная сфера',
+  fly: 'Полёт',
+  'fog cloud': 'Туманное облако',
+  'freedom of movement': 'Свобода перемещения',
+  'gaseous form': 'Газообразная форма',
+  'gentle repose': 'Спокойствие смерти',
+  geas: 'Гейс',
+  'globe of invulnerability': 'Сфера неуязвимости',
+  grease: 'Жир',
+  'greater invisibility': 'Высшая невидимость',
+  'greater restoration': 'Высшее восстановление',
+  guidance: 'Указание',
+  'guiding bolt': 'Направляющий снаряд',
+  'gust of wind': 'Порыв ветра',
+  hallow: 'Освящение',
+  haste: 'Ускорение',
+  heal: 'Исцеление',
+  'healing word': 'Лечащее слово',
+  'heat metal': 'Раскалённый металл',
+  'hold monster': 'Удержание чудовища',
+  'hold person': 'Удержание личности',
+  'hunters mark': 'Метка охотника',
+  "hunter's mark": 'Метка охотника',
+  'hypnotic pattern': 'Гипнотический узор',
+  'ice storm': 'Ледяная буря',
+  identify: 'Опознание',
+  'insect plague': 'Нашествие насекомых',
+  invisibility: 'Невидимость',
+  jump: 'Прыжок',
+  knock: 'Отмыкание',
+  levitate: 'Левитация',
+  light: 'Свет',
+  'lightning bolt': 'Молния',
+  longstrider: 'Шаг великана',
+  'mage armor': 'Доспех мага',
+  'mage hand': 'Рука мага',
+  'magic missile': 'Волшебная стрела',
+  'magic weapon': 'Магическое оружие',
+  'major image': 'Большая иллюзия',
+  'mass cure wounds': 'Массовое лечение ран',
+  'mass healing word': 'Массовое лечащее слово',
+  mending: 'Починка',
+  message: 'Послание',
+  'meteor swarm': 'Метеоритный дождь',
+  'minor illusion': 'Малая иллюзия',
+  'mirror image': 'Отражения',
+  'misty step': 'Туманный шаг',
+  moonbeam: 'Лунный луч',
+  'pass without trace': 'Бесследное передвижение',
+  'phantasmal force': 'Фантомная сила',
+  'planar binding': 'Планарные узы',
+  'poison spray': 'Ядовитые брызги',
+  polymorph: 'Полиморф',
+  'prayer of healing': 'Молитва исцеления',
+  prestidigitation: 'Фокусы',
+  'produce flame': 'Сотворение пламени',
+  'protection from energy': 'Защита от энергии',
+  'protection from evil and good': 'Защита от зла и добра',
+  'ray of enfeeblement': 'Луч слабости',
+  'ray of frost': 'Луч холода',
+  'remove curse': 'Снятие проклятия',
+  resistance: 'Сопротивление',
+  'reverse gravity': 'Обращение гравитации',
+  revivify: 'Оживление',
+  'sacred flame': 'Священное пламя',
+  sanctuary: 'Убежище',
+  'scorching ray': 'Палящий луч',
+  scrying: 'Подгляд',
+  'see invisibility': 'Видение невидимого',
+  shatter: 'Звуковой удар',
+  shield: 'Щит',
+  'shield of faith': 'Щит веры',
+  'shocking grasp': 'Электрический захват',
+  silence: 'Тишина',
+  'sleep': 'Усыпление',
+  'slow': 'Замедление',
+  'speak with dead': 'Разговор с мёртвыми',
+  'spider climb': 'Паучье лазание',
+  'spike growth': 'Шипы',
+  'spirit guardians': 'Духовные стражи',
+  'spiritual weapon': 'Духовное оружие',
+  'stinking cloud': 'Зловонное облако',
+  stoneskin: 'Каменная кожа',
+  suggestion: 'Внушение',
+  sunbeam: 'Солнечный луч',
+  telekinesis: 'Телекинез',
+  'thaumaturgy': 'Чудотворство',
+  thunderwave: 'Громовая волна',
+  'time stop': 'Остановка времени',
+  'true seeing': 'Истинное зрение',
+  'vampiric touch': 'Вампирское прикосновение',
+  'wall of fire': 'Стена огня',
+  'wall of force': 'Стена силы',
+  'wall of ice': 'Ледяная стена',
+  'wall of stone': 'Каменная стена',
+  web: 'Паутина',
+  'wish': 'Исполнение желаний',
+  'witch bolt': 'Ведьмин снаряд',
+  'zone of truth': 'Зона истины'
+}
+
+export function translateSpellName(name: string): string {
+  return SPELL_NAME_RU[name.trim().toLowerCase()] ?? name
+}
+
+// Light translation of spell metadata phrases (range / casting time / duration).
+const META_REPLACEMENTS: [RegExp, string][] = [
+  [/Concentration, up to/gi, 'Концентрация, до'],
+  [/Instantaneous/gi, 'Мгновенная'],
+  [/Until dispelled/gi, 'Пока не рассеяна'],
+  [/bonus action/gi, 'бонусное действие'],
+  [/reaction/gi, 'реакция'],
+  [/\baction\b/gi, 'действие'],
+  [/Self/gi, 'На себя'],
+  [/Touch/gi, 'Касание'],
+  [/Sight/gi, 'В пределах видимости'],
+  [/Unlimited/gi, 'Неограниченная'],
+  [/Special/gi, 'Особая'],
+  [/minutes?/gi, 'мин.'],
+  [/hours?/gi, 'ч.'],
+  [/days?/gi, 'дн.'],
+  [/rounds?/gi, 'раунд.'],
+  [/feet/gi, 'футов'],
+  [/foot/gi, 'фут'],
+  [/miles?/gi, 'миль'],
+  [/radius/gi, 'радиус'],
+  [/-foot/gi, '-футовый']
+]
+
+export function translateSpellMeta(s: string | undefined): string | undefined {
+  if (!s) return s
+  let out = s
+  for (const [re, ru] of META_REPLACEMENTS) out = out.replace(re, ru)
+  return out
+}
+
+export function translateSize(s: string): string {
+  return SIZE_RU[s.trim().toLowerCase()] ?? s
+}
+
+export function translateType(s: string): string {
+  return TYPE_RU[s.trim().toLowerCase()] ?? s
+}
+
+/** Best-effort translation of an Open5e alignment phrase, e.g. "chaotic evil" -> "хаотично-злой". */
+export function translateAlignment(s: string): string {
+  const lower = s.trim().toLowerCase()
+  if (!lower || lower === 'unaligned') return 'без мировоззрения'
+  if (lower.startsWith('any')) return 'любое мировоззрение'
+
+  const pair: Record<string, string> = {
+    'lawful good': 'законопослушно-добрый',
+    'lawful neutral': 'законопослушно-нейтральный',
+    'lawful evil': 'законопослушно-злой',
+    'neutral good': 'нейтрально-добрый',
+    neutral: 'нейтральный',
+    'true neutral': 'нейтральный',
+    'neutral evil': 'нейтрально-злой',
+    'chaotic good': 'хаотично-добрый',
+    'chaotic neutral': 'хаотично-нейтральный',
+    'chaotic evil': 'хаотично-злой'
+  }
+  if (pair[lower]) return pair[lower]
+
+  // Fallback: translate token by token.
+  return lower
+    .split(/\s+/)
+    .map((w) => {
+      for (const [en, ru] of Object.entries(ALIGN_WORD)) if (w.startsWith(en)) return ru
+      return w
+    })
+    .join(' ')
+}

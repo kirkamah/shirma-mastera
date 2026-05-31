@@ -1,0 +1,11 @@
+node_modules
+out
+release
+dist
+*.log
+.DS_Store
+# build/working artifacts
+scripts/_descs.txt
+_rebuild_*.log
+pkg-err.log
+se.log
