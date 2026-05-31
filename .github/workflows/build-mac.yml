@@ -50,6 +50,11 @@ jobs:
       - name: Build ${{ matrix.arch }} app
         run: |
           npx electron-vite build
+          # Cross-compile native deps (better-sqlite3) for the TARGET arch first.
+          # On this Apple Silicon runner npm install built them for arm64; this
+          # rebuilds them as x86_64 when matrix.arch=x64. npmRebuild is disabled
+          # in electron-builder.yml so packaging keeps this exact binary.
+          npx electron-builder install-app-deps --platform=darwin --arch=${{ matrix.arch }}
           npx electron-builder --mac --${{ matrix.arch }} --publish never
         env:
           # No Apple Developer certificate — skip real signing (afterPack does
