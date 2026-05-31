@@ -36,10 +36,15 @@ mac:
   # No Apple Developer certificate: build an unsigned (ad-hoc) app so it can be
   # produced without signing. The recipient opens it via right-click -> Open.
   identity: null
+  # Per-arch builds (NOT universal): a single CI runner can only build native
+  # modules (better-sqlite3) for its own arch, so a universal "lipo" merge fails.
+  # The workflow builds x64 on an Intel runner and arm64 on an Apple Silicon
+  # runner, producing two separate .dmg files. The friend uses the matching one.
   target:
     - target: dmg
       arch:
-        - universal
+        - x64
+        - arm64
   artifactName: ${productName}-${version}-mac-${arch}.${ext}
 dmg:
   title: ${productName} ${version}
