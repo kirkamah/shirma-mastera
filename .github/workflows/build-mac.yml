@@ -32,7 +32,7 @@ jobs:
       - name: Build macOS app (x64 + arm64 zips)
         run: |
           npx electron-vite build
-          npx electron-builder --mac
+          npx electron-builder --mac --publish never
         env:
           # No Apple Developer certificate — do not attempt to code-sign.
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
