@@ -1,14 +1,23 @@
 name: Build macOS app
 
 # Builds UNSIGNED macOS .app archives of Ширма Мастера on cloud macOS runners.
-# IMPORTANT: each architecture is built on its OWN native runner so that the
-# better-sqlite3 native module matches the target — otherwise the app crashes on
-# launch (e.g. an arm64 .node inside an x64 build won't run on Intel Macs).
-#   - x64   → macos-13 (Intel runner)
-#   - arm64 → macos-14 (Apple Silicon runner)
+#
+# Both arches are built on macos-14 (Apple Silicon). GitHub's free Intel
+# runners (macos-13) are scarce and jobs can sit in "Waiting for a runner" for
+# 30+ minutes, so instead we CROSS-COMPILE the x64 build on the always-available
+# Apple Silicon runner. macOS ships both CPU slices, so clang/node-gyp can build
+# an x86_64 better-sqlite3 from an arm64 host.
+#   - arm64 → native build on macos-14
+#   - x64   → cross-compiled on macos-14
+#
+# A "Verify architecture" step then runs `file`/`lipo` on the app binary AND the
+# better-sqlite3 native module and FAILS the build if they aren't the expected
+# arch — so a wrong-arch (crash-on-launch) build can never reach the recipient.
+#
 # Output: one .zip per arch, each containing the ad-hoc-signed .app (see
 # scripts/afterPack.cjs). Recipient unzips the matching one, then right-click →
 # Open (or `xattr -dr com.apple.quarantine App.app`) to clear Gatekeeper.
+# The friend's Intel MacBook needs shirma-mastera-mac-x64.
 #
 # We ship .zip (not .dmg): electron-builder's dmg styling crashes on CI with the
 # APFS + Cyrillic volume name.
@@ -24,12 +33,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - runner: macos-13
-            arch: x64
-          - runner: macos-14
-            arch: arm64
-    runs-on: ${{ matrix.runner }}
+        arch: [x64, arm64]
+    runs-on: macos-14
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -50,6 +55,24 @@ jobs:
           # No Apple Developer certificate — skip real signing (afterPack does
           # an ad-hoc signature so the app still launches).
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+
+      - name: Verify ${{ matrix.arch }} architecture
+        run: |
+          set -euo pipefail
+          if [ '${{ matrix.arch }}' = 'x64' ]; then EXPECT='x86_64'; else EXPECT='arm64'; fi
+          echo "Expecting arch: $EXPECT"
+          APP=$(find release -maxdepth 2 -name '*.app' -type d | head -n1)
+          if [ -z "$APP" ]; then echo "No .app found under release/"; exit 1; fi
+          echo "App bundle: $APP"
+          EXE=$(find "$APP/Contents/MacOS" -type f -perm -111 | head -n1)
+          NODEFILE=$(find "$APP" -name 'better_sqlite3.node' | head -n1)
+          echo "=== App executable ==="; file "$EXE"; lipo -archs "$EXE" || true
+          echo "=== better_sqlite3.node ==="
+          if [ -z "$NODEFILE" ]; then echo "better_sqlite3.node not found"; exit 1; fi
+          file "$NODEFILE"; lipo -archs "$NODEFILE" || true
+          file "$EXE"      | grep -q "$EXPECT" || { echo "FAIL: app binary is not $EXPECT"; exit 1; }
+          file "$NODEFILE" | grep -q "$EXPECT" || { echo "FAIL: native module is not $EXPECT"; exit 1; }
+          echo "OK: both binaries are $EXPECT"
 
       - name: Upload ${{ matrix.arch }} archive
         uses: actions/upload-artifact@v4
