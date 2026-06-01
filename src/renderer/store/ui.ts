@@ -13,6 +13,7 @@ export type SplitRoute =
   | '/hazards'
   | '/codex'
   | '/rules'
+  | '/random-tables'
   | '/character'
   | '/my-monsters'
 

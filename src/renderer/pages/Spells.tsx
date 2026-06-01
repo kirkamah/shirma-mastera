@@ -38,7 +38,13 @@ const SPELL_FIELDS: FormField[] = [
   { key: 'duration', label: 'Длительность', placeholder: 'Мгновенная' },
   { key: 'concentration', label: 'Концентрация', type: 'checkbox' },
   { key: 'ritual', label: 'Ритуал', type: 'checkbox' },
-  { key: 'classes', label: 'Классы (через запятую)', placeholder: 'Волшебник, Чародей' },
+  {
+    key: 'classes',
+    label: 'Классы',
+    type: 'tags',
+    placeholder: 'Например: Волшебник',
+    suggestions: ['Бард', 'Жрец', 'Друид', 'Колдун', 'Паладин', 'Следопыт', 'Волшебник', 'Чародей', 'Изобретатель']
+  },
   { key: 'desc', label: 'Описание', type: 'textarea' },
   { key: 'higherLevel', label: 'На более высоких уровнях', type: 'textarea' }
 ]

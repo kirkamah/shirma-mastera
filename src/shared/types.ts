@@ -163,6 +163,9 @@ export interface DbApi {
   deleteMonster: (key: string) => Promise<void>
   getNotes: () => Promise<string>
   saveNotes: (content: string) => Promise<void>
+  /** Generic persisted key/value store (folder tree, misc UI state). */
+  getKv: (key: string) => Promise<string>
+  setKv: (key: string, value: string) => Promise<void>
   listCodex: () => Promise<CodexEntry[]>
   saveCodex: (entry: CodexEntry) => Promise<CodexEntry>
   deleteCodex: (key: string) => Promise<void>

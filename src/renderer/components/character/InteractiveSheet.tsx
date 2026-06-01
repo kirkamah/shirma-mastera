@@ -1,4 +1,4 @@
-import { useState, type CSSProperties, type JSX, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type CSSProperties, type JSX, type ReactNode } from 'react'
 import { uid } from '../../utils/monster'
 import { ABILITIES, ABILITY_RU, ABILITY_ABBR, SKILL_DESC, formatMod, type AbilityKey } from '../../data/character-rules'
 import { deriveSheet, type CharacterSheet, type SpellLine } from '../../data/character-sheet'
@@ -101,7 +101,7 @@ export default function InteractiveSheet({
                   <Mini label="Бонус маст."><span>{formatMod(v.proficiencyBonus)}</span></Mini>
                 </div>
                 <Panel label="Спасброски">{v.saves.map((s) => <ProfLine key={s.ability} on={s.proficient} onToggle={() => toggleSave(s.ability, s.proficient)} mod={s.bonus} name={ABILITY_RU[s.ability]} />)}</Panel>
-                <Panel label="Навыки">{v.skills.map((s) => <ProfLine key={s.skill} on={s.proficient} onToggle={() => toggleSkill(s.skill, s.proficient)} mod={s.bonus} name={s.skill} sub={ABILITY_ABBR[s.ability]} title={SKILL_DESC[s.skill].play} />)}</Panel>
+                <Panel label="Навыки">{v.skills.map((s) => <ProfLine key={s.skill} on={s.proficient} onToggle={() => toggleSkill(s.skill, s.proficient)} mod={s.bonus} name={s.expert ? `${s.skill} ✦` : s.skill} sub={ABILITY_ABBR[s.ability]} title={SKILL_DESC[s.skill].play} />)}</Panel>
                 <Mini label="Пассивная Внимательность"><span>{v.passivePerception}</span></Mini>
               </div>
             </div>
@@ -114,7 +114,7 @@ export default function InteractiveSheet({
           {/* col 2 */}
           <div className="flex flex-col gap-1.5">
             <div className="grid grid-cols-3 items-stretch gap-1.5">
-              <div className="cs-shield"><svg viewBox="0 0 74 84"><path d="M4 7 H70 V50 Q70 76 37 82 Q4 76 4 50 Z" fill="none" stroke="#000" strokeWidth="1.5" /></svg><div className="v"><input type="number" value={sheet.armorClass ?? v.derivedAC} onChange={(e) => set({ armorClass: e.target.value === '' ? undefined : +e.target.value })} /></div><span className="cs-pl">Класс доспеха</span></div>
+              <div className="cs-shield"><svg viewBox="0 0 74 84"><path d="M4 7 H70 V50 Q70 76 37 82 Q4 76 4 50 Z" fill="none" stroke="#000" strokeWidth="1.5" /></svg><div className="v"><input type="number" value={sheet.armorClass ?? v.derivedAC} onWheel={(e) => e.currentTarget.blur()} onChange={(e) => set({ armorClass: e.target.value === '' ? undefined : +e.target.value })} title={sheet.armorClass != null ? `Ручное значение. Авто-КД с учётом доспехов: ${v.derivedAC}` : `Считается автоматически по надетым доспехам (${v.derivedAC})`} /></div>{!readOnly && sheet.armorClass != null && sheet.armorClass !== v.derivedAC && <button onClick={() => set({ armorClass: undefined })} title={`Сбросить к авто-КД по доспехам (${v.derivedAC})`} style={{ position: 'absolute', top: 2, right: 2, fontSize: 10, color: '#7a1414' }}>↺</button>}<span className="cs-pl">Класс доспеха</span></div>
               <div className="cs-mini" style={{ minHeight: 84, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}><div className="v" style={{ fontSize: 22 }}>{formatMod(v.initiative)}</div><span className="cs-pl">Инициатива</span></div>
               <div className="cs-mini" style={{ minHeight: 84, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}><div className="v" style={{ fontSize: 22 }}><input type="number" value={sheet.speed ?? v.speed} onChange={(e) => set({ speed: e.target.value === '' ? undefined : +e.target.value })} style={{ fontSize: 22, fontWeight: 'bold', textAlign: 'center' }} /></div><span className="cs-pl">Скорость</span></div>
             </div>
@@ -153,10 +153,10 @@ export default function InteractiveSheet({
 
           {/* col 3 */}
           <div className="flex flex-col gap-1.5">
-            <Panel label="Черты характера"><MarkupField className="areabox" rows={3} value={sheet.personality ?? ''} onChange={(t) => set({ personality: t })} readOnly={readOnly} /></Panel>
-            <Panel label="Идеалы"><MarkupField className="areabox" rows={3} value={sheet.ideals ?? ''} onChange={(t) => set({ ideals: t })} readOnly={readOnly} /></Panel>
-            <Panel label="Привязанности"><MarkupField className="areabox" rows={3} value={sheet.bonds ?? ''} onChange={(t) => set({ bonds: t })} readOnly={readOnly} /></Panel>
-            <Panel label="Изъяны"><MarkupField className="areabox" rows={3} value={sheet.flaws ?? ''} onChange={(t) => set({ flaws: t })} readOnly={readOnly} /></Panel>
+            <Panel label="Черты характера"><MarkupField className="areabox" rows={2} value={sheet.personality ?? ''} onChange={(t) => set({ personality: t })} readOnly={readOnly} /></Panel>
+            <Panel label="Идеалы"><MarkupField className="areabox" rows={2} value={sheet.ideals ?? ''} onChange={(t) => set({ ideals: t })} readOnly={readOnly} /></Panel>
+            <Panel label="Привязанности"><MarkupField className="areabox" rows={2} value={sheet.bonds ?? ''} onChange={(t) => set({ bonds: t })} readOnly={readOnly} /></Panel>
+            <Panel label="Изъяны"><MarkupField className="areabox" rows={2} value={sheet.flaws ?? ''} onChange={(t) => set({ flaws: t })} readOnly={readOnly} /></Panel>
             <Panel label="Умения и черты" className="cs-grow flex-1">
               <div className="cs-growbody overflow-auto">
                 {Math.max(0, v.featSlots - (sheet.chosenFeatIds?.length ?? 0)) > 0 && <p className="mb-1 text-[10px]"><i>Можно ещё выбрать черт: {Math.max(0, v.featSlots - (sheet.chosenFeatIds?.length ?? 0))}.</i></p>}
@@ -295,9 +295,34 @@ function Panel({ label, children, className = '' }: { label: string; children: R
  *  formatted text, switches to a textarea on click. Markup renders in print too. */
 function MarkupField({ value, onChange, placeholder, className = '', rows, readOnly, style }: { value: string; onChange: (v: string) => void; placeholder?: string; className?: string; rows?: number; readOnly?: boolean; style?: CSSProperties }): JSX.Element {
   const [editing, setEditing] = useState(false)
+  const ref = useRef<HTMLTextAreaElement>(null)
+  // `rows`-sized fields (traits, ideals…) stay at that many lines and grow to fit
+  // the text as you type; fill fields (no rows) keep filling their panel.
+  const grow = rows != null
   const minHeight = rows ? rows * 14 : undefined
+  const autosize = (el: HTMLTextAreaElement): void => {
+    el.style.height = 'auto'
+    el.style.height = `${el.scrollHeight}px`
+  }
+  useEffect(() => {
+    if (editing && grow && ref.current) autosize(ref.current)
+  }, [editing, grow])
   if (editing && !readOnly) {
-    return <textarea autoFocus className={className} style={{ minHeight, ...style }} value={value} onChange={(e) => onChange(e.target.value)} onBlur={() => setEditing(false)} placeholder={placeholder} />
+    return (
+      <textarea
+        ref={ref}
+        autoFocus
+        className={className}
+        style={{ minHeight, ...(grow ? { overflow: 'hidden', resize: 'none' } : {}), ...style }}
+        value={value}
+        onChange={(e) => {
+          onChange(e.target.value)
+          if (grow) autosize(e.target)
+        }}
+        onBlur={() => setEditing(false)}
+        placeholder={placeholder}
+      />
+    )
   }
   const html = markupToHtml(value)
   return (

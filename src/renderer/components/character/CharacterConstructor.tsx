@@ -1,15 +1,20 @@
-import { useState, type JSX, type ReactNode } from 'react'
+import { useEffect, useState, type JSX, type ReactNode } from 'react'
 import {
   RACE_BUILDS,
   CLASS_BUILDS,
   BACKGROUND_BUILDS,
   FEAT_BUILDS,
+  featCategory,
   type RaceBuild,
   type ClassBuild,
   type BackgroundBuild
 } from '../../data/character-build'
+import { findRace, findClass, findBackground } from '../../data/custom-builds'
+import { useCustomBuilds } from '../../store/customBuilds'
 import { parseAbilityList, ALL_SKILLS } from '../../data/character-rules'
-import { deriveSheet, metamagicCount, maneuverCount, type CharacterSheet } from '../../data/character-sheet'
+import { CLASS_PROGRESSION } from '../../data/class-progression'
+import { markupToHtml } from '../../utils/markup'
+import { deriveSheet, metamagicCount, maneuverCount, expertiseCount, type CharacterSheet } from '../../data/character-sheet'
 import { METAMAGIC } from '../../data/metamagic'
 import { MANEUVERS } from '../../data/maneuvers'
 import ChoiceList from './ChoiceList'
@@ -40,15 +45,40 @@ export default function CharacterConstructor({
 }): JSX.Element {
   const [picker, setPicker] = useState<PickerKind>(null)
 
-  const race = sheet.raceId ? RACE_BUILDS.find((r) => r.id === sheet.raceId) : undefined
-  const cls = sheet.classId ? CLASS_BUILDS.find((c) => c.id === sheet.classId) : undefined
-  const bg = sheet.backgroundId ? BACKGROUND_BUILDS.find((b) => b.id === sheet.backgroundId) : undefined
+  // Custom race/class/background definitions, loaded once so they're selectable
+  // here and resolve to real bonuses in deriveSheet.
+  const customRaces = useCustomBuilds((s) => s.races)
+  const customClasses = useCustomBuilds((s) => s.classes)
+  const customBackgrounds = useCustomBuilds((s) => s.backgrounds)
+  const reloadCustom = useCustomBuilds((s) => s.reload)
+  useEffect(() => {
+    reloadCustom()
+  }, [reloadCustom])
+
+  const race = findRace(sheet.raceId)
+  const cls = findClass(sheet.classId)
+  const bg = findBackground(sheet.backgroundId)
   const view = deriveSheet(sheet)
   const bgTrio = bg ? parseAbilityList(bg.abilities) : []
   const bgSkills = bg ? ALL_SKILLS.filter((sk) => (bg.skills || '').includes(sk)) : []
 
-  const races = RACE_BUILDS.filter((r) => r.source === 'PH24')
+  const races = [...RACE_BUILDS.filter((r) => r.source === 'PH24'), ...customRaces]
+  const classes = [...CLASS_BUILDS, ...customClasses]
+  const backgrounds = [...BACKGROUND_BUILDS, ...customBackgrounds]
   const subclassItems: SubclassItem[] = (cls?.subclasses ?? []).map((s) => ({ ...s, id: s.name }))
+
+  // Class/subclass features (≤ current level) that make the player pick an option.
+  const sub = cls?.subclasses?.find((x) => x.name === sheet.subclassName)
+  const choiceFeatures = [
+    ...(cls?.features ?? []).filter((f) => f.choices?.length && (f.level ?? 1) <= sheet.level),
+    ...(sub && sheet.level >= 3 ? sub.features : []).filter((f) => f.choices?.length && (f.level ?? 3) <= sheet.level)
+  ]
+  const pickFeature = (name: string, option: string): void =>
+    onChange({ featureChoices: { ...sheet.featureChoices, [name]: option } })
+
+  // Expertise (doubled proficiency) — pick among skills you're proficient in.
+  const expertSlots = expertiseCount(sheet.classId, sheet.level)
+  const proficientSkills = view.skills.filter((sk) => sk.proficient).map((sk) => sk.skill)
 
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -130,19 +160,63 @@ export default function CharacterConstructor({
             <SkillStep sheet={sheet} onChange={onChange} classSkillsText={cls?.skills} bgSkills={bgSkills} />
           </StepCard>
 
-          <StepCard n={8} title="Хиты">
+          {expertSlots > 0 && (
+            <StepCard n={8} title="Компетентность">
+              <p className="mb-1 text-[11px] italic text-ink-brown/60">Выберите {expertSlots} {expertSlots === 1 ? 'навык' : 'навыка'}, в которых бонус мастерства удваивается (только среди тех, которыми вы владеете).</p>
+              {proficientSkills.length === 0 ? (
+                <p className="text-[11px] italic text-accent/70">Сначала отметьте навыки владения в шаге «Навыки».</p>
+              ) : (
+                <ChoiceList
+                  options={proficientSkills.map((sk) => ({ key: sk, name: sk }))}
+                  selected={(sheet.expertiseSkills ?? []).filter((sk) => proficientSkills.includes(sk))}
+                  max={expertSlots}
+                  onChange={(expertiseSkills) => onChange({ expertiseSkills })}
+                />
+              )}
+            </StepCard>
+          )}
+
+          <StepCard n={9} title="Хиты">
             <HpStep sheet={sheet} onChange={onChange} hitDie={cls?.hitDie} conMod={view.mods.con} />
           </StepCard>
 
-          <StepCard n={9} title="Снаряжение, оружие и атаки">
+          <StepCard n={10} title="Снаряжение, оружие и атаки">
             <p className="mb-1 text-[11px] italic text-ink-brown/60">Купленное оружие автоматически появляется в атаках листа (фехтовальное — по лучшей из Силы/Ловкости).</p>
             <InventoryStep sheet={sheet} onChange={onChange} classId={cls?.id} bgEquipment={bg?.equipment} />
           </StepCard>
 
+          {choiceFeatures.length > 0 && (
+            <StepCard n={11} title="Выбор классовых умений">
+              <div className="space-y-3">
+                {choiceFeatures.map((f) => (
+                  <div key={f.name}>
+                    <div className="text-sm font-semibold text-accent">{f.level ? `${f.level} ур. ` : ''}{f.name}</div>
+                    <div className="mt-1 space-y-1">
+                      {f.choices!.map((o) => {
+                        const active = sheet.featureChoices?.[f.name] === o.name
+                        return (
+                          <button
+                            key={o.name}
+                            onClick={() => pickFeature(f.name, o.name)}
+                            className={`block w-full rounded border px-2 py-1 text-left text-xs ${active ? 'border-accent bg-accent/10' : 'border-ink-brown/25 hover:border-accent/50'}`}
+                          >
+                            <b className={active ? 'text-accent' : 'text-ink-brown'}>{o.name}.</b>{' '}
+                            <span className="text-ink-brown/80"><Fmt text={o.desc} /></span>
+                          </button>
+                        )
+                      })}
+                    </div>
+                    {!sheet.featureChoices?.[f.name] && <p className="mt-0.5 text-[11px] italic text-accent/70">Сделайте выбор.</p>}
+                  </div>
+                ))}
+              </div>
+            </StepCard>
+          )}
+
           {view.featSlots > 0 && (
-            <StepCard n={10} title="Черты">
+            <StepCard n={12} title="Черты">
               <ChoiceList
-                options={FEAT_BUILDS.map((f) => ({ key: f.id, name: f.name, desc: f.desc }))}
+                options={FEAT_BUILDS.map((f) => ({ key: f.id, name: f.name, desc: f.desc, group: featCategory(f) }))}
                 selected={sheet.chosenFeatIds ?? []}
                 max={view.featSlots}
                 onChange={(chosenFeatIds) => onChange({ chosenFeatIds })}
@@ -152,7 +226,7 @@ export default function CharacterConstructor({
           )}
 
           {metamagicCount(sheet.classId, sheet.level) > 0 && (
-            <StepCard n={11} title="Метамагия">
+            <StepCard n={13} title="Метамагия">
               <ChoiceList
                 options={METAMAGIC.map((m) => ({ key: m.name, name: m.name, desc: m.desc }))}
                 selected={sheet.metamagic ?? []}
@@ -163,7 +237,7 @@ export default function CharacterConstructor({
           )}
 
           {maneuverCount(sheet.subclassName, sheet.level) > 0 && (
-            <StepCard n={12} title="Боевые приёмы">
+            <StepCard n={14} title="Боевые приёмы">
               <ChoiceList
                 options={MANEUVERS.map((m) => ({ key: m.name, name: m.name, desc: m.desc }))}
                 selected={sheet.maneuvers ?? []}
@@ -196,7 +270,7 @@ export default function CharacterConstructor({
       {picker === 'class' && (
         <PickerModal
           title="Выбор класса"
-          items={CLASS_BUILDS}
+          items={classes}
           selectedId={sheet.classId}
           renderDetail={classDetail}
           onPick={(c) => {
@@ -222,7 +296,7 @@ export default function CharacterConstructor({
       {picker === 'background' && (
         <PickerModal
           title="Выбор предыстории"
-          items={BACKGROUND_BUILDS}
+          items={backgrounds}
           selectedId={sheet.backgroundId}
           renderDetail={backgroundDetail}
           onPick={(b) => {
@@ -261,6 +335,11 @@ function PickButton({ label, onClick }: { label: string; onClick: () => void }):
 }
 
 // ---- compact picker detail renderers ----
+/** Inline text with **жирный** / *курсив* / __подчёркнутый__ / {цвет:текст} markup. */
+function Fmt({ text }: { text?: string }): JSX.Element {
+  return <span dangerouslySetInnerHTML={{ __html: markupToHtml(text) }} />
+}
+
 function raceDetail(r: RaceBuild): JSX.Element {
   return (
     <div className="text-sm text-ink-brown">
@@ -269,7 +348,7 @@ function raceDetail(r: RaceBuild): JSX.Element {
       <ul className="mt-2 space-y-1">
         {r.traits.map((t) => (
           <li key={t.name}>
-            <b className="text-accent">{t.name}.</b> {t.desc}
+            <b className="text-accent">{t.name}.</b> <Fmt text={t.desc} />
           </li>
         ))}
       </ul>
@@ -278,14 +357,50 @@ function raceDetail(r: RaceBuild): JSX.Element {
 }
 
 function classDetail(c: ClassBuild): JSX.Element {
+  const prog = CLASS_PROGRESSION[c.id]
+  // Resource columns = the progression's declared columns plus any extra keys
+  // present in the rows (e.g. casters carry "Макс. ур. ячеек").
+  const extraKeys = prog ? [...new Set(prog.rows.flatMap((r) => Object.keys(r.cols ?? {})))].filter((k) => !prog.columns.includes(k)) : []
+  const colKeys = prog ? [...prog.columns, ...extraKeys] : []
   return (
     <div className="text-sm text-ink-brown">
       <p className="text-xs text-ink-brown/70">Кость хитов 1{c.hitDie} · Спасброски: {c.saves}</p>
+      <p className="mt-0.5 text-xs text-ink-brown/70">Доспехи: {c.armor} · Оружие: {c.weapons}</p>
       <p className="mt-0.5 text-xs text-ink-brown/70">Навыки: {c.skills}</p>
+
+      {prog && (
+        <div className="mt-2 overflow-x-auto rounded border border-ink-brown/15">
+          <table className="w-full border-collapse text-[10px] leading-tight">
+            <thead>
+              <tr className="border-b border-ink-brown/40 bg-parchment-dark/40 text-ink-brown/70">
+                <th className="px-1.5 py-1 text-left">Ур.</th>
+                <th className="px-1 py-1" title="Бонус мастерства">БМ</th>
+                {colKeys.map((k) => (
+                  <th key={k} className="px-1 py-1">{k}</th>
+                ))}
+                <th className="px-1.5 py-1 text-left">Умения</th>
+              </tr>
+            </thead>
+            <tbody>
+              {prog.rows.map((r) => (
+                <tr key={r.level} className="border-b border-ink-brown/10 odd:bg-parchment/30">
+                  <td className="px-1.5 py-0.5 text-center font-semibold text-accent">{r.level}</td>
+                  <td className="px-1 py-0.5 text-center">+{r.pb}</td>
+                  {colKeys.map((k) => (
+                    <td key={k} className="px-1 py-0.5 text-center">{r.cols?.[k] ?? '—'}</td>
+                  ))}
+                  <td className="px-1.5 py-0.5">{r.features === 'ASI' ? 'Развитие характеристики (черта)' : r.features}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
       <ul className="mt-2 space-y-1">
         {c.features.map((f) => (
           <li key={`${f.level}-${f.name}`}>
-            <b className="text-accent">{f.level ? `${f.level} ур. ` : ''}{f.name}.</b> {f.desc}
+            <b className="text-accent">{f.level ? `${f.level} ур. ` : ''}{f.name}.</b> <Fmt text={f.desc} />
           </li>
         ))}
       </ul>
@@ -296,11 +411,11 @@ function classDetail(c: ClassBuild): JSX.Element {
 function subclassDetail(s: SubclassItem): JSX.Element {
   return (
     <div className="text-sm text-ink-brown">
-      {s.meta && <p className="italic text-ink-brown/60">{s.meta}</p>}
+      {s.meta && <p className="italic text-ink-brown/60"><Fmt text={s.meta} /></p>}
       <ul className="mt-1 space-y-1">
         {s.features.map((f) => (
           <li key={f.name}>
-            <b className="text-accent">{f.level ? `${f.level} ур. ` : ''}{f.name}.</b> {f.desc}
+            <b className="text-accent">{f.level ? `${f.level} ур. ` : ''}{f.name}.</b> <Fmt text={f.desc} />
           </li>
         ))}
       </ul>
@@ -316,7 +431,7 @@ function backgroundDetail(b: BackgroundBuild): JSX.Element {
       {b.tools && <p className="text-xs text-ink-brown/70">Инструменты: {b.tools}</p>}
       {b.feat && <p className="text-xs text-ink-brown/70">Черта: {b.feat}</p>}
       <p className="mt-1 text-xs text-ink-brown/70">Снаряжение: {b.equipment}</p>
-      {b.lore && <p className="mt-2 italic text-ink-brown/80">{b.lore}</p>}
+      {b.lore && <p className="mt-2 italic text-ink-brown/80"><Fmt text={b.lore} /></p>}
     </div>
   )
 }

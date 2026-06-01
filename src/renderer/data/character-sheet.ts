@@ -3,7 +3,8 @@
 // React sheet and the HTML/PDF export use deriveSheet, so display logic lives in
 // exactly one place.
 import { uid } from '../utils/monster'
-import { RACE_BUILDS, CLASS_BUILDS, BACKGROUND_BUILDS, FEAT_BUILDS, featByName, type BuildTrait } from './character-build'
+import { FEAT_BUILDS, featByName, type BuildTrait } from './character-build'
+import { findRace, findClass, findBackground } from './custom-builds'
 import { MASTERY_RU, type MasteryKey, type ArmorTier } from './equipment-ru'
 import { METAMAGIC } from './metamagic'
 import { MANEUVERS } from './maneuvers'
@@ -41,6 +42,9 @@ export interface InvItem {
   // armour (auto-equipped → contributes to КД)
   armorTier?: ArmorTier
   armorBase?: number // body armour base AC, or shield bonus
+  /** Marks items auto-granted by the class / background starting kit, so the
+   *  items↔gold toggle can cleanly add and remove the whole grant. */
+  grant?: 'class' | 'bg'
 }
 
 export type Abilities = Record<AbilityKey, number>
@@ -82,6 +86,8 @@ export interface CharacterSheet {
   chosenClassSkills: string[]
   extraSkills?: string[]
   extraSaves?: AbilityKey[]
+  /** Skills with Expertise (proficiency bonus doubled), e.g. Rogue/Bard. */
+  expertiseSkills?: string[]
   removedSkills?: string[] // manually un-checked on the sheet (override)
   removedSaves?: AbilityKey[]
   otherProficiencies?: string
@@ -92,6 +98,7 @@ export interface CharacterSheet {
   speed?: number
   inventory?: string // free-text notes / manual-mode equipment
   equipChoice?: 'items' | 'gold' // class starting equipment: take items or gold
+  bgEquipChoice?: 'items' | 'gold' // background starting equipment: take items or gold
 
   // page 1 extras (official 2014 sheet)
   inspiration?: boolean
@@ -129,6 +136,9 @@ export interface CharacterSheet {
   chosenFeatIds: string[]
   metamagic?: string[]
   maneuvers?: string[]
+  /** Picks for class/subclass features that offer options (e.g. Druid Primal
+   *  Order). Keyed by the feature's name → chosen option name. */
+  featureChoices?: Record<string, string>
 
   // page 4 (spellcasting)
   spellcasting?: {
@@ -191,6 +201,8 @@ export interface SkillView {
   skill: string
   ability: AbilityKey
   proficient: boolean
+  /** Expertise — proficiency bonus is doubled for this skill. */
+  expert: boolean
   bonus: number
 }
 export interface SaveView {
@@ -250,9 +262,9 @@ const LEVEL_GATE = /\(с\s*(\d+)\s*ур\.?\)/i
 
 /** Compute everything the sheet displays from the stored selections. Pure. */
 export function deriveSheet(s: CharacterSheet): SheetView {
-  const race = s.raceId ? RACE_BUILDS.find((r) => r.id === s.raceId) : undefined
-  const cls = s.classId ? CLASS_BUILDS.find((c) => c.id === s.classId) : undefined
-  const bg = s.backgroundId ? BACKGROUND_BUILDS.find((b) => b.id === s.backgroundId) : undefined
+  const race = findRace(s.raceId)
+  const cls = findClass(s.classId)
+  const bg = findBackground(s.backgroundId)
   const sub = cls?.subclasses?.find((x) => x.name === s.subclassName)
   const subrace = race?.subraces?.find((x) => x.name === s.subraceName)
 
@@ -278,10 +290,13 @@ export function deriveSheet(s: CharacterSheet): SheetView {
   const bgSkills = bg ? ALL_SKILLS.filter((sk) => (bg.skills || '').includes(sk)) : []
   const removedSkills = new Set(s.removedSkills ?? [])
   const skillProf = new Set<string>([...s.chosenClassSkills, ...bgSkills, ...(s.extraSkills ?? [])].filter((sk) => !removedSkills.has(sk)))
+  // Expertise only applies to skills you're actually proficient in.
+  const expertiseSet = new Set((s.expertiseSkills ?? []).filter((sk) => skillProf.has(sk)))
   const skills: SkillView[] = ALL_SKILLS.map((skill) => {
     const ability = SKILL_ABILITY[skill]
     const proficient = skillProf.has(skill)
-    return { skill, ability, proficient, bonus: mods[ability] + (proficient ? pb : 0) }
+    const expert = proficient && expertiseSet.has(skill)
+    return { skill, ability, proficient, expert, bonus: mods[ability] + (proficient ? pb * (expert ? 2 : 1) : 0) }
   })
   const perception = skills.find((sk) => sk.skill === 'Внимательность')
   const passivePerception = 10 + (perception?.bonus ?? mods.wis)
@@ -292,8 +307,23 @@ export function deriveSheet(s: CharacterSheet): SheetView {
   const features: FeatureView[] = []
   const isFeatSlot = (name: string): boolean => /^(Улучшение характеристик|Эпический дар)/i.test(name)
   const gate = (t: BuildTrait, dflt: number): boolean => (t.level ?? dflt) <= s.level
-  if (cls) for (const f of cls.features) if (gate(f, 1) && !isFeatSlot(f.name)) features.push({ source: 'Класс', name: f.name, desc: f.desc, level: f.level })
-  if (sub && s.level >= 3) for (const f of sub.features) if (gate(f, 3)) features.push({ source: 'Подкласс', name: f.name, desc: f.desc, level: f.level })
+  // Features that make the player pick an option: append the chosen option's
+  // text (and remember any proficiency it grants) to the description.
+  const choiceArmor: string[] = []
+  const choiceWeapons: string[] = []
+  const withChoice = (f: BuildTrait): string => {
+    // Unconditional proficiency a feature grants (e.g. College of Valor).
+    if (f.armor) choiceArmor.push(f.armor)
+    if (f.weapons) choiceWeapons.push(f.weapons)
+    if (!f.choices?.length) return f.desc
+    const opt = f.choices.find((o) => o.name === s.featureChoices?.[f.name])
+    if (!opt) return `${f.desc}\n▸ Выбор не сделан: ${f.choices.map((o) => `«${o.name}»`).join(' / ')}.`
+    if (opt.armor) choiceArmor.push(opt.armor)
+    if (opt.weapons) choiceWeapons.push(opt.weapons)
+    return `${f.desc}\n▸ Выбрано — «${opt.name}»: ${opt.desc}`
+  }
+  if (cls) for (const f of cls.features) if (gate(f, 1) && !isFeatSlot(f.name)) features.push({ source: 'Класс', name: f.name, desc: withChoice(f), level: f.level })
+  if (sub && s.level >= 3) for (const f of sub.features) if (gate(f, 3)) features.push({ source: 'Подкласс', name: f.name, desc: withChoice(f), level: f.level })
   if (race)
     for (const t of race.traits) {
       const m = t.name.match(LEVEL_GATE)
@@ -331,8 +361,10 @@ export function deriveSheet(s: CharacterSheet): SheetView {
   // Proficiencies (armour / weapons / tools / languages) — collected into the
   // «Прочие владения и языки» box instead of cluttering the features list.
   const profParts: string[] = []
-  if (cls?.armor) profParts.push(`Доспехи: ${cls.armor}`)
-  if (cls?.weapons) profParts.push(`Оружие: ${cls.weapons}`)
+  const armorAll = [cls?.armor, ...choiceArmor].filter(Boolean).join(', ')
+  const weaponsAll = [cls?.weapons, ...choiceWeapons].filter(Boolean).join(', ')
+  if (armorAll) profParts.push(`Доспехи: ${armorAll}`)
+  if (weaponsAll) profParts.push(`Оружие: ${weaponsAll}`)
   const tools = [cls?.tools, bg?.tools].filter(Boolean).join(', ')
   if (tools) profParts.push(`Инструменты: ${tools}`)
   const langs = [race?.langs, bg?.langs].filter(Boolean).join(', ')
@@ -439,6 +471,22 @@ export function masteryCount(classId: string | undefined, level: number): number
   if (classId === 'fighter-ph24') n += (level >= 4 ? 1 : 0) + (level >= 10 ? 1 : 0) + (level >= 16 ? 1 : 0)
   else if (level >= 10) n += 1
   return n
+}
+
+/** How many skills get Expertise (doubled proficiency) at this class/level. */
+export function expertiseCount(classId: string | undefined, level: number): number {
+  switch (classId) {
+    case 'rogue-ph24':
+      return 2 + (level >= 6 ? 2 : 0)
+    case 'bard-ph24':
+      return (level >= 2 ? 2 : 0) + (level >= 9 ? 2 : 0)
+    case 'ranger-ph24':
+      return level >= 9 ? 2 : 0
+    case 'wizard-ph24':
+      return level >= 2 ? 1 : 0
+    default:
+      return 0
+  }
 }
 
 /** How many metamagic options a sorcerer knows at this level (PH24). */

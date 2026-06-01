@@ -1,4 +1,5 @@
 import { type JSX } from 'react'
+import { GiRollingDices } from 'react-icons/gi'
 import { rollDice } from '../../utils/roll'
 import { hitDieSize, HIT_DIE_AVG, formatMod } from '../../data/character-rules'
 import type { CharacterSheet } from '../../data/character-sheet'
@@ -66,8 +67,8 @@ export default function HpStep({
       {sheet.hpMethod === 'rolled' && (
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <button onClick={rollAll} className="rounded bg-accent px-2.5 py-1 text-xs font-semibold text-parchment hover:bg-accent/80">
-              🎲 Бросить все ({extraLevels}{hitDie})
+            <button onClick={rollAll} className="inline-flex items-center gap-1 rounded bg-accent px-2.5 py-1 text-xs font-semibold text-parchment hover:bg-accent/80">
+              <GiRollingDices /> Бросить все ({extraLevels}{hitDie})
             </button>
             <span className="text-[11px] text-ink-brown/50">брошено {rolledCount}/{extraLevels}</span>
           </div>
@@ -85,8 +86,8 @@ export default function HpStep({
                   ) : (
                     <span className="text-ink-brown/40">не брошено</span>
                   )}
-                  <button onClick={() => rollOne(i)} className="ml-auto rounded border border-accent/40 px-2 text-xs text-accent hover:bg-accent/10">
-                    🎲 {hitDie}
+                  <button onClick={() => rollOne(i)} className="ml-auto inline-flex items-center gap-1 rounded border border-accent/40 px-2 text-xs text-accent hover:bg-accent/10">
+                    <GiRollingDices /> {hitDie}
                   </button>
                 </div>
               )

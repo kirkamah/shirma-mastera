@@ -4,13 +4,13 @@ import { GiScrollUnfurled } from 'react-icons/gi'
 import PageFrame from '../components/PageFrame'
 import DiceText from '../components/DiceText'
 import { useNav } from '../store/nav'
-import { FALLBACK_CONDITIONS } from '../data/conditions-fallback'
+import { conditionsFor } from '../data/conditions-fallback'
 import type { ConditionItem } from '@shared/types'
 
 export default function Conditions(): JSX.Element {
-  const { t } = useTranslation()
-  const [items] = useState<ConditionItem[]>(FALLBACK_CONDITIONS)
-  const [selectedKey, setSelectedKey] = useState<string>(FALLBACK_CONDITIONS[0]?.key ?? '')
+  const { t, i18n } = useTranslation()
+  const items = useMemo<ConditionItem[]>(() => conditionsFor(i18n.language), [i18n.language])
+  const [selectedKey, setSelectedKey] = useState<string>(items[0]?.key ?? '')
 
   const pending = useNav((s) => s.pending)
   const clearPending = useNav((s) => s.clear)
@@ -42,7 +42,7 @@ export default function Conditions(): JSX.Element {
   }
 
   return (
-    <PageFrame title={t('conditions.title')} subtitle="Редакция 2024">
+    <PageFrame title={t('conditions.title')} subtitle={t('conditions.subtitle')}>
       <div className="flex min-h-0 flex-1 gap-3">
         <div className="w-60 shrink-0 overflow-y-auto rounded-lg border border-ink-brown/20 bg-parchment-dark/30">
           <ul className="divide-y divide-ink-brown/10">
@@ -73,7 +73,7 @@ export default function Conditions(): JSX.Element {
               {escapeFor(selected) && (
                 <div className="mt-6 rounded-lg border border-accent/30 bg-accent/5 p-4">
                   <h3 className="mb-1.5 flex items-center gap-2 font-serif text-lg font-bold text-accent">
-                    <GiScrollUnfurled className="shrink-0" /> Как выйти из состояния
+                    <GiScrollUnfurled className="shrink-0" /> {t('conditions.howToExit')}
                   </h3>
                   <p className="whitespace-pre-line text-[16px] leading-relaxed text-ink-brown">
                     <DiceText text={escapeFor(selected)} label={selected.name} />

@@ -4,9 +4,10 @@ import { GiTrashCan } from 'react-icons/gi'
 import PageFrame from '../components/PageFrame'
 import Portrait, { emblemForRace } from '../components/Portrait'
 import CustomFormDialog, { type FormField, type FormValues } from '../components/CustomFormDialog'
-import { RACES, type RaceCategory, type RaceData } from '../data/races'
+import { RACES, racesFor, type RaceCategory, type RaceData } from '../data/races'
 import { useCustom } from '../hooks/useCustom'
 import { useNav } from '../store/nav'
+import { confirmDialog } from '../store/dialog'
 import { uid } from '../utils/monster'
 
 /** A persisted race override / custom race. Key doubles as the race id. */
@@ -74,20 +75,21 @@ function NameColumn({ title, names }: { title: string; names: string[] }): JSX.E
 }
 
 function Names({ names }: { names: NonNullable<RaceData['names']> }): JSX.Element {
+  const { t } = useTranslation()
   return (
     <section className="mt-4">
-      <h3 className="tome-heading mb-2 font-serif text-lg font-semibold">Имена</h3>
+      <h3 className="tome-heading mb-2 font-serif text-lg font-semibold">{t('races.names')}</h3>
       <div className="flex flex-wrap gap-x-6 gap-y-3 rounded-lg border border-ink-brown/20 bg-parchment-dark/30 p-3">
-        <NameColumn title="Мужские" names={names.male} />
-        <NameColumn title="Женские" names={names.female} />
-        <NameColumn title={names.familyLabel ?? 'Фамилии'} names={names.family} />
+        <NameColumn title={t('races.nameMale')} names={names.male} />
+        <NameColumn title={t('races.nameFemale')} names={names.female} />
+        <NameColumn title={names.familyLabel ?? t('races.nameFamily')} names={names.family} />
       </div>
     </section>
   )
 }
 
 export default function Races(): JSX.Element {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { items: overrides, save, remove } = useCustom<StoredRace>('race')
   const [selectedId, setSelectedId] = useState<string>(RACES[0].id)
   const [editing, setEditing] = useState<RaceData | null | 'new'>(null)
@@ -96,17 +98,18 @@ export default function Races(): JSX.Element {
 
   // Apply persisted overrides on top of the built-in races, then append fully custom ones.
   const { races, overriddenIds, customIds } = useMemo(() => {
+    const base = racesFor(i18n.language)
     const map = new Map(overrides.map((o) => [o.id, o]))
-    const baseIds = new Set(RACES.map((r) => r.id))
+    const baseIds = new Set(base.map((r) => r.id))
     // Spread so fields not present in the edit form (e.g. name tables) survive overrides.
-    const merged = RACES.map((r) => (map.has(r.id) ? { ...r, ...map.get(r.id)! } : r))
+    const merged = base.map((r) => (map.has(r.id) ? { ...r, ...map.get(r.id)! } : r))
     const extras = overrides.filter((o) => !baseIds.has(o.id))
     return {
       races: [...merged, ...extras],
       overriddenIds: new Set(overrides.filter((o) => baseIds.has(o.id)).map((o) => o.id)),
       customIds: new Set(extras.map((o) => o.id))
     }
-  }, [overrides])
+  }, [overrides, i18n.language])
 
   const selected = races.find((r) => r.id === selectedId) ?? races[0]
 
@@ -144,10 +147,10 @@ export default function Races(): JSX.Element {
   return (
     <PageFrame
       title={t('races.title')}
-      subtitle="Хроники народов"
+      subtitle={t('races.subtitle')}
       actions={
         <button onClick={() => setEditing('new')} className="rounded bg-accent px-2 py-1 text-xs font-semibold text-parchment hover:bg-accent/80">
-          + Раса
+          {t('races.addRace')}
         </button>
       }
     >
@@ -181,8 +184,14 @@ export default function Races(): JSX.Element {
                 </button>
                 {(isEdited || isCustom) && (
                   <button
-                    onClick={() => {
-                      if (!window.confirm(isCustom ? `Удалить расу «${selected.name}»?` : `Вернуть оригинальный лор «${selected.name}»?`)) return
+                    onClick={async () => {
+                      const ok = await confirmDialog({
+                        title: isCustom ? 'Удалить расу' : 'Сбросить лор',
+                        message: isCustom ? `Удалить расу «${selected.name}»?` : `Вернуть оригинальный лор «${selected.name}»?`,
+                        danger: isCustom,
+                        confirmText: isCustom ? 'Удалить' : 'Сбросить'
+                      })
+                      if (!ok) return
                       remove(selected.id)
                       if (isCustom) setSelectedId(RACES[0].id)
                     }}
@@ -196,8 +205,8 @@ export default function Races(): JSX.Element {
           </div>
           <Section title={t('races.origin')} text={selected.origin} />
           <Section title={t('races.society')} text={selected.society} />
-          <Section title="Обычаи и ритуалы" text={selected.culture} />
-          <Section title="Вера и боги" text={selected.faith} />
+          <Section title={t('races.culture')} text={selected.culture} />
+          <Section title={t('races.faith')} text={selected.faith} />
           <Section title={t('races.personality')} text={selected.personality} />
           <Section title={t('races.habitat')} text={selected.habitat} />
           <Section title={t('races.relations')} text={selected.relations} />

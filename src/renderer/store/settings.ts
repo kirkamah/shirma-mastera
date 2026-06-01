@@ -13,9 +13,6 @@ interface SettingsState {
   fontScale: number
   texture: boolean
   devMode: boolean
-  /** Show the small coloured tactical-role badge on bestiary tiles and the
-   *  matching role filter row in SearchPanel. */
-  roleBadges: boolean
   setPalette: (p: Palette) => void
   setLanguage: (l: Language) => void
   toggleLanguage: () => void
@@ -23,7 +20,6 @@ interface SettingsState {
   setFontScale: (v: number) => void
   setTexture: (v: boolean) => void
   setDevMode: (v: boolean) => void
-  setRoleBadges: (v: boolean) => void
 }
 
 export const useSettings = create<SettingsState>()(
@@ -36,15 +32,13 @@ export const useSettings = create<SettingsState>()(
       fontScale: 1,
       texture: true,
       devMode: false,
-      roleBadges: true,
       setPalette: (palette) => set({ palette }),
       setLanguage: (language) => set({ language }),
       toggleLanguage: () => set({ language: get().language === 'ru' ? 'en' : 'ru' }),
       setSound: (sound) => set({ sound }),
       setFontScale: (fontScale) => set({ fontScale }),
       setTexture: (texture) => set({ texture }),
-      setDevMode: (devMode) => set({ devMode }),
-      setRoleBadges: (roleBadges) => set({ roleBadges })
+      setDevMode: (devMode) => set({ devMode })
     }),
     {
       name: 'shirma-settings',

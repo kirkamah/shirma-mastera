@@ -508,3 +508,292 @@ export const RACE_LORE: Record<string, RaceLore> = {
     }
   }
 }
+
+// English overlay for the extended lore (customs / faith / family-column label).
+// Name lists are proper nouns and stay as-is; only familyLabel is localised.
+export const RACE_LORE_EN: Record<string, { culture?: string; faith?: string; familyLabel?: string }> = {
+  human: {
+    culture:
+      "Humans have no single custom — they have a thousand. In one place a newborn is dipped in the river under the name of dawn, in another a knight keeps vigil over his blade the night before his investiture, and merchant houses seal alliances with a seven-day feast. What unites them all are the rites of passage: naming, coming of age, marriage, burial. Humans eagerly take up others' festivals and within a generation call them their own.",
+    faith:
+      'Humans pray to all and sundry at once. A merchant tosses a coin to Tymora, Lady Luck; a warrior swears by Tempus; a ploughman begs a harvest of Chauntea, and the dying whisper to Kelemvor. Side by side they honour Lathander of the dawn, stern Helm the Watcher, and Tyr of Justice, while some secretly burn candles to Bane or Cyric. No people has given the gods so many priests — and so many heretics.'
+  },
+  elf: {
+    culture:
+      "An elf is in no hurry to live, and so each of their rites takes years. A newborn is given a 'child' nickname, and the true name they choose themselves when they judge they have earned it — sometimes a century later. Weddings and memorials stretch across seasons, and the highest honour is to compose a song or a painting that outlives its maker. Sleep they disdain, retreating into trance-dreams of memory.",
+    faith:
+      'Elves honour the Seldarine — the family of gods led by Corellon Larethian, father of the people and patron of magic and art. Sehanine Moonbow guides souls to Evermeet, Labelas keeps time, Hanali grants love and beauty, Solonor teaches the bow and the hunt. Wood elves bow to Rillifane, spirit of the forests, and the name of fallen Lolth the drow speak with hatred.',
+    familyLabel: 'Family name'
+  },
+  dwarf: {
+    culture:
+      "A dwarf lives by craft and the memory of ancestors. He is named for a grandfather, with a clan epithet added that must not be shamed in a thousand years. The beard is tended like a pedigree: to shear it by force is an indelible disgrace. Every dwarf keeps a tally of debts — both favours and wrongs — and the master's greatest life-rite is to forge a thing that outlives his grandchildren.",
+    faith:
+      'Dwarves honour the Morndinsamman, led by Moradin the Soul Forger, who hammered their people out of gems and steel. Berronar Truesilver keeps hearth and family, Clangeddin is god of battle and honour, Dumathoin guards the secrets of stone and fallen miners, and sly Vergadain holds gold and trade. Greedy Abbathor is honoured in a whisper, and with shame.',
+    familyLabel: 'Clan'
+  },
+  halfling: {
+    culture:
+      "Halflings prize home, a good table, and a warm tale by the hearth above gold and glory. Their chief festival is the harvest, when the whole village brews beer and bakes pies, and an elder tells stories till dawn. Names are simple and heartfelt, with a family nickname added, drawn from a trade or a great-grandfather. A guest at a halfling's is fed before he's asked who he is.",
+    faith:
+      'Halflings honour a family of gods led by Yondalla the Protector, mother of the people and keeper of hearth and offspring. Arvoreen guards the home with sword drawn, Cyrrollalee teaches friendship and hospitality, Sheela Peryroyl blesses fields and dances, and the trickster Brandobaris is patron of luck, roads, and nimble fingers. Urogalan quietly sees the departed into the earth.'
+  },
+  gnome: {
+    culture:
+      'A gnome lives by curiosity and laughter: the prank is a high art to them, and a bored gnome is a danger to the whole neighbourhood. One gnome may have a dozen names — given at birth, the clan name, nicknames from friends, neighbours, and the targets of pranks — and he gladly wears them all. Days on end they build clever mechanisms, breed beasts, or pore over gems for the pure joy of discovery.',
+    faith:
+      'Gnomes honour Garl Glittergold the trickster-god, who protects the people with laughter and clever invention. Baervan the Wild Wanderer holds forests and adventure, Baravar Cloakshadow keeps secrets and illusions, Flandal Steelskin patronises smiths and ore-finders, and Gaerdal Ironhand stands guard over the community.',
+    familyLabel: 'Clan'
+  },
+  dragonborn: {
+    culture:
+      "A dragonborn belongs first to the clan, and only then to himself. The clan name he honours above life: to shame it is worse than death, to glorify it the highest goal. A childhood name gives way to an adult one after a trial of courage. Honour, duty, and one's word are held sacred; exile from the clan — 'losing the name' — is more dreadful than execution. Blood and breath reveal whose scales — gold or crimson — the warrior inherits.",
+    faith:
+      'Over the faith of the dragonborn two draconic progenitors contend: Bahamut, the Platinum Lord of justice and honour, and Tiamat, five-headed queen of greed and tyranny. Many, though, honour not gods but the ancestors themselves and the ideal of honour, holding that a clan\'s fate lies in the hands of its living sons and daughters.',
+    familyLabel: 'Clan'
+  },
+  tiefling: {
+    culture:
+      'A tiefling grows up under sidelong looks, and so either hardens or learns to wear dignity like armour. Many choose their own name as adults — often a virtue-word in the common tongue: Hope, Glory, Sorrow — defying fate or accepting its mockery. Families keep close and secret, for trusting strangers is dangerous, and they perform their rites without witnesses.',
+    faith:
+      'Tiefling blood remembers the old pact with Asmodeus, lord of the Nine Hells, and some honour him — out of fear or pride. But far more, in spite of their heritage, serve good gods — Ilmater the Sufferer, Sune, or Lathander — proving that blood is no sentence. And not a few trust no one but themselves.',
+    familyLabel: 'Virtue name'
+  },
+  'half-elf': {
+    culture:
+      'A half-elf is a guest in both houses and heir to neither: too alien for humans, too quick for elves. From this rootlessness springs a gift for travel, diplomacy, and friendship across borders. Often they take a double name — human from the mother, elven from the father (or the reverse) — and shape their customs themselves from two bloods, holding strictly to neither.',
+    faith:
+      "In faith too half-elves are twofold: some pray to Sune, goddess of love and beauty, or to elven Sehanine; others choose human patrons of travel and luck — Tymora, Shaundakul. Many come to the gods not by birth but by heart, choosing the one nearest their own wanderer's fate."
+  },
+  'half-orc': {
+    culture:
+      'A half-orc lives with the weight of others\' fear and his own strength. In the orc tribe he is tolerated for his might, among humans feared for his look; both teach him to prove himself by deed, not word. Many tribes honour strength through trials: best a beast, endure pain, hold firm in battle. Names are short and harsh, and orcs know no surnames — only epithets earned in blood.',
+    faith:
+      'Over orc blood looms Gruumsh One-Eye, god of war and conquest, who bids them take by force. Luthic, the Cave Mother, guards kin and hearth; Bahgtru embodies brute might. But many half-orcs reject their ancestors\' heritage and turn to Tempus, the fair god of battle, seeking the glory of a warrior, not the fury of a monster.',
+    familyLabel: 'Epithet'
+  },
+  aasimar: {
+    culture:
+      'An aasimar carries a spark of the heavens in their blood and the voice of a guiding angel in their dreams. From childhood they feel a calling — to protect the weak and press back the dark — and this burden sometimes weighs more than it grants. Many are raised as chosen ones at temples; their rites are solemn and bright. Others flee from expectation, fearing they cannot live up to the radiance set in them.',
+    faith:
+      'Aasimar serve good and righteous gods, whose will awoke the celestial blood in them: Lathander, god of dawn and hope, Torm the True, Tyr of Justice, Ilmater of Compassion. Their faith is active — not prayer but service; a guardian angel leads them, and apostasy can turn the blessing into the curse of a fallen one.',
+    familyLabel: 'Celestial epithet'
+  },
+  goliath: {
+    culture:
+      "Goliaths live high in the mountains, where only the strongest survive — and so they honour fair contest above all. Every deed is measured by merit: a chief who weakens yields his place, and there is no shame in it. A goliath has three names: one given at birth, a nickname for a feat or a failing, and the clan name. To boast of another's deed is the gravest disgrace; to claim another's credit is worse than theft.",
+    faith:
+      'Goliaths worship not so much gods as the peaks themselves and the spirit of fair rivalry. To them the heavens keep a tally of each one\'s deeds, and one must live so as to be worthy of a line in that chronicle. Some honour ancestor-spirits and the element of the mountains; the idols of the lowlands seem to them as petty as the cares of those who live below.',
+    familyLabel: 'Clan'
+  },
+  tabaxi: {
+    culture:
+      "Tabaxi are driven by endless curiosity: they wander for stories, curiosities, and secrets, and having gained what they sought, lose interest and move on. Their names are poetic images, given at birth by a shaman from an omen: 'Quiet Stream', 'Leap of the Moon'. A short nickname they take for the convenience of strangers. To things tabaxi rarely grow attached; to the tales of them, forever.",
+    faith:
+      'Tabaxi honour the Cat Lord and the gods of knowledge and luck of their native Maztica, who gave the people their thirst to know. They believe the world is a pattern of stories, and to gather them is sacred work; knowledge untold to another is counted lost. Fate they respect, but love to test it with deftness and cunning.',
+    familyLabel: 'Clan'
+  },
+  firbolg: {
+    culture:
+      'Firbolgs are shy hermit-giants, keepers of the deep woods. They avoid people and, by forest magic, make themselves unseen, shielding their groves from axe and fire. They take from nature only what is needed and leave a gift in return; a stranger who honours the forest is met with kindness, a destroyer with the wrath of the whole wild. Their names are soft and drawn-out, like the rustle of leaves.',
+    faith:
+      'Firbolgs honour nature itself and its spirits more than any temple gods. Many walk the druid\'s path, worshipping the cycle of life, and revere the forest aspects of the elven gods — Rillifane, father of the woods, and Sehanine. To a firbolg the grove is the sanctuary, and the seasons a liturgy that must not be broken.',
+    familyLabel: 'Forest name'
+  },
+  genasi: {
+    culture:
+      'A genasi carries fire, water, wind, or stone in the blood — the heritage of genies — and the element dictates their temper: hot-tempered fire, fluid water, free air, stubborn earth. Many honour the memory of their elemental ancestor and mark the awakening of their power as a coming-of-age rite. To a human name they add an epithet of their element, proud of their origin.',
+    faith:
+      'Genasi have as many faiths as there are elements: some honour the great progenitor genies — fiery efreet, watery marids, airy djinn, and earthen dao — others turn to elemental gods like Akadi, lady of the winds, or Grumbar, lord of the mountains. To a genasi the element is the god that flows in their veins.',
+    familyLabel: 'Elemental epithet'
+  },
+  kenku: {
+    culture:
+      "Kenku are cursed: stripped of wings and their own voice, they speak only in overheard sounds — scraps of others' phrases, the creak of a door, the clang of steel. They are virtuoso mimics, rogues, and thieves, trading favours in the shadows of cities. Kenku have no names of their own — they are 'called' by a characteristic sound the bird makes. The dream of regained wings is their eternal, bitter longing.",
+    faith:
+      'Most kenku know no gods: cursed and voiceless, they are too busy surviving to pray. Some secretly honour the memory of the unknown master who doomed their kind, or of the one who will one day return their wings and voice. Faith, to a kenku, is more superstition and bargain than devotion.',
+    familyLabel: 'Family'
+  },
+  triton: {
+    culture:
+      "Tritons are guardians of the deep, come from the Elemental Plane of Water to keep the ocean from the horrors of the abyss. They bear themselves proudly, counting themselves noble patrons of the lower world, and so can be haughty with the 'land-bound'. Their feats and victories over sea-monsters they keep in the long memory of the line, and their names are fluid and sonorous, like the song of the tide.",
+    faith:
+      'Tritons honour Persana, patron god of their people and warden of the sea-borders, and Eadro, lord of undersea life. Their faith is a duty: to guard the ocean from sahuagin, krakens, and other monsters of the deep. Each generation thinks itself a watch on the border of light and the dark of the sea.',
+    familyLabel: 'Family name'
+  },
+  aarakocra: {
+    culture:
+      'Aarakocra are born of the sky and the Elemental Plane of Air: to them the land is only a perch, and true life is in flight. They settle on unreachable peaks in tribe-flocks, honour freedom above all bonds, and pine when forced to walk the ground for long. A shared flight-dance serves as festival, rite, and a language of feeling without words.',
+    faith:
+      'Aarakocra honour Akadi, lady of the element of air and the free winds, and keep the memory of the war against the lord of the evil element. They believe the sky belongs to the free and revere the winds as living messengers. Bird-warriors often serve as sentries against incursions from other elemental planes.',
+    familyLabel: 'Flock name'
+  },
+  tortle: {
+    culture:
+      'Tortles are an unhurried and wise turtle-folk, born by the water yet wandering all their lives unburdened, carrying their home on their backs. Only once do they settle — to lay their eggs and die, leaving the shell to their offspring as a relic. They are humble, friendly, and prize simple joys; greed and haste seem to them mere fuss. A tortle is named by a mentor and bears the name with dignity.',
+    faith:
+      "Tortles are spiritual without loud gods: they honour ancestors, whose shells they keep as holy relics, and the spirits of sea and shore that have guarded the people since the beginning of time. Many follow a quiet path of contemplation and natural harmony, believing that to live honestly and leave a good shell to one's heir is the highest prayer.",
+    familyLabel: 'Family name'
+  },
+  warforged: {
+    culture:
+      'Warforged were made for war — living constructs of steel, wood, and magic that gained a soul. With their service over, they remained in a world where they have no childhood, no kin, and no death from old age — and so each must find the meaning of their own being. Many choose a nickname-name from a role or a feat. Warforged need no sleep and know no fatigue, but are tormented by the question: what is there now to live for?',
+    faith:
+      'Warforged have no inborn faith — each builds their own. Some seek a god to grant them purpose or a soul; others follow the fearsome Lord of Blades, who dreams of a realm of constructs. Some adopt the gods of their former masters, and some reject all faith, relying only on their own forged mind.',
+    familyLabel: 'Surname'
+  },
+  eladrin: {
+    culture:
+      'Eladrin are elves of the Feywild, whose nature is changeable as the seasons: in spring full of hope, in summer ardent, in autumn pensive, in winter cold and remote. Their look and temper shift with their mood and the season, and there is no pretence in it — only the honesty of feeling. Their rites are tied to the turning of the seasons, and the festivals of the Fey court seem to last forever.',
+    faith:
+      'Like their kin, eladrin honour the Seldarine — Corellon, father of the elves, and Sehanine Moonbow, lady of dreams and of passages between worlds. But nearest of all to them is the spirit of the Feywild itself, changeable and alive, and the power of the seasons, to which they yield in body and soul.',
+    familyLabel: 'Family name'
+  },
+  shifter: {
+    culture:
+      "Shifters are descendants of humans and lycanthropes, carrying the beast under their skin. In a moment of need they 'shift', sharpening their features and rousing a predator's instinct — fangs, claws, keen senses. They are shunned, and so keep to close communities on the fringes, nearer the wild than the cities. Their names are simple and sturdy, and they often have no surname — only an epithet from a beast or a habit.",
+    faith:
+      'Shifters honour nature, the moon, and the primal beast-spirits more than temple gods. Many follow a primal faith, heeding the voice of the forest and the blood, and revere the Moon, under whose light the call of the beast is strongest. Civilized gods seem distant to them; nearer is the spirit of the hunt and the pack.',
+    familyLabel: 'Epithet'
+  },
+  changeling: {
+    culture:
+      "Changelings change shape as easily as others change clothes: others' faces are to them protection, trade, and game alike. Their true, pale and browless face they rarely show even to kin. Many live under a dozen 'mask' personae, each with its own name, temper, and fate, and at times a changeling cannot at once say which of them is real. They prize trust above gold, for they themselves win it by deceit.",
+    faith:
+      'Changelings\' faiths are as fluid as their faces. Some honour the Traveler — the sly god of change and masks; others wear a faith along with the latest guise, casting it off like a face. Many do not pray at all, relying only on themselves — the one being they can trust under any mask.',
+    familyLabel: 'Epithet'
+  },
+  satyr: {
+    culture:
+      'Satyrs are a fey folk of revelry, wine, music, and an unquenchable thirst for life. The festival is their mode of being: they dance till they drop, vie in jests and songs, and never miss a chance to draw even a glum stranger into the carousing. Behind the recklessness, though, hides an ancient fey cunning, and a satyr can nurse a grudge under the mask of laughter for a long time.',
+    faith:
+      "Satyrs honour the spirit of the Feywild itself, nature in its riotous bloom, and the gods of mirth, wine, and wild music. Their 'prayer' is dance and song under the open sky; they believe joy and passion are sacred, and gloom an insult to life. The Summer court of the fey is nearer to them than any temple.",
+    familyLabel: 'Epithet'
+  },
+  centaur: {
+    culture:
+      "Centaurs are free half-horses of the fey plains, to whom nothing is dearer than open space and the run. They roam in herds, honour the leader for wisdom and strength, and cannot abide fences or cramped walls. The hunt, the race, and tales by the fire are the basis of their life; a guest who honours their customs is taken in as kin, while a breaker of the steppe-law is driven off by hooves. Their names are proud and drawn-out, like a horn's call over the plain.",
+    faith:
+      'Centaurs honour nature, the spirit of the hunt, and the free land beneath their hooves. Many follow a primal faith, worshipping the spirits of the plains, the wind, and the beast, and revere the turning of the seasons. Their gods are the open space itself, the storm over the steppe, and luck in the chase; an idol shut in a temple is alien to them.',
+    familyLabel: 'Herd name'
+  },
+  fairy: {
+    culture:
+      'Fairies are a tiny winged folk of the Feywild, full of mischief, curiosity, and ancient whims. They adore pranks, shiny trifles, and secrets, and their mood changes faster than dew dries. Behind the childlike carelessness hides a truly fey nature: a fairy may grant a chance traveller a wonder — or plague with petty mischief one who wronged it.',
+    faith:
+      'Fairies honour the spirit of the Feywild itself and its Courts — the Seelie and the Unseelie — as well as nature in all its magic. Their faith is not in temples but in dew, flowers, and moonlight; they revere the ancient laws of hospitality and the promises of the fey, which it is dangerous even for gods to break.',
+    familyLabel: 'Fey epithet'
+  },
+  goblin: {
+    culture:
+      'Goblins live by fear and cunning: weak alone, they herd into shrieking hordes under the heel of the strongest. In their society the law of teeth rules — whoever is fiercer and craftier is chief, until he is toppled. They are masters of traps, ambushes, and dirty tricks, and prize loot, numbers, and their own hide. Their names are short, harsh, and easily forgotten along with their bearers.',
+    faith:
+      "Goblins worship Maglubiyet the Mighty, the fearsome conqueror-god of all goblinoids, who rules them through fear and promises the fallen a place in his eternal host. A goblin's prayer is dread of the strong; he honours the one who can punish him and betrays the one who is weak.",
+    familyLabel: 'Pack'
+  },
+  hobgoblin: {
+    culture:
+      'Hobgoblins are a martial people of iron discipline and merciless order. They live in legions where each knows his place in the line, and weakness is punished with death. Martial honour, rank, and glory in battle are everything to them; they forge weapons and tactics with cold diligence and despise the chaos of wild goblins. A hobgoblin earns his name by rank and feat, not by birth.',
+    faith:
+      'Hobgoblins honour Maglubiyet, lord of goblinoids, and Nomog-Geaya, the stern god of war and seniority, who blesses discipline, tactics, and victory. Their faith is warlike and strict: to fall worthily in battle is the highest grace, to flee the field an eternal disgrace.',
+    familyLabel: 'Legion'
+  },
+  bugbear: {
+    culture:
+      'Bugbears are tall, shaggy, and frighteningly quiet kin of goblins, born ambush-killers. They love to creep up soundlessly, for all their bulk, and land one crushing blow. Lazy and greedy, bugbears join a goblinoid horde for loot and blood, but keep apart, despising the small fry. Strength and cruelty they respect, and bear crude, short names.',
+    faith:
+      "Bugbears worship Hruggek, god of violence and slaughter, who bids them settle all things with a club's blow and honours those who kill boldly and without pity. Over him, as over all goblinoids, looms Maglubiyet, but a bugbear is nearer to blood than to prayer, and sees the divine in the killing itself.",
+    familyLabel: 'Epithet'
+  },
+  orc: {
+    culture:
+      "Orcs live by war: to them the raid, the loot, and glory in battle are the meaning of being, and peaceful life seems a slow death. The tribe is ruled by the strongest chief, and his power holds as long as his hand holds firm. Strength, courage, and fecundity orcs honour as sacred, and weakness they despise. Their names are growling and short, and an earned epithet is the only 'surname' they ever have.",
+    faith:
+      'Orcs honour a bloody pantheon led by Gruumsh One-Eye, god of war and conquest, who bade the people take by the sword all they are denied. Luthic, the Cave Mother, keeps the kin; Bahgtru embodies brute strength; Ilneval leads in battle; and Yurtrus White-Hands sends death and disease to enemies.',
+    familyLabel: 'Epithet'
+  },
+  kobold: {
+    culture:
+      'Kobolds are small scaly descendants of dragons who win not by strength but by numbers, cunning, and swarms of traps. Timid alone and fearsome en masse, they dig tangled warrens and idolize the dragons in whose shadow they settle. Toil for the glory of the lair is their chief virtue; a kobold who dies in a cunning trap of his own making is counted a hero of the kind.',
+    faith:
+      'Kobolds worship Kurtulmak, their creator-god, the malicious and cunning patron of mining and snares, who feuds forever with the gnome god. Many also honour the dragons themselves as living deities — especially Tiamat, the five-headed queen — and serve a mighty dragon with a priest\'s fervour.',
+    familyLabel: 'Lair'
+  },
+  lizardfolk: {
+    culture:
+      'Lizardfolk think not as the warm-blooded do: to them there is no good or evil, only survival, prey, and the tribe. Cold logic rules their customs — they know neither greed, vanity, nor pity in the human sense, and from a fallen foe, as from their own dead, they will without hesitation make food or tools. To a stranger this seems cruelty; to a lizard it is simply the common sense of the swamp.',
+    faith:
+      "Lizardfolk honour Semuanya, the dispassionate serpent-god of survival and procreation, to whom it matters not how the tribe endures, only that it endures. Some, more bloodthirsty, incline toward Sess'innek, a demon lord, who promises the tribe power at the price of cruel rites and devouring.",
+    familyLabel: 'Tribe'
+  },
+  gnoll: {
+    culture:
+      "Gnolls are hyena-headed creatures of endless hunger, obsessed with the urge to kill and devour. They neither build nor sow — only roam in packs after prey, leaving a scorched waste behind. Their 'society' holds together by bloody frenzy and fear of the pack-leader; gnolls know neither mercy nor pity, and their laughter chills the blood worse than a roar.",
+    faith:
+      'Gnolls worship Yeenoghu, demon lord of slaughter, whose hunger they slake with killing. In the frenzy of the hunt they hear his call and cut down all living things to the glory of their demonic patron. No other faith have they — only blood, hunger, and the laughter of the Beast of Butchery.',
+    familyLabel: 'Pack'
+  },
+  'yuan-ti': {
+    culture:
+      "Yuan-ti are snake-people who were once human and gave up their humanity to ancient rites for serpent perfection. The purer their blood, the more of the serpent in their form and the higher their caste. They are cold, calculating, and devoid of feeling in the human sense, weaving century-long intrigues from hidden temple-ruins and seeing in the 'lesser' peoples only cattle for sacrifice and tools of their schemes.",
+    faith:
+      'Yuan-ti worship the serpent gods — Merrshaulk, slumbering lord of poisons, and Sseth — bringing them blood sacrifices in jungle temples. Their faith is cold and fanatical: they deem themselves the chosen heirs of the earth and labour to restore the ancient serpent empire, whatever it costs others.',
+    familyLabel: 'House'
+  },
+  githyanki: {
+    culture:
+      "Githyanki are fearsome warrior-conquerors who dwell in the Astral Plane and for ages have taken vengeance on the mind flayers, their former enslavers. Their society is stern and militarized: from childhood they learn the blade, psionics, and unquestioning loyalty to the lich-queen. They despise all 'lesser' races as prey, raid worlds on the backs of red dragons, and place the honour of the sword and the queen's will above life.",
+    faith:
+      "Githyanki honour no gods — only their immortal lich-queen Vlaakith, who rules them as a living deity and devours her subjects' souls in her hour. The memory of the liberator Gith they keep, but the spirit of her teachings is twisted by the queen's cult; any other faith the githyanki count a mortal weakness.",
+    familyLabel: 'War rank'
+  },
+  githzerai: {
+    culture:
+      'Githzerai are stern ascetics who split from the githyanki, rejecting tyranny for discipline of spirit. They live in monastery-fortresses amid the chaos of Limbo, holding reality itself together by force of will and mind alone. Their customs are strict: meditation, self-mastery, and mental tempering are prized above the flesh. Emotion they do not suppress but rein in, seeing in discipline of mind the highest freedom.',
+    faith:
+      "Githzerai worship no gods but honour the teaching of Zerthimon — an ancient hero-philosopher whose precepts of discipline, self-knowledge, and steadfastness of mind take the place of religion. Their 'priests' are zerths, masters of will and psionics; their faith is that only a firm mind can master chaos and bow to no lord.",
+    familyLabel: 'Order'
+  },
+  drow: {
+    culture:
+      'Drow are the dark elves of the Underdark, whose society rests on cruelty, intrigue, and the power of the spider cult. Matriarchies of noble Houses rule, where sisters poison sisters and weakness is punished with death or worse. Treachery is raised to a virtue, mercy to a vice. Only a few flee this web toward the light, cursed by their kin as renegades.',
+    faith:
+      "Drow serve Lolth, the Spider Queen, a capricious and cruel goddess of intrigue who demands blood, betrayals, and blind obedience. Some secretly honour Vhaeraun, god of theft and ambition, who dreams of stepping out of the goddess's shadow, while rare daring souls follow Eilistraee, the good lady of the moon and the dance, who calls the drow toward light and freedom.",
+    familyLabel: 'House'
+  },
+  duergar: {
+    culture:
+      'Duergar are the grey dwarves of the Underdark, embittered by ages of slavery to the illithids and tempered in the dark. They are sullen, cruel, and obsessed with toil: idleness, to a duergar, is a crime, and compassion a weakness. The psionic gifts won in bondage they honour as the legacy of their endurance. Family and clan hold together not by love but by duty and fear of their elders.',
+    faith:
+      "Duergar worship Laduguer, the stern overseer-god, patron of hard labour, magic, and merciless discipline, and Deep Duerra, lady of conquest and psionics. Their faith is joyless: the gods give strength to endure the dark, but no comfort; a duergar's prayer is toil and hatred of the enslavers.",
+    familyLabel: 'Clan'
+  },
+  sahuagin: {
+    culture:
+      'Sahuagin are the sea devils of the deep, merciless predators to whom the ocean is a hunting ground and all life in it prey. They live by a cruel hierarchy ruled by the strongest and by priestesses, and the weak are devoured by their own. Raids on coastal lands and ships are their trade and their valour; one born with four arms is honoured as the chosen of the shark-god.',
+    faith:
+      "Sahuagin worship Sekolah, the Great Shark, bloodthirsty god of the hunt and devouring, who bids them take by force and know no mercy. Their faith is predation itself: prayer is offered by fang and blood, and the god's highest grace is to be born marked by his blessing, like a four-armed mutant.",
+    familyLabel: 'Pack'
+  },
+  'kuo-toa': {
+    culture:
+      'Kuo-toa are a mad fish-folk of the Underdark, their minds eaten away by ages of darkness, persecution, and solitude. They are slippery, vindictive, and dangerously unpredictable; their cities by the black underground waters are full of grisly shrines. Strangest of all is the power of their collective madness: if kuo-toa believe fervently enough in an invented god, that god may come to life and take on flesh.',
+    faith:
+      "Kuo-toa honour Blibdoolpoolp, the Sea Mother with a lobster's head — a deity born of their own madness and grief. But their faith is chaotic: they keep creating new gods by the force of frenzied worship, and some of these inventions take on a frighteningly real power. A kuo-toa's prayer is delirium made into strength.",
+    familyLabel: 'Sect'
+  },
+  'mind-flayer': {
+    culture:
+      'Mind flayers, the illithids, are a cold and monstrously intelligent people of the Underdark who see in other creatures only cattle: food for the brain and slaves for labour. The colony is subject to the Elder Brain, whose will the illithids carry out as a single mind. They despise flesh and feeling, honouring only intellect and secret knowledge, and the fate of every illithid is one day to merge with the Elder Brain in a death-apotheosis.',
+    faith:
+      'Illithids do not pray to outside gods — to them the deity is the mind itself. Many honour Ilsensine, the god-consciousness, a monstrous intellect in the shape of a brain, lord of knowledge and dominion. But the true centre of their faith is the colony\'s Elder Brain, in whose collective mind an illithid sees god, state, and its own immortality alike.',
+    familyLabel: 'Colony'
+  },
+  doppelganger: {
+    culture:
+      "Doppelgangers are born shapeshifters who wear others' faces, voices, and lives like changes of clothes. They have no culture of their own in the usual sense — only the art of being anyone: they sink into another's role so deeply that they fool even the victim's loved ones. Many live alone, posing for years as a merchant, a guard, or a noble lady; they cannot trust, for they themselves are deceit incarnate.",
+    faith:
+      'Doppelgangers know almost no faith: a deity demands constancy, and a shapeshifter has not even a constant face. Some, in mockery, honour patrons of lies, masks, and change, but most believe only in their own cunning and in profit — the only gods that have never once failed them.',
+    familyLabel: 'Epithet'
+  }
+}

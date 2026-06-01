@@ -1,6 +1,6 @@
 import type { StatBlock } from '@shared/types'
 import { translateSize, translateType } from '@shared/translations'
-import { monsterRole, type MonsterRole } from './monsterRole'
+import { enemyClassOf } from './enemyClass'
 
 export type SortMode = 'name' | 'cr-asc' | 'cr-desc' | 'type'
 
@@ -12,10 +12,9 @@ export interface Filters {
   types: string[]
   habitats: string[]
   alignments: string[]
-  /** Primary roles selected (OR semantics — match any). Empty means no filter. */
-  roles: MonsterRole[]
-  /** If true, only show monsters tagged as bosses. */
-  bossOnly: boolean
+  /** Show class-based enemy NPCs (Воин/Жрец/Маг… by level) in the bestiary.
+   *  When false (default), they're hidden from the general list. */
+  showClassEnemies: boolean
   sort: SortMode
 }
 
@@ -27,8 +26,7 @@ export const DEFAULT_FILTERS: Filters = {
   types: [],
   habitats: [],
   alignments: [],
-  roles: [],
-  bossOnly: false,
+  showClassEnemies: false,
   sort: 'name'
 }
 
@@ -67,7 +65,6 @@ export function applyFilters(list: StatBlock[], f: Filters): StatBlock[] {
   const sizeSet = f.sizes.map((s) => translateSize(s).toLowerCase())
   const typeSet = f.types.map((tp) => translateType(tp).toLowerCase())
 
-  const needRole = f.roles.length > 0 || f.bossOnly
   let out = list.filter((m) => {
     if (text && !m.name.toLowerCase().includes(text)) return false
     if (m.challengeRating < f.crMin || m.challengeRating > f.crMax) return false
@@ -75,11 +72,7 @@ export function applyFilters(list: StatBlock[], f: Filters): StatBlock[] {
     if (typeSet.length && !typeSet.includes(m.type.toLowerCase())) return false
     if (f.habitats.length && !f.habitats.some((h) => m.environments.includes(h))) return false
     if (f.alignments.length && !f.alignments.some((a) => m.alignment.toLowerCase().includes(a.toLowerCase()))) return false
-    if (needRole) {
-      const role = monsterRole(m)
-      if (f.bossOnly && !role.boss) return false
-      if (f.roles.length && !f.roles.includes(role.primary)) return false
-    }
+    if (!f.showClassEnemies && enemyClassOf(m.name)) return false
     return true
   })
 

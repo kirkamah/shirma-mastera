@@ -1,4 +1,5 @@
 import { useEffect, useState, type JSX } from 'react'
+import { useTranslation } from 'react-i18next'
 import { GiScrollQuill } from 'react-icons/gi'
 import type { IconType } from 'react-icons'
 import PageFrame from '../components/PageFrame'
@@ -11,6 +12,7 @@ import {
   FEAT_BUILDS,
   BACKGROUND_BUILDS,
   featByName,
+  featCategory,
   type RaceBuild,
   type ClassBuild,
   type FeatBuild,
@@ -23,15 +25,38 @@ import type { CasterKind } from '../data/character-build'
 import { useFeatPopup } from '../store/featPopup'
 import { useNav } from '../store/nav'
 import CreateHub from '../components/character/CreateHub'
+import CustomBuildEditor, { type BuildKind } from '../components/character/CustomBuildEditor'
+import { useCustomBuilds } from '../store/customBuilds'
+import { isCustomBuildId, findRace, findClass, findBackground } from '../data/custom-builds'
+import { confirmDialog } from '../store/dialog'
 
 type Tab = 'races' | 'classes' | 'feats' | 'backgrounds' | 'create'
 
-const TABS: { id: Tab; label: string }[] = [
-  { id: 'races', label: 'Расы' },
-  { id: 'classes', label: 'Классы' },
-  { id: 'feats', label: 'Черты' },
-  { id: 'backgrounds', label: 'Предыстории' }
+const TABS: { id: Tab; labelKey: string }[] = [
+  { id: 'races', labelKey: 'build.tabRaces' },
+  { id: 'classes', labelKey: 'build.tabClasses' },
+  { id: 'feats', labelKey: 'build.tabFeats' },
+  { id: 'backgrounds', labelKey: 'build.tabBackgrounds' }
 ]
+
+// featCategory() returns Russian labels; map them to i18n keys for display.
+const FEAT_CAT_KEY: Record<string, string> = {
+  'Черты происхождения': 'build.featOrigin',
+  'Боевой стиль': 'build.featFighting',
+  'Общие черты (с 4 ур.)': 'build.featGeneral',
+  'Эпические дары (с 19 ур.)': 'build.featEpic',
+  'Драконьи дары': 'build.featGift'
+}
+
+// Порядок категорий черт для фильтра (см. featCategory в character-build).
+const FEAT_CAT_ORDER = [
+  'Черты происхождения',
+  'Боевой стиль',
+  'Общие черты (с 4 ур.)',
+  'Эпические дары (с 19 ур.)',
+  'Драконьи дары'
+]
+const FEAT_CATEGORIES = FEAT_CAT_ORDER.filter((c) => FEAT_BUILDS.some((f) => featCategory(f) === c))
 
 function SourceChip({ source }: { source?: string }): JSX.Element | null {
   if (!source) return null
@@ -440,10 +465,24 @@ function BackgroundDetail({ b }: { b: BackgroundBuild }): JSX.Element {
 }
 
 export default function CharacterBuild(): JSX.Element {
+  const { t } = useTranslation()
   const [tab, setTab] = useState<Tab>('races')
   const [selectedId, setSelectedId] = useState<string>(RACE_BUILDS[0].id)
+  const [featCat, setFeatCat] = useState<string>('all')
   const pending = useNav((s) => s.pending)
   const clearPending = useNav((s) => s.clear)
+
+  // User-created races/classes/backgrounds — merged into the reference lists
+  // (and into the character constructor, where they grant real bonuses).
+  const customRaces = useCustomBuilds((s) => s.races)
+  const customClasses = useCustomBuilds((s) => s.classes)
+  const customBackgrounds = useCustomBuilds((s) => s.backgrounds)
+  const reloadCustom = useCustomBuilds((s) => s.reload)
+  useEffect(() => {
+    reloadCustom()
+  }, [reloadCustom])
+
+  const [editor, setEditor] = useState<{ kind: BuildKind; initial: RaceBuild | ClassBuild | BackgroundBuild | null } | null>(null)
 
   // Selection from global search — switch to the matching tab and select the item.
   useEffect(() => {
@@ -459,10 +498,27 @@ export default function CharacterBuild(): JSX.Element {
   }, [pending, clearPending])
 
   const list: { id: string; name: string }[] =
-    tab === 'races' ? RACE_BUILDS :
-    tab === 'classes' ? CLASS_BUILDS :
-    tab === 'feats' ? FEAT_BUILDS :
-    BACKGROUND_BUILDS
+    tab === 'races' ? [...RACE_BUILDS, ...customRaces] :
+    tab === 'classes' ? [...CLASS_BUILDS, ...customClasses] :
+    tab === 'feats' ? (featCat === 'all' ? FEAT_BUILDS : FEAT_BUILDS.filter((f) => featCategory(f) === featCat)) :
+    [...BACKGROUND_BUILDS, ...customBackgrounds]
+
+  // Which custom kind corresponds to the current tab (feats can't be custom here).
+  const customKind: BuildKind | null =
+    tab === 'races' ? 'race' : tab === 'classes' ? 'class' : tab === 'backgrounds' ? 'background' : null
+
+  const findCustomInitial = (): RaceBuild | ClassBuild | BackgroundBuild | null => {
+    if (tab === 'races') return customRaces.find((r) => r.id === selectedId) ?? null
+    if (tab === 'classes') return customClasses.find((c) => c.id === selectedId) ?? null
+    if (tab === 'backgrounds') return customBackgrounds.find((b) => b.id === selectedId) ?? null
+    return null
+  }
+
+  const deleteCustom = async (): Promise<void> => {
+    if (!(await confirmDialog({ title: 'Удалить', message: `Удалить «${selected?.name}»?`, danger: true }))) return
+    await window.api.db.deleteCustom(selectedId)
+    await reloadCustom()
+  }
 
   const iconFor = (id: string): IconType => {
     if (tab === 'races') return emblemForRace(id)
@@ -480,39 +536,39 @@ export default function CharacterBuild(): JSX.Element {
   const detail = (() => {
     if (!selected) return null
     if (tab === 'races') {
-      const r = RACE_BUILDS.find((x) => x.id === selected.id)
+      const r = findRace(selected.id)
       return r ? <RaceDetail r={r} /> : null
     }
     if (tab === 'classes') {
-      const c = CLASS_BUILDS.find((x) => x.id === selected.id)
+      const c = findClass(selected.id)
       return c ? <ClassDetail c={c} /> : null
     }
     if (tab === 'feats') {
       const f = FEAT_BUILDS.find((x) => x.id === selected.id)
       return f ? <FeatDetail f={f} /> : null
     }
-    const b = BACKGROUND_BUILDS.find((x) => x.id === selected.id)
+    const b = findBackground(selected.id)
     return b ? <BackgroundDetail b={b} /> : null
   })()
 
   return (
-    <PageFrame title="Игрок" subtitle="Сборка персонажа: расы, классы, черты, предыстории">
+    <PageFrame title={t('build.title')} subtitle={t('build.subtitle')}>
       <div className="mb-3 flex shrink-0 items-end gap-1 border-b border-ink-brown/20">
-        {TABS.map((t) => (
+        {TABS.map((tb) => (
           <button
-            key={t.id}
+            key={tb.id}
             onClick={() => {
-              setTab(t.id)
-              const next = (t.id === 'races' ? RACE_BUILDS : t.id === 'classes' ? CLASS_BUILDS : t.id === 'feats' ? FEAT_BUILDS : BACKGROUND_BUILDS)[0]
+              setTab(tb.id)
+              const next = (tb.id === 'races' ? RACE_BUILDS : tb.id === 'classes' ? CLASS_BUILDS : tb.id === 'feats' ? FEAT_BUILDS : BACKGROUND_BUILDS)[0]
               if (next) setSelectedId(next.id)
             }}
             className={`rounded-t-md border-x border-t px-3 py-1.5 font-serif text-sm font-semibold transition-colors ${
-              tab === t.id
+              tab === tb.id
                 ? 'border-accent/40 bg-accent/15 text-accent'
                 : 'border-transparent text-ink-brown/70 hover:bg-black/5 hover:text-ink-brown'
             }`}
           >
-            {t.label}
+            {t(tb.labelKey)}
           </button>
         ))}
         {/* «Создание персонажа» намеренно отделено: это не справочник, а
@@ -527,7 +583,7 @@ export default function CharacterBuild(): JSX.Element {
           }`}
         >
           <GiScrollQuill className="text-base" />
-          Создание персонажа
+          {t('build.createCharacter')}
         </button>
       </div>
 
@@ -536,8 +592,35 @@ export default function CharacterBuild(): JSX.Element {
           <CreateHub />
         </div>
       ) : (
-        <div className="flex min-h-0 flex-1 gap-3">
+        <div className="flex min-h-0 flex-1 flex-col gap-2">
+          {tab === 'feats' && (
+            <div className="flex shrink-0 flex-wrap items-center gap-1.5">
+              <span className="mr-1 text-xs font-semibold uppercase tracking-wider text-ink-brown/60">{t('build.filter')}</span>
+              {['all', ...FEAT_CATEGORIES].map((c) => (
+                <button
+                  key={c}
+                  onClick={() => setFeatCat(c)}
+                  className={`rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors ${
+                    featCat === c
+                      ? 'border-accent bg-accent/20 text-accent'
+                      : 'border-ink-brown/25 text-ink-brown/70 hover:border-accent/50 hover:text-ink-brown'
+                  }`}
+                >
+                  {c === 'all' ? t('build.all') : t(FEAT_CAT_KEY[c] ?? c)}
+                </button>
+              ))}
+            </div>
+          )}
+          <div className="flex min-h-0 flex-1 gap-3">
           <div className="w-52 shrink-0 overflow-y-auto rounded-lg border border-ink-brown/20 bg-parchment-dark/30 py-1">
+            {customKind && (
+              <button
+                onClick={() => setEditor({ kind: customKind, initial: null })}
+                className="mx-1 mb-1 flex w-[calc(100%-0.5rem)] items-center justify-center gap-1 rounded border border-dashed border-gold/60 px-2 py-1.5 font-serif text-sm font-bold text-gold transition-colors hover:bg-gold/15"
+              >
+                {t('build.createOwn')}
+              </button>
+            )}
             {list.map((x) => (
               <button
                 key={x.id}
@@ -554,8 +637,40 @@ export default function CharacterBuild(): JSX.Element {
             ))}
           </div>
 
-          <div className="min-w-0 flex-1 overflow-y-auto pr-1">{detail}</div>
+          <div className="min-w-0 flex-1 overflow-y-auto pr-1">
+            {customKind && selected && isCustomBuildId(selected.id) && (
+              <div className="mb-2 flex items-center gap-2">
+                <span className="rounded-full border border-gold/50 px-2 py-0.5 text-[11px] font-semibold text-gold">{t('build.ownBadge')}</span>
+                <button
+                  onClick={() => setEditor({ kind: customKind, initial: findCustomInitial() })}
+                  className="rounded border border-ink-brown/30 px-2 py-1 text-xs text-ink-brown/80 hover:border-accent hover:text-accent"
+                >
+                  {t('common.edit')}
+                </button>
+                <button
+                  onClick={deleteCustom}
+                  className="rounded border border-red-700/40 px-2 py-1 text-xs text-red-800 hover:bg-red-700/10"
+                >
+                  {t('common.delete')}
+                </button>
+              </div>
+            )}
+            {detail}
+          </div>
+          </div>
         </div>
+      )}
+
+      {editor && (
+        <CustomBuildEditor
+          kind={editor.kind}
+          initial={editor.initial}
+          onClose={() => setEditor(null)}
+          onSaved={(id) => {
+            setEditor(null)
+            setSelectedId(id)
+          }}
+        />
       )}
     </PageFrame>
   )

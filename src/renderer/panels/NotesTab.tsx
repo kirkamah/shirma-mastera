@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type JSX } from 'react'
 import { useTranslation } from 'react-i18next'
 import { GiTrashCan } from 'react-icons/gi'
+import { confirmDialog, promptDialog } from '../store/dialog'
 
 const AUTOSAVE_MS = 30000
 
@@ -102,17 +103,21 @@ export default function NotesTab(): JSX.Element {
     return page.id
   }
 
-  const renamePage = (): void => {
-    const title = window.prompt('Название страницы:', pages.find((p) => p.id === activeId)?.title)
+  const renamePage = async (): Promise<void> => {
+    const title = await promptDialog({
+      title: 'Переименовать страницу',
+      message: 'Название страницы:',
+      defaultValue: pages.find((p) => p.id === activeId)?.title
+    })
     if (!title) return
     const next = flush().map((p) => (p.id === activeId ? { ...p, title } : p))
     setPages(next)
     persist(next)
   }
 
-  const deletePage = (): void => {
+  const deletePage = async (): Promise<void> => {
     if (pages.length <= 1) return
-    if (!window.confirm('Удалить эту страницу?')) return
+    if (!(await confirmDialog({ title: 'Удалить страницу', message: 'Удалить эту страницу?', danger: true, confirmText: 'Удалить' }))) return
     const next = pagesRef.current.filter((p) => p.id !== activeId)
     setPages(next)
     setActiveId(next[0].id)

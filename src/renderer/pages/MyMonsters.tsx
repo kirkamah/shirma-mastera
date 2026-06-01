@@ -1,15 +1,15 @@
 import { useEffect, useMemo, useState, type JSX } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { GiWorld, GiTrashCan } from 'react-icons/gi'
+import { GiTrashCan } from 'react-icons/gi'
 import PageFrame from '../components/PageFrame'
 import SearchPanel from '../components/SearchPanel'
-import MonsterGrid from '../components/MonsterGrid'
+import MonsterFolders from '../components/MonsterFolders'
 import StatBlock from '../components/StatBlock'
 import Modal from '../components/Modal'
-import ImportDialog from '../components/ImportDialog'
 import { applyFilters, collectOptions, DEFAULT_FILTERS, type Filters } from '../utils/filters'
 import { emptyStatBlock } from '../utils/monster'
+import { confirmDialog } from '../store/dialog'
 import type { StatBlock as SB } from '@shared/types'
 
 export default function MyMonsters(): JSX.Element {
@@ -18,7 +18,6 @@ export default function MyMonsters(): JSX.Element {
   const [monsters, setMonsters] = useState<SB[]>([])
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS)
   const [selected, setSelected] = useState<SB | null>(null)
-  const [importing, setImporting] = useState(false)
 
   const load = (): void => {
     window.api.db.listMonsters().then((list) => {
@@ -32,7 +31,7 @@ export default function MyMonsters(): JSX.Element {
   const filtered = useMemo(() => applyFilters(monsters, filters), [monsters, filters])
 
   const remove = async (m: SB): Promise<void> => {
-    if (!window.confirm(t('myMonsters.deleteConfirm', { name: m.name }))) return
+    if (!(await confirmDialog({ title: t('common.delete'), message: t('myMonsters.deleteConfirm', { name: m.name }), danger: true, confirmText: t('common.delete') }))) return
     await window.api.db.deleteMonster(m.key)
     setSelected(null)
     load()
@@ -48,9 +47,6 @@ export default function MyMonsters(): JSX.Element {
           <button onClick={() => navigate('/editor', { state: { monster: emptyStatBlock() } })} className={`${btn} bg-accent text-parchment hover:bg-accent/80`}>
             + {t('myMonsters.create')}
           </button>
-          <button onClick={() => setImporting(true)} className={`${btn} inline-flex items-center gap-1.5 border border-accent/50 text-accent hover:bg-accent/10`}>
-            <GiWorld /> {t('myMonsters.import')}
-          </button>
         </>
       }
     >
@@ -61,7 +57,7 @@ export default function MyMonsters(): JSX.Element {
         {monsters.length === 0 ? (
           <div className="p-6 text-center text-sm text-ink-brown/50">{t('myMonsters.empty')}</div>
         ) : (
-          <MonsterGrid monsters={filtered} selectedKey={selected?.key} onSelect={setSelected} />
+          <MonsterFolders monsters={filtered} selectedKey={selected?.key} onSelect={setSelected} sort={filters.sort} />
         )}
       </div>
 
@@ -85,8 +81,6 @@ export default function MyMonsters(): JSX.Element {
           />
         </Modal>
       )}
-
-      {importing && <ImportDialog onClose={() => setImporting(false)} onImported={() => { setImporting(false); load() }} />}
     </PageFrame>
   )
 }

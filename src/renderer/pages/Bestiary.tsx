@@ -12,7 +12,6 @@ import { RU_BESTIARY } from '../data/bestiary-ru'
 import { useNav } from '../store/nav'
 import { useInitiative } from '../store/initiative'
 import { useUi } from '../store/ui'
-import { useSettings } from '../store/settings'
 import { rollD20 } from '../utils/roll'
 import type { StatBlock as SB } from '@shared/types'
 
@@ -27,15 +26,6 @@ export default function Bestiary(): JSX.Element {
   const clearPending = useNav((s) => s.clear)
   const addCombatant = useInitiative((s) => s.addCombatant)
   const setNotebookTab = useUi((s) => s.setNotebookTab)
-  const showRoles = useSettings((s) => s.roleBadges)
-
-  // When the user turns role badges off, also drop any active role-based
-  // filter so hidden chips don't silently keep filtering the grid.
-  useEffect(() => {
-    if (!showRoles && (filters.roles.length || filters.bossOnly)) {
-      setFilters((f) => ({ ...f, roles: [], bossOnly: false }))
-    }
-  }, [showRoles, filters.roles.length, filters.bossOnly])
 
   // User edits to built-in creatures are stored in the DB under the same key;
   // overlay them so an overwritten built-in shows its edited form here.
@@ -91,7 +81,7 @@ export default function Bestiary(): JSX.Element {
 
   return (
     <PageFrame title={t('bestiary.title')} subtitle={`${ruBestiary.length} существ · оффлайн`}>
-      <SearchPanel filters={filters} onChange={setFilters} habitatOptions={options.habitats} alignmentOptions={options.alignments} />
+      <SearchPanel filters={filters} onChange={setFilters} habitatOptions={options.habitats} alignmentOptions={options.alignments} classEnemyToggle />
 
       <div className="mt-2 flex items-center gap-3 text-xs text-ink-brown/60">
         <span>{filtered.length}</span>
@@ -120,7 +110,7 @@ export default function Bestiary(): JSX.Element {
         {filtered.length === 0 ? (
           <div className="p-6 text-center text-sm text-ink-brown/50">{t('common.empty')}</div>
         ) : (
-          <MonsterGrid monsters={filtered} selectedKey={selected?.key} onSelect={setSelected} pickedKeys={pickedKeys} onPick={togglePick} />
+          <MonsterGrid monsters={filtered} selectedKey={selected?.key} onSelect={setSelected} pickedKeys={pickedKeys} onPick={togglePick} sort={filters.sort} />
         )}
       </div>
 

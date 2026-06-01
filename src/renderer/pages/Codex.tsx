@@ -4,6 +4,8 @@ import PageFrame from '../components/PageFrame'
 import FormatHelp from '../components/FormatHelp'
 import DiceText from '../components/DiceText'
 import { uid } from '../utils/monster'
+import TagInput from '../components/TagInput'
+import { alertDialog, confirmDialog } from '../store/dialog'
 import type { CodexCategory, CodexEntry, CodexKind } from '@shared/types'
 
 const PRESET_FIELDS: Record<string, string[]> = {
@@ -51,6 +53,8 @@ export default function Codex(): JSX.Element {
   const loadEntries = (): void => {
     window.api.db.listCodex().then(setEntries)
   }
+  // All tags used across the card index → autocomplete pool for new tags.
+  const tagPool = useMemo(() => [...new Set(entries.flatMap((e) => e.tags ?? []))], [entries])
   const loadCats = (): void => {
     window.api.db.listCustom<CodexCategory>('codex_category').then((stored) => {
       const map = new Map<CodexKind, CodexCategory>()
@@ -113,7 +117,7 @@ export default function Codex(): JSX.Element {
   }
   const remove = async (): Promise<void> => {
     if (!draft) return
-    if (!window.confirm(`Удалить «${draft.name}»?`)) return
+    if (!(await confirmDialog({ title: 'Удалить', message: `Удалить «${draft.name}»?`, danger: true, confirmText: 'Удалить' }))) return
     await window.api.db.deleteCodex(draft.key)
     setDraft(null)
     setEditing(false)
@@ -146,10 +150,10 @@ export default function Codex(): JSX.Element {
   const deleteCategory = async (): Promise<void> => {
     if (!activeCat || isBuiltin(activeCat.key)) return
     if (list.length > 0) {
-      window.alert('Сначала удалите или перенесите записи этого блока.')
+      await alertDialog('Сначала удалите или перенесите записи этого блока.')
       return
     }
-    if (!window.confirm(`Удалить блок «${activeCat.name}»?`)) return
+    if (!(await confirmDialog({ title: 'Удалить блок', message: `Удалить блок «${activeCat.name}»?`, danger: true, confirmText: 'Удалить' }))) return
     await window.api.db.deleteCustom(activeCat.key)
     loadCats()
     selectCategory('npc')
@@ -370,12 +374,16 @@ export default function Codex(): JSX.Element {
                   </div>
                 )}
 
-                <label className="mt-2 block text-xs font-semibold text-accent">Теги (через запятую)</label>
-                <input
-                  value={draft.tags.join(', ')}
-                  onChange={(e) => set({ tags: e.target.value.split(',').map((t) => t.trim()).filter(Boolean) })}
-                  className={`${inputCls} mt-1`}
-                />
+                <label className="mt-2 block text-xs font-semibold text-accent">Теги</label>
+                <div className="mt-1">
+                  <TagInput
+                    variant="parchment"
+                    value={draft.tags}
+                    onChange={(next) => set({ tags: next })}
+                    suggestions={tagPool}
+                    placeholder="Например: Таверна"
+                  />
+                </div>
               </div>
             ) : (
               /* ---------- VIEW MODE ---------- */

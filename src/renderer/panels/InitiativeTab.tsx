@@ -1,8 +1,9 @@
 import { useState, type JSX } from 'react'
 import { useTranslation } from 'react-i18next'
-import { GiBrain, GiDiceTwentyFacesTwenty } from 'react-icons/gi'
+import { GiBrain, GiDiceTwentyFacesTwenty, GiFastForwardButton } from 'react-icons/gi'
 import { useInitiative, type CombatantType } from '../store/initiative'
 import { useDiceRoller } from '../hooks/useDiceRoller'
+import { confirmDialog } from '../store/dialog'
 import { CONDITION_NAMES } from '../data/conditions-fallback'
 
 const TYPE_COLORS: Record<CombatantType, string> = {
@@ -90,7 +91,9 @@ export default function InitiativeTab(): JSX.Element {
             {t('notebook.startCombat')}
           </button>
           <button
-            onClick={() => active && window.confirm(t('notebook.endCombatConfirm')) && endCombat()}
+            onClick={async () => {
+              if (active && (await confirmDialog({ message: t('notebook.endCombatConfirm'), danger: true }))) endCombat()
+            }}
             className="rounded border border-accent/50 px-2 py-1 text-xs hover:bg-accent/20"
           >
             {t('notebook.endCombat')}
@@ -101,9 +104,9 @@ export default function InitiativeTab(): JSX.Element {
       <button
         onClick={nextTurn}
         disabled={combatants.length === 0}
-        className="w-full rounded bg-accent py-1.5 font-semibold text-white disabled:opacity-40"
+        className="inline-flex w-full items-center justify-center gap-1.5 rounded bg-accent py-1.5 font-semibold text-white disabled:opacity-40"
       >
-        ⏭ {t('notebook.nextTurn')}
+        <GiFastForwardButton /> {t('notebook.nextTurn')}
       </button>
 
       {/* Combatant list */}

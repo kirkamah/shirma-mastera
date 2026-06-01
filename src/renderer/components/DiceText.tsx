@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type JSX } from 'react'
+import { useTranslation } from 'react-i18next'
 import { GiDiceTwentyFacesTwenty } from 'react-icons/gi'
 import { tokenize, formatFormula, formatBonusFormula, type ParsedDice } from '../utils/diceParser'
 import { useDiceRoller } from '../hooks/useDiceRoller'
@@ -144,12 +145,13 @@ const COND_RE = new RegExp(COND_DEFS.map((d, i) => `(?<c${i}>${d.src})`).join('|
 
 function ConditionLink({ text, condKey }: { text: string; condKey: string }): JSX.Element {
   const open = useConditionPopup((s) => s.open)
+  const { i18n } = useTranslation()
   return (
     <button
       type="button"
       onClick={(e) => {
         e.stopPropagation()
-        const c = conditionByKey(condKey)
+        const c = conditionByKey(condKey, i18n.language)
         if (c) open(c)
       }}
       title="Открыть описание состояния"

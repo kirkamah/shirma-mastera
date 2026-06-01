@@ -4,16 +4,14 @@ import { GiMagnifyingGlass } from 'react-icons/gi'
 import RangeSlider from './RangeSlider'
 import { SIZES, SIZE_RU, TYPES, type Filters, type SortMode } from '../utils/filters'
 import { translateType } from '@shared/translations'
-import { ROLE_LABELS, ROLE_ICONS, ROLE_BADGE_CLASS, type MonsterRole } from '../utils/monsterRole'
-import { useSettings } from '../store/settings'
-
-const ROLE_ORDER: MonsterRole[] = ['melee', 'ranged', 'caster', 'tank']
 
 interface Props {
   filters: Filters
   onChange: (f: Filters) => void
   habitatOptions: string[]
   alignmentOptions: string[]
+  /** Show the «классы-враги» visibility toggle (bestiary only). */
+  classEnemyToggle?: boolean
 }
 
 function Chip({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }): JSX.Element {
@@ -32,9 +30,8 @@ function Chip({ label, active, onClick }: { label: string; active: boolean; onCl
   )
 }
 
-export default function SearchPanel({ filters, onChange, habitatOptions, alignmentOptions }: Props): JSX.Element {
+export default function SearchPanel({ filters, onChange, habitatOptions, alignmentOptions, classEnemyToggle }: Props): JSX.Element {
   const { t } = useTranslation()
-  const showRoles = useSettings((s) => s.roleBadges)
   // Filters start collapsed; the search box and sort stay visible.
   const [open, setOpen] = useState(false)
 
@@ -42,9 +39,6 @@ export default function SearchPanel({ filters, onChange, habitatOptions, alignme
   const toggle = (key: 'sizes' | 'types' | 'habitats' | 'alignments', value: string): void => {
     const arr = filters[key]
     set({ [key]: arr.includes(value) ? arr.filter((v) => v !== value) : [...arr, value] } as Partial<Filters>)
-  }
-  const toggleRole = (r: MonsterRole): void => {
-    set({ roles: filters.roles.includes(r) ? filters.roles.filter((x) => x !== r) : [...filters.roles, r] })
   }
 
   const inputCls =
@@ -73,49 +67,20 @@ export default function SearchPanel({ filters, onChange, habitatOptions, alignme
 
       {open && (
         <div className="space-y-3 border-t border-ink-brown/15 p-3 text-sm text-ink-brown">
-          {showRoles && (
-          <div>
-            <div className="mb-1 text-xs text-ink-brown/70">Тактическая роль</div>
-            <div className="flex flex-wrap items-center gap-1">
-              {ROLE_ORDER.map((r) => {
-                const Icon = ROLE_ICONS[r]
-                const active = filters.roles.includes(r)
-                return (
-                  <button
-                    key={r}
-                    type="button"
-                    onClick={() => toggleRole(r)}
-                    title={ROLE_LABELS[r]}
-                    className={`flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs transition-colors ${
-                      active
-                        ? `${ROLE_BADGE_CLASS[r]} border-transparent`
-                        : 'border-ink-brown/30 text-ink-brown/80 hover:border-accent/60'
-                    }`}
-                  >
-                    <Icon /> {ROLE_LABELS[r]}
-                  </button>
-                )
-              })}
-              {(() => {
-                const Icon = ROLE_ICONS.boss
-                const active = filters.bossOnly
-                return (
-                  <button
-                    type="button"
-                    onClick={() => set({ bossOnly: !filters.bossOnly })}
-                    title={ROLE_LABELS.boss}
-                    className={`flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs transition-colors ${
-                      active
-                        ? `${ROLE_BADGE_CLASS.boss} border-transparent`
-                        : 'border-ink-brown/30 text-ink-brown/80 hover:border-accent/60'
-                    }`}
-                  >
-                    <Icon /> Только боссы
-                  </button>
-                )
-              })()}
+          {classEnemyToggle && (
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-ink-brown/70">Классы-враги в бестиарии:</span>
+              <button
+                type="button"
+                onClick={() => set({ showClassEnemies: !filters.showClassEnemies })}
+                title="Враги-классы (Воин/Жрец/Маг… по уровням). По умолчанию скрыты из общего списка."
+                className={`rounded-full border px-3 py-0.5 text-xs font-semibold transition-colors ${
+                  filters.showClassEnemies ? 'border-accent bg-accent text-parchment' : 'border-ink-brown/30 text-ink-brown/80 hover:border-accent/60'
+                }`}
+              >
+                {filters.showClassEnemies ? 'Показаны' : 'Скрыты'}
+              </button>
             </div>
-          </div>
           )}
 
           <div>

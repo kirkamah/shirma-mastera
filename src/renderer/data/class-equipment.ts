@@ -40,3 +40,9 @@ export function costToGp(cost: string): number {
       return 0
   }
 }
+
+/** Convert a cost string to copper pieces (1 зм = 100 мм, 1 см = 10 мм) so coins
+ *  can be spent without ever producing a fractional gold balance. */
+export function costToCp(cost: string): number {
+  return Math.round(costToGp(cost) * 100)
+}

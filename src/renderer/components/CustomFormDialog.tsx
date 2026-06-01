@@ -1,11 +1,14 @@
 import { useState, type JSX, type ReactNode } from 'react'
+import TagInput from './TagInput'
 
 export interface FormField {
   key: string
   label: string
-  type?: 'text' | 'number' | 'textarea' | 'select' | 'checkbox'
+  type?: 'text' | 'number' | 'textarea' | 'select' | 'checkbox' | 'tags'
   options?: { value: string; label: string }[]
   placeholder?: string
+  /** Autocomplete pool for `type: 'tags'` — existing tags to suggest/dedupe against. */
+  suggestions?: string[]
 }
 
 export type FormValues = Record<string, string | number | boolean>
@@ -59,6 +62,18 @@ export default function CustomFormDialog({ title, fields, initial, onSave, onClo
                     </option>
                   ))}
                 </select>
+              ) : f.type === 'tags' ? (
+                <div className="mt-0.5">
+                  <TagInput
+                    value={String(values[f.key] ?? '')
+                      .split(',')
+                      .map((s) => s.trim())
+                      .filter(Boolean)}
+                    onChange={(next) => set(f.key, next.join(', '))}
+                    placeholder={f.placeholder}
+                    suggestions={f.suggestions}
+                  />
+                </div>
               ) : f.type === 'checkbox' ? (
                 <div className="mt-0.5">
                   <input type="checkbox" checked={Boolean(values[f.key])} onChange={(e) => set(f.key, e.target.checked)} className="accent-accent" />

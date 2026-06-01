@@ -10,6 +10,7 @@ import ConditionPopup from './components/ConditionPopup'
 import FeatPopup from './components/FeatPopup'
 import GlossaryPopup from './components/GlossaryPopup'
 import SpellContextMenu from './components/SpellContextMenu'
+import ConfirmHost from './components/ConfirmHost'
 // Pages are code-split — each becomes its own JS chunk loaded on demand.
 // Bestiary still loads near-instantly because it's the landing route, but the
 // heavy data files behind CharacterBuild / MonsterEditor / Spells no longer
@@ -22,12 +23,14 @@ const MonsterEditor = lazy(() => import('./pages/MonsterEditor'))
 const Equipment = lazy(() => import('./pages/Equipment'))
 const Hazards = lazy(() => import('./pages/Hazards'))
 const OptionalRules = lazy(() => import('./pages/OptionalRules'))
+const RandomTables = lazy(() => import('./pages/RandomTables'))
 const Spells = lazy(() => import('./pages/Spells'))
 const Codex = lazy(() => import('./pages/Codex'))
 const CharacterBuild = lazy(() => import('./pages/CharacterBuild'))
 import { GiResize, GiHorizontalFlip } from 'react-icons/gi'
 import { useSettings } from './store/settings'
 import { useUi, type SplitRoute } from './store/ui'
+import { useCustomBuilds } from './store/customBuilds'
 
 /** Shared Suspense fallback for lazy-loaded routes — just a soft fade to avoid
  *  a layout jolt on chunk swap. */
@@ -44,6 +47,7 @@ const PANE_OPTIONS: { value: SplitRoute; label: string }[] = [
   { value: '/hazards', label: 'Опасности' },
   { value: '/codex', label: 'Картотека' },
   { value: '/rules', label: 'Правила' },
+  { value: '/random-tables', label: 'Случайные таблицы' },
   { value: '/character', label: 'Игрок' },
   { value: '/my-monsters', label: 'Мои монстры' }
 ]
@@ -67,6 +71,8 @@ function paneFor(route: SplitRoute): JSX.Element {
         return <Codex />
       case '/rules':
         return <OptionalRules />
+      case '/random-tables':
+        return <RandomTables />
       case '/character':
         return <CharacterBuild />
       case '/my-monsters':
@@ -145,6 +151,12 @@ export default function App(): JSX.Element {
   useEffect(() => {
     i18n.changeLanguage(language)
   }, [language, i18n])
+
+  // Load user-created races/classes/backgrounds into the registry so saved
+  // characters resolve them (real bonuses) even before opening the builder.
+  useEffect(() => {
+    useCustomBuilds.getState().reload()
+  }, [])
 
   // Apply visual settings.
   useEffect(() => {
@@ -306,6 +318,14 @@ export default function App(): JSX.Element {
                   }
                 />
                 <Route
+                  path="/random-tables"
+                  element={
+                    <ErrorBoundary name="RandomTables">
+                      <RandomTables />
+                    </ErrorBoundary>
+                  }
+                />
+                <Route
                   path="/character"
                   element={
                     <ErrorBoundary name="CharacterBuild">
@@ -365,6 +385,7 @@ export default function App(): JSX.Element {
       <FeatPopup />
       <GlossaryPopup />
       <SpellContextMenu />
+      <ConfirmHost />
     </HashRouter>
   )
 }

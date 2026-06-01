@@ -1,4 +1,5 @@
 import { Fragment, useEffect, useMemo, useState, type JSX } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { IconType } from 'react-icons'
 import { GiTrashCan, GiBroadsword } from 'react-icons/gi'
 import PageFrame from '../components/PageFrame'
@@ -7,7 +8,19 @@ import CustomFormDialog, { type FormField, type FormValues } from '../components
 import { useCustom } from '../hooks/useCustom'
 import { useNav } from '../store/nav'
 import { uid } from '../utils/monster'
-import { EQUIPMENT, EQUIP_CATEGORIES, ARMOR_TIER_LABEL, MOUNT_TIER_LABEL, MASTERY_RU, type ArmorTier, type MountTier, type EquipCategory, type EquipItem } from '../data/equipment-ru'
+import {
+  EQUIPMENT,
+  EQUIP_CATEGORIES,
+  equipmentFor,
+  categoryLabel,
+  armorTierLabel,
+  mountTierLabel,
+  masteryFor,
+  type ArmorTier,
+  type MountTier,
+  type EquipCategory,
+  type EquipItem
+} from '../data/equipment-ru'
 
 interface CustomEquip {
   key: string
@@ -17,14 +30,6 @@ interface CustomEquip {
   weight: string
   props: string
 }
-
-const EQUIP_FIELDS: FormField[] = [
-  { key: 'name', label: 'Название' },
-  { key: 'category', label: 'Категория', type: 'select', options: EQUIP_CATEGORIES.map((c) => ({ value: c.id, label: c.label })) },
-  { key: 'cost', label: 'Цена', placeholder: '10 зм' },
-  { key: 'weight', label: 'Вес', placeholder: '1 кг' },
-  { key: 'props', label: 'Свойства / описание', type: 'textarea' }
-]
 
 /** Renders an item description: splits into sections, bolds the leading keyword
  *  (e.g. «Компоненты», «Магия»), and draws a divider between sections. */
@@ -87,33 +92,46 @@ interface SubGroup {
   items: EquipItem[]
 }
 
-function subgroups(category: EquipCategory, items: EquipItem[]): SubGroup[] {
+function subgroups(category: EquipCategory, items: EquipItem[], lang: string, t: (k: string) => string): SubGroup[] {
   if (category === 'weapon-simple' || category === 'weapon-martial') {
     const melee = items.filter((i) => !i.ranged)
     const ranged = items.filter((i) => i.ranged)
     const out: SubGroup[] = []
-    if (melee.length) out.push({ label: 'Рукопашное', items: melee })
-    if (ranged.length) out.push({ label: 'Дальнобойное', items: ranged })
+    if (melee.length) out.push({ label: t('equip.melee'), items: melee })
+    if (ranged.length) out.push({ label: t('equip.rangedGroup'), items: ranged })
     return out
   }
   if (category === 'armor') {
     const order: ArmorTier[] = ['light', 'medium', 'heavy', 'shield']
     return order
-      .map((t) => ({ label: ARMOR_TIER_LABEL[t], items: items.filter((i) => i.tier === t) }))
+      .map((tier) => ({ label: armorTierLabel(tier, lang), items: items.filter((i) => i.tier === tier) }))
       .filter((g) => g.items.length)
   }
   if (category === 'mounts') {
     const order: MountTier[] = ['beast', 'tack', 'cart', 'ship']
     return order
-      .map((t) => ({ label: MOUNT_TIER_LABEL[t], items: items.filter((i) => i.mountTier === t) }))
+      .map((tier) => ({ label: mountTierLabel(tier, lang), items: items.filter((i) => i.mountTier === tier) }))
       .filter((g) => g.items.length)
   }
   return [{ label: null, items }]
 }
 
 export default function Equipment(): JSX.Element {
+  const { t, i18n } = useTranslation()
+  const lang = i18n.language
   const { items: custom, save, remove } = useCustom<CustomEquip>('equipment')
   const [cat, setCat] = useState<EquipCategory | 'all'>('weapon-simple')
+
+  const EQUIP_FIELDS: FormField[] = useMemo(
+    () => [
+      { key: 'name', label: t('equip.fName') },
+      { key: 'category', label: t('equip.fCategory'), type: 'select', options: EQUIP_CATEGORIES.map((c) => ({ value: c.id, label: categoryLabel(c, lang) })) },
+      { key: 'cost', label: t('equip.cost'), placeholder: t('equip.costPh') },
+      { key: 'weight', label: t('equip.weight'), placeholder: t('equip.weightPh') },
+      { key: 'props', label: t('equip.fProps'), type: 'textarea' }
+    ],
+    [t, lang]
+  )
   const [query, setQuery] = useState('')
   const [selectedId, setSelectedId] = useState<string>('')
   const [editing, setEditing] = useState<{ key: string | null; values: FormValues } | null>(null)
@@ -125,10 +143,10 @@ export default function Equipment(): JSX.Element {
   // Overlay overrides (same id as a built-in) in place, then append fully custom ones.
   const all: EquipItem[] = useMemo(() => {
     const byKey = new Map(custom.map((c) => [c.key, { ...c, id: c.key }]))
-    const merged = EQUIPMENT.map((e) => byKey.get(e.id) ?? e)
+    const merged = equipmentFor(lang).map((e) => byKey.get(e.id) ?? e)
     const extras = custom.filter((c) => !builtinIds.has(c.key)).map((c) => ({ ...c, id: c.key }))
     return [...merged, ...extras]
-  }, [custom, builtinIds])
+  }, [custom, builtinIds, lang])
 
   // Selection from global search: switch to the item's category so it shows in the list.
   useEffect(() => {
@@ -164,21 +182,21 @@ export default function Equipment(): JSX.Element {
 
   return (
     <PageFrame
-      title="Снаряжение"
-      subtitle="Оружие, доспехи, инвентарь, инструменты"
+      title={t('equip.title')}
+      subtitle={t('equip.subtitle')}
       actions={
         <button onClick={() => setEditing({ key: null, values: { category: cat === 'all' ? 'gear' : cat } })} className="rounded bg-accent px-3 py-1.5 text-sm font-semibold text-parchment hover:bg-accent/80">
-          + Предмет
+          {t('equip.addItem')}
         </button>
       }
     >
       <div className="mb-2 flex flex-wrap items-center gap-1">
-        {chip('all', 'Всё')}
-        {EQUIP_CATEGORIES.map((c) => chip(c.id, c.label, c.icon))}
+        {chip('all', t('equip.all'))}
+        {EQUIP_CATEGORIES.map((c) => chip(c.id, categoryLabel(c, lang), c.icon))}
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Поиск…"
+          placeholder={t('equip.searchPh')}
           className="ml-auto rounded-md border border-ink-brown/30 bg-parchment/60 px-3 py-1 text-sm text-ink-brown placeholder:text-ink-brown/40 focus:border-accent focus:outline-none"
         />
       </div>
@@ -186,15 +204,15 @@ export default function Equipment(): JSX.Element {
       <div className="flex min-h-0 flex-1 gap-3">
         {/* List: 2-column tile grid per category, names only. */}
         <div className="w-80 shrink-0 overflow-y-auto rounded-lg border border-ink-brown/20 bg-parchment-dark/30">
-          {categoriesShown.length === 0 && <div className="p-4 text-sm text-ink-brown/50">Ничего не найдено</div>}
+          {categoriesShown.length === 0 && <div className="p-4 text-sm text-ink-brown/50">{t('common.empty')}</div>}
           {categoriesShown.map((c) => {
             const Icon = c.icon
             return (
               <div key={c.id}>
                 <div className="flex items-center gap-1.5 bg-accent/10 px-3 py-1 font-serif text-sm font-semibold text-accent">
-                  <Icon className="text-base" /> {c.label}
+                  <Icon className="text-base" /> {categoryLabel(c, lang)}
                 </div>
-                {subgroups(c.id, filtered.filter((e) => e.category === c.id)).map((sg, i) => (
+                {subgroups(c.id, filtered.filter((e) => e.category === c.id), lang, t).map((sg, i) => (
                   <Fragment key={i}>
                     {sg.label && (
                       <div className="flex items-center gap-2 px-3 pt-1.5 text-[10px] uppercase tracking-wide text-ink-brown/45">
@@ -237,7 +255,7 @@ export default function Equipment(): JSX.Element {
                 <div className="flex shrink-0 gap-1">
                   <button
                     onClick={() => setEditing({ key: selected.id, values: { name: selected.name, category: selected.category, cost: selected.cost, weight: selected.weight, props: selected.props } })}
-                    title="Редактировать"
+                    title={t('common.edit')}
                     className="rounded border border-accent/50 px-2 py-1 text-xs text-accent hover:bg-accent/10"
                   >
                     ✎
@@ -245,7 +263,7 @@ export default function Equipment(): JSX.Element {
                   {(selIsCustomOnly || selIsOverride) && (
                     <button
                       onClick={() => { remove(selected.id); setSelectedId('') }}
-                      title={selIsOverride ? 'Сбросить к оригиналу' : 'Удалить'}
+                      title={selIsOverride ? t('equip.resetOriginal') : t('common.delete')}
                       className="rounded border border-accent/40 px-2 py-1 text-xs text-accent hover:bg-accent/10"
                     >
                       {selIsOverride ? '↺' : <GiTrashCan />}
@@ -254,35 +272,38 @@ export default function Equipment(): JSX.Element {
                 </div>
               </div>
               <p className="text-sm italic text-ink-brown/60">
-                {EQUIP_CATEGORIES.find((c) => c.id === selected.category)?.label}
-                {selected.tier ? ` · ${ARMOR_TIER_LABEL[selected.tier]}` : ''}
-                {selected.ranged ? ' · дальнобойное' : ''}
-                {selected.mastery ? ` · мастерство: ${MASTERY_RU[selected.mastery].name}` : ''}
+                {(() => {
+                  const c = EQUIP_CATEGORIES.find((x) => x.id === selected.category)
+                  return c ? categoryLabel(c, lang) : ''
+                })()}
+                {selected.tier ? ` · ${armorTierLabel(selected.tier, lang)}` : ''}
+                {selected.ranged ? ` · ${t('equip.ranged')}` : ''}
+                {selected.mastery ? ` · ${t('equip.masteryInline')}: ${masteryFor(selected.mastery, lang).name}` : ''}
               </p>
               <hr className="fleuron" />
               <div className="mb-2 flex gap-6 text-sm text-ink-brown">
-                <span><b className="text-accent">Цена:</b> {selected.cost}</span>
-                <span><b className="text-accent">Вес:</b> {selected.weight}</span>
+                <span><b className="text-accent">{t('equip.cost')}:</b> {selected.cost}</span>
+                <span><b className="text-accent">{t('equip.weight')}:</b> {selected.weight}</span>
               </div>
               <EquipDescription text={selected.props} label={selected.name} />
               {selected.mastery && (
                 <div className="mt-3 rounded-md border border-gold/40 bg-gold/10 p-3">
                   <div className="flex items-center gap-1.5 font-serif text-sm font-semibold text-accent">
-                    <GiBroadsword className="shrink-0" /> Оружейное мастерство: {MASTERY_RU[selected.mastery].name}
+                    <GiBroadsword className="shrink-0" /> {t('equip.weaponMastery')}: {masteryFor(selected.mastery, lang).name}
                   </div>
-                  <p className="mt-1 text-sm leading-relaxed text-ink-brown">{MASTERY_RU[selected.mastery].desc}</p>
+                  <p className="mt-1 text-sm leading-relaxed text-ink-brown">{masteryFor(selected.mastery, lang).desc}</p>
                 </div>
               )}
             </article>
           ) : (
-            <div className="flex h-full items-center justify-center text-ink-brown/40">Выберите предмет из списка</div>
+            <div className="flex h-full items-center justify-center text-ink-brown/40">{t('equip.selectPrompt')}</div>
           )}
         </div>
       </div>
 
       {editing && (
         <CustomFormDialog
-          title={editing.key === null ? 'Новый предмет' : 'Редактировать предмет'}
+          title={editing.key === null ? t('equip.newItem') : t('equip.editItem')}
           fields={EQUIP_FIELDS}
           initial={editing.values}
           allowCopy={editing.key !== null}

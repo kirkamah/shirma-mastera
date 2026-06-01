@@ -434,3 +434,380 @@ export const EQUIPMENT: EquipItem[] = [
   w('life', 'Услуга — заклинатель 3 ур.', '50–150 зм', '—', 'Цена одного применения заклинания 3 уровня.'),
   w('life', 'Услуга — заклинатель 5 ур.', '250–500 зм', '—', 'Цена одного применения заклинания 5 уровня. На 6+ уровень цена резко растёт.')
 ]
+
+// ─────────────────────────────────────────────────────────────────────────────
+// English localisation. Translation is incremental: items present in EQUIP_EN
+// (keyed by Russian name) render in English; anything missing falls back to the
+// Russian text, so the app stays consistent while more categories are added.
+// ─────────────────────────────────────────────────────────────────────────────
+const isEn = (lang: string): boolean => lang.startsWith('en')
+
+export const EQUIP_CATEGORY_LABEL_EN: Record<EquipCategory, string> = {
+  'weapon-simple': 'Simple weapons',
+  'weapon-martial': 'Martial weapons',
+  armor: 'Armour',
+  gear: 'Adventuring gear',
+  tools: 'Tools',
+  potions: 'Potions & oils',
+  packs: 'Equipment packs',
+  mounts: 'Mounts & vehicles',
+  food: 'Food & lodging',
+  life: 'Lifestyle & services'
+}
+
+export const ARMOR_TIER_LABEL_EN: Record<ArmorTier, string> = {
+  light: 'Light armour',
+  medium: 'Medium armour',
+  heavy: 'Heavy armour',
+  shield: 'Shields'
+}
+
+export const MOUNT_TIER_LABEL_EN: Record<MountTier, string> = {
+  beast: 'Mounts & beasts',
+  tack: 'Tack & saddles',
+  cart: 'Land vehicles',
+  ship: 'Ships & boats'
+}
+
+export const MASTERY_EN: Record<MasteryKey, { name: string; desc: string }> = {
+  cleave: {
+    name: 'Cleave',
+    desc: "If you hit a creature with a melee attack using this weapon, you can make a melee attack with it against a second creature within 5 feet of the first that is within your reach. On a hit, the second creature takes the weapon's damage but you don't add your ability modifier (unless it's negative). Once per turn."
+  },
+  graze: {
+    name: 'Graze',
+    desc: 'If your attack roll with this weapon misses a creature, you can deal damage to it equal to the ability modifier used for the attack (same type as the weapon). This damage can\'t be increased by anything else.'
+  },
+  nick: {
+    name: 'Nick',
+    desc: 'You can make the extra attack of the Light property as part of the Attack action instead of as a bonus action. You can do so only once per turn.'
+  },
+  push: {
+    name: 'Push',
+    desc: 'If you hit a creature with this weapon, you can push it up to 10 feet straight away from you if it is Large or smaller.'
+  },
+  sap: {
+    name: 'Sap',
+    desc: 'If you hit a creature with this weapon, that creature has disadvantage on its next attack roll before the start of your next turn.'
+  },
+  slow: {
+    name: 'Slow',
+    desc: "If you hit a creature with this weapon and deal damage, you reduce its speed by 10 feet until the start of your next turn. This doesn't stack with itself."
+  },
+  topple: {
+    name: 'Topple',
+    desc: 'If you hit a creature with this weapon, you can force it to make a Constitution save (DC = 8 + the ability modifier used to attack + your proficiency bonus) or fall prone.'
+  },
+  vex: {
+    name: 'Vex',
+    desc: 'If you hit a creature with this weapon and deal damage, you have advantage on your next attack roll against that creature before the end of your next turn.'
+  }
+}
+
+type EquipEn = { name: string; cost: string; weight: string; props: string }
+
+const EQUIP_EN: Record<string, EquipEn> = {
+  // Simple weapons — melee
+  'Дубинка': { name: 'Club', cost: '1 cp', weight: '0.5 kg', props: '1d4 bludgeoning · light' },
+  'Кинжал': { name: 'Dagger', cost: '2 gp', weight: '0.5 kg', props: '1d4 piercing · light, finesse, thrown (20/60 ft.)' },
+  'Большая дубина': { name: 'Greatclub', cost: '2 sp', weight: '5 kg', props: '1d8 bludgeoning · two-handed' },
+  'Ручной топор': { name: 'Handaxe', cost: '5 gp', weight: '1 kg', props: '1d6 slashing · light, thrown (20/60 ft.)' },
+  'Метательное копьё': { name: 'Javelin', cost: '5 sp', weight: '1 kg', props: '1d6 piercing · thrown (30/120 ft.)' },
+  'Лёгкий молот': { name: 'Light hammer', cost: '2 gp', weight: '1 kg', props: '1d4 bludgeoning · light, thrown (20/60 ft.)' },
+  'Булава': { name: 'Mace', cost: '5 gp', weight: '2 kg', props: '1d6 bludgeoning' },
+  'Боевой посох': { name: 'Quarterstaff', cost: '2 sp', weight: '2 kg', props: '1d6 bludgeoning · versatile (1d8)' },
+  'Серп': { name: 'Sickle', cost: '1 gp', weight: '1 kg', props: '1d4 slashing · light' },
+  'Копьё': { name: 'Spear', cost: '1 gp', weight: '1.5 kg', props: '1d6 piercing · thrown (20/60 ft.), versatile (1d8)' },
+  // Simple weapons — ranged
+  'Лёгкий арбалет': { name: 'Light crossbow', cost: '25 gp', weight: '2.5 kg', props: '1d8 piercing · range 80/320 ft., loading, two-handed' },
+  'Дротик': { name: 'Dart', cost: '5 sp', weight: '0.1 kg', props: '1d4 piercing · finesse, thrown (20/60 ft.)' },
+  'Короткий лук': { name: 'Shortbow', cost: '25 gp', weight: '1 kg', props: '1d6 piercing · range 80/320 ft., two-handed' },
+  'Праща': { name: 'Sling', cost: '1 sp', weight: '—', props: '1d4 bludgeoning · range 30/120 ft.' },
+  // Martial weapons — melee
+  'Боевой топор': { name: 'Battleaxe', cost: '10 gp', weight: '2 kg', props: '1d8 slashing · versatile (1d10)' },
+  'Цеп': { name: 'Flail', cost: '10 gp', weight: '1 kg', props: '1d8 bludgeoning' },
+  'Глефа': { name: 'Glaive', cost: '20 gp', weight: '3 kg', props: '1d10 slashing · heavy, reach, two-handed' },
+  'Секира': { name: 'Greataxe', cost: '30 gp', weight: '3.5 kg', props: '1d12 slashing · heavy, two-handed' },
+  'Двуручный меч': { name: 'Greatsword', cost: '50 gp', weight: '3 kg', props: '2d6 slashing · heavy, two-handed' },
+  'Алебарда': { name: 'Halberd', cost: '20 gp', weight: '3 kg', props: '1d10 slashing · heavy, reach, two-handed' },
+  'Длинное копьё': { name: 'Lance', cost: '10 gp', weight: '3 kg', props: '1d12 piercing · reach, special (mounted)' },
+  'Длинный меч': { name: 'Longsword', cost: '15 gp', weight: '1.5 kg', props: '1d8 slashing · versatile (1d10)' },
+  'Тяжёлый молот': { name: 'Maul', cost: '10 gp', weight: '5 kg', props: '2d6 bludgeoning · heavy, two-handed' },
+  'Моргенштерн': { name: 'Morningstar', cost: '15 gp', weight: '2 kg', props: '1d8 piercing' },
+  'Пика': { name: 'Pike', cost: '5 gp', weight: '9 kg', props: '1d10 piercing · heavy, reach, two-handed' },
+  'Рапира': { name: 'Rapier', cost: '25 gp', weight: '1 kg', props: '1d8 piercing · finesse' },
+  'Скимитар': { name: 'Scimitar', cost: '25 gp', weight: '1.5 kg', props: '1d6 slashing · light, finesse' },
+  'Короткий меч': { name: 'Shortsword', cost: '10 gp', weight: '1 kg', props: '1d6 piercing · light, finesse' },
+  'Трезубец': { name: 'Trident', cost: '5 gp', weight: '2 kg', props: '1d6 piercing · thrown (20/60 ft.), versatile (1d8)' },
+  'Боевая кирка': { name: 'War pick', cost: '5 gp', weight: '1 kg', props: '1d8 piercing' },
+  'Боевой молот': { name: 'Warhammer', cost: '15 gp', weight: '1 kg', props: '1d8 bludgeoning · versatile (1d10)' },
+  'Кнут': { name: 'Whip', cost: '2 gp', weight: '1.5 kg', props: '1d4 slashing · finesse, reach' },
+  // Martial weapons — ranged
+  'Духовая трубка': { name: 'Blowgun', cost: '10 gp', weight: '0.5 kg', props: '1 piercing · range 25/100 ft., loading' },
+  'Ручной арбалет': { name: 'Hand crossbow', cost: '75 gp', weight: '1.5 kg', props: '1d6 piercing · range 30/120 ft., light, loading' },
+  'Тяжёлый арбалет': { name: 'Heavy crossbow', cost: '50 gp', weight: '9 kg', props: '1d10 piercing · range 100/400 ft., heavy, loading, two-handed' },
+  'Длинный лук': { name: 'Longbow', cost: '50 gp', weight: '1 kg', props: '1d8 piercing · range 150/600 ft., heavy, two-handed' },
+  'Сеть': { name: 'Net', cost: '1 gp', weight: '1.5 kg', props: 'No damage · thrown (5/15 ft.), restrains (DC 10 to escape)' },
+  // Armour
+  'Стёганый доспех': { name: 'Padded armour', cost: '5 gp', weight: '4 kg', props: 'AC 11 + Dex mod · disadvantage on Stealth' },
+  'Кожаный доспех': { name: 'Leather armour', cost: '10 gp', weight: '5 kg', props: 'AC 11 + Dex mod' },
+  'Проклёпанная кожа': { name: 'Studded leather', cost: '45 gp', weight: '6.5 kg', props: 'AC 12 + Dex mod' },
+  'Шкурный доспех': { name: 'Hide armour', cost: '10 gp', weight: '6 kg', props: 'AC 12 + Dex mod (max 2)' },
+  'Кольчужная рубаха': { name: 'Chain shirt', cost: '50 gp', weight: '10 kg', props: 'AC 13 + Dex mod (max 2)' },
+  'Чешуйчатый доспех': { name: 'Scale mail', cost: '50 gp', weight: '20 kg', props: 'AC 14 + Dex mod (max 2) · disadvantage on Stealth' },
+  'Кираса': { name: 'Breastplate', cost: '400 gp', weight: '10 kg', props: 'AC 14 + Dex mod (max 2)' },
+  'Полулаты': { name: 'Half plate', cost: '750 gp', weight: '20 kg', props: 'AC 15 + Dex mod (max 2) · disadvantage on Stealth' },
+  'Колечный доспех': { name: 'Ring mail', cost: '30 gp', weight: '20 kg', props: 'AC 14 · disadvantage on Stealth' },
+  'Кольчуга': { name: 'Chain mail', cost: '75 gp', weight: '27.5 kg', props: 'AC 16 · requires Str 13 · disadvantage on Stealth' },
+  'Наборный доспех': { name: 'Splint armour', cost: '200 gp', weight: '30 kg', props: 'AC 17 · requires Str 15 · disadvantage on Stealth' },
+  'Латы': { name: 'Plate armour', cost: '1500 gp', weight: '32.5 kg', props: 'AC 18 · requires Str 15 · disadvantage on Stealth' },
+  'Щит': { name: 'Shield', cost: '10 gp', weight: '3 kg', props: '+2 AC' },
+
+  // Adventuring gear
+  'Рюкзак': { name: 'Backpack', cost: '2 gp', weight: '2.5 kg', props: 'A roomy sack with straps. Holds 1 cubic foot or up to 30 lb of gear. A bedroll can be lashed to the outside and items like a pot or rope tied to the sides.' },
+  'Спальный мешок': { name: 'Bedroll', cost: '1 gp', weight: '3.5 kg', props: 'A padded roll of heavy cloth. Laid out, it lets you rest far more comfortably in the wild; it helps you sleep and weather the elements during a long rest under the open sky.' },
+  'Верёвка пеньковая (50 футов)': { name: 'Hempen rope (50 ft.)', cost: '1 gp', weight: '5 kg', props: 'Sturdy rope. Tying or knotting one end takes an action. It has AC 11 and 2 HP and can be burst with a successful DC 17 Strength check. Used for climbing, descending, binding a prisoner, and securing a grappling hook.' },
+  'Факел': { name: 'Torch', cost: '1 sp', weight: '0.5 kg', props: 'Burns for 1 hour, giving bright light in a 20-foot radius and dim light for another 20 feet. With the Attack action you can strike a creature with a lit torch: 1 fire damage on a hit. A torch ignites flammable objects.' },
+  'Фонарь со ставнями': { name: 'Hooded lantern', cost: '5 gp', weight: '1 kg', props: 'Gives bright light in a 30-foot radius and dim light for another 30 feet, burning 6 hours on a pint of oil. As a bonus action you can lower the hood, reducing the light to dim in a 5-foot radius.' },
+  'Трутница': { name: 'Tinderbox', cost: '5 sp', weight: '0.5 kg', props: 'Flint, steel, and tinder. As an action you can strike a spark to light a torch, candle, or campfire. Lighting anything else (e.g. damp wood) takes at least 1 minute.' },
+  'Рацион (1 день)': { name: 'Rations (1 day)', cost: '5 sp', weight: '1 kg', props: 'A day of trail food needing no cooking: dried meat, dried fruit, hardtack, and nuts. A creature needs about 1 pound of food per day.' },
+  'Бурдюк': { name: 'Waterskin', cost: '2 sp', weight: '2.5 kg (full)', props: 'A leather skin for liquid, holding 4 pints (about 2 L). In hot weather a traveller needs at least a gallon of water a day or risks exhaustion.' },
+  'Набор целителя': { name: "Healer's kit", cost: '5 gp', weight: '1.5 kg', props: 'A pouch of bandages, salves, and splints — 10 uses. As an action you can expend one use to stabilize a creature at 0 HP without making a Wisdom (Medicine) check.' },
+  'Лом': { name: 'Crowbar', cost: '2 gp', weight: '2.5 kg', props: 'A curved iron lever. Grants advantage on Strength checks where you can apply it as a lever: prying a door, lifting a grate, or pulling out a lid or nails.' },
+  'Молоток': { name: 'Hammer', cost: '1 gp', weight: '1.5 kg', props: 'A heavy hammer. As an action you can drive a piton into a crack or wall — for example, to anchor a rope for climbing or to wedge a door shut.' },
+  'Крюк-кошка': { name: 'Grappling hook', cost: '2 gp', weight: '2 kg', props: 'As a Utilize action you can throw the hook onto a railing, ledge, or other suitable spot within 50 feet; it catches if you succeed on a DC 13 Dexterity (Acrobatics) check. If a rope is tied to it, you can climb it.' },
+  'Стальное зеркало': { name: 'Steel mirror', cost: '5 gp', weight: '0.25 kg', props: 'A small polished metal disc. Useful for peeking around a corner without exposing yourself, signalling with reflected sunlight, or examining a dangerous creature without meeting its gaze directly.' },
+  'Масло (фляга)': { name: 'Oil (flask)', cost: '1 sp', weight: '0.5 kg', props: 'A pint of oil burns 6 hours in a lantern. As an action you can douse a creature or surface, or hurl the flask as an improvised weapon (range 20/60 ft.): on a hit the target is covered in oil. If set alight afterward, it takes 5 fire damage. Spilled oil covers a 5-by-5-foot area.' },
+  'Святой символ': { name: 'Holy symbol', cost: '5 gp', weight: '0.5 kg', props: 'An image of a deity: an amulet, a shield emblem, or a small reliquary. A cleric or paladin can use it as a spellcasting focus in place of material components (those without a cost).' },
+  'Колокольчик': { name: 'Bell', cost: '1 gp', weight: '—', props: 'A small ringing bell. Used as a simple alarm (e.g. tied to a tripwire across a corridor) to warn of an intruder or to draw attention.' },
+  'Мешок': { name: 'Sack', cost: '1 sp', weight: '0.25 kg', props: 'A plain cloth or leather sack. Holds 1 cubic foot or up to 30 lb of gear. Handy for loot, provisions, and odds and ends.' },
+  'Цепь (10 футов)': { name: 'Chain (10 ft.)', cost: '5 gp', weight: '5 kg', props: 'A 10-foot iron chain. It has AC 19 and 10 HP and can be burst with a successful DC 20 Strength check. Used to securely bind a creature or fasten an object; it can be locked with a padlock.' },
+  'Кислота (фляга)': { name: 'Acid (flask)', cost: '25 gp', weight: '0.5 kg', props: 'As an action you can hurl the flask as an improvised weapon at a creature or object within 20/60 ft.: on a hit the target takes 2d6 acid damage.' },
+  'Алхимический огонь (фляга)': { name: "Alchemist's fire (flask)", cost: '50 gp', weight: '0.5 kg', props: 'A sticky, flammable liquid. As an action hurl the flask (range 20/60 ft.): on a hit the target catches fire, taking 1d4 fire damage at the start of each of its turns. A creature can end the fire by using an action to make a DC 10 Dexterity check.' },
+  'Святая вода (фляга)': { name: 'Holy water (flask)', cost: '25 gp', weight: '0.5 kg', props: 'Water blessed by a cleric or paladin. As an action hurl the flask (range 20/60 ft.): on a hit against a fiend or undead, the target takes 2d6 radiant damage.' },
+  'Противоядие (флакон)': { name: 'Antitoxin (vial)', cost: '50 gp', weight: '—', props: 'After drinking it as an action, a creature has advantage on saving throws against poison for 1 hour. It has no effect on poison already in the system.' },
+  'Яд, базовый (флакон)': { name: 'Basic poison (vial)', cost: '100 gp', weight: '—', props: 'As an action you can coat one slashing or piercing weapon, or up to three pieces of ammunition; the coating lasts 1 minute. On the next hit the target makes a DC 10 Constitution save or takes 1d4 poison damage.' },
+  'Бочка': { name: 'Barrel', cost: '2 gp', weight: '32 kg', props: 'A wooden barrel. Holds about 40 gallons of liquid or dry goods.' },
+  'Бумага (лист)': { name: 'Paper (sheet)', cost: '2 sp', weight: '—', props: 'A sheet of paper for letters and notes.' },
+  'Ведро': { name: 'Bucket', cost: '5 cp', weight: '1 kg', props: 'A wooden bucket. Used for water, sand, coal, and the like.' },
+  'Верёвка шёлковая (50 фт.)': { name: 'Silk rope (50 ft.)', cost: '10 gp', weight: '2.5 kg', props: 'Strong rope. AC 11, 2 HP; bursts on a DC 17 Strength check. Lighter than hempen rope.' },
+  'Весы торговца': { name: "Merchant's scale", cost: '5 gp', weight: '1.5 kg', props: 'A small balance with weights. For weighing goods and precious metals.' },
+  'Друидическая фокусировка': { name: 'Druidic focus', cost: '1–10 gp', weight: '0.5–2 kg', props: 'A yew wand, a carved staff, mistletoe, or a holly branch. Can serve as a druid\'s spellcasting focus.' },
+  'Жезл (фокусировка)': { name: 'Rod (focus)', cost: '10 gp', weight: '1 kg', props: 'A short metal or wooden rod. Can serve as a warlock\'s spellcasting focus.' },
+  'Замок навесной': { name: 'Padlock', cost: '10 gp', weight: '0.5 kg', props: 'A padlock with a key. Without the key it can be opened with a DC 15 Dexterity check using thieves\' tools.' },
+  'Зеркало стальное': { name: 'Steel mirror', cost: '5 gp', weight: '0.25 kg', props: 'A polished metal disc. Peek around a corner, flash a signal, or safely observe a medusa\'s gaze.' },
+  'Кандалы': { name: 'Manacles', cost: '2 gp', weight: '3 kg', props: 'Iron manacles. Escape — DC 20 Dexterity with thieves\' tools; break — DC 20 Strength. Fit a Medium creature.' },
+  'Капкан охотничий': { name: 'Hunting trap', cost: '5 gp', weight: '12.5 kg', props: 'Setting it takes an action. A creature within 5 ft. makes a DC 13 Dexterity save or takes 1d4 piercing damage and is restrained; escaping requires a DC 13 Strength check.' },
+  'Калтропы (мешочек, 20 шт.)': { name: 'Caltrops (bag of 20)', cost: '1 gp', weight: '1 kg', props: 'You can scatter them over a 5-foot square. A creature without footwear makes a DC 15 Dexterity save or takes 1 piercing damage and its speed becomes 0 until the end of its turn.' },
+  'Книга': { name: 'Book', cost: '25 gp', weight: '2.5 kg', props: 'A book — a traveller\'s journal, a book of sermons, a philosophical treatise, etc. Can be used as a notable detail of a character.' },
+  'Книга заклинаний': { name: 'Spellbook', cost: '50 gp', weight: '1.5 kg', props: 'A heavy tome with room for hundreds of spells. A wizard records their spells in it.' },
+  'Колчан': { name: 'Quiver', cost: '1 gp', weight: '0.5 kg', props: 'Holds up to 20 arrows or bolts. Worn at the belt or on the back.' },
+  'Корзина': { name: 'Basket', cost: '4 sp', weight: '1 kg', props: 'A woven basket for carrying food, flowers, or small items.' },
+  'Костыли железные (10 шт.)': { name: 'Pitons (10)', cost: '1 gp', weight: '1 kg', props: 'Iron spikes. Hammered into a crack — secure a rope, wedge a door.' },
+  'Котелок железный': { name: 'Iron pot', cost: '2 gp', weight: '5 kg', props: 'A cast-iron pot on a bail. For cooking over a fire.' },
+  'Кристалл (фокусировка)': { name: 'Crystal (focus)', cost: '10 gp', weight: '0.5 kg', props: 'A quartz or other crystal. Can serve as a sorcerer\'s or warlock\'s spellcasting focus.' },
+  'Лампа': { name: 'Lamp', cost: '5 sp', weight: '0.5 kg', props: 'Casts bright light 15 ft., dim light for another 30 ft. Burns 6 hours on a pint of oil.' },
+  'Лестница (10 фт.)': { name: 'Ladder (10 ft.)', cost: '1 sp', weight: '12.5 kg', props: 'A wooden ladder 10 feet long.' },
+  'Лупа': { name: 'Magnifying glass', cost: '100 gp', weight: '—', props: 'A magnifying lens. Replaces a tinderbox for lighting fires (1 min. in direct sunlight). Helps appraise fine detail on jewellery.' },
+  'Мантия': { name: 'Robes', cost: '1 gp', weight: '2 kg', props: 'A long hooded robe. Suitable for priests and wizards.' },
+  'Мешочек': { name: 'Pouch', cost: '5 sp', weight: '0.5 kg', props: 'A small leather pouch. Holds 1/5 cubic foot or up to 6 lb.' },
+  'Мешочек с компонентами': { name: 'Component pouch', cost: '25 gp', weight: '1 kg', props: 'A small watertight pouch of spell components. Frees you from carrying materials individually (those without a cost).' },
+  'Мыло': { name: 'Soap', cost: '2 cp', weight: '—', props: 'A bar of soap. Clean clothes and a clean body improve social checks.' },
+  'Набор для еды': { name: 'Mess kit', cost: '2 sp', weight: '0.5 kg', props: 'A tin box with a bowl, cup, and utensils.' },
+  'Набор скалолаза': { name: "Climber's kit", cost: '25 gp', weight: '5 kg', props: 'Crampons, harness, spikes, and anchor points. You can attach to a wall — you won\'t fall while not moving; climbing speed is halved.' },
+  'Направленный фонарь': { name: 'Bullseye lantern', cost: '10 gp', weight: '1 kg', props: 'Shines a 60-ft. cone of bright light + 60 ft. of dim. Burns 6 hours on a pint of oil.' },
+  'Одежда обычная': { name: 'Common clothes', cost: '5 sp', weight: '1.5 kg', props: 'A simple tunic, trousers, and shoes.' },
+  'Одежда дорожная': { name: "Traveler's clothes", cost: '2 gp', weight: '2 kg', props: 'Sturdy clothing for travel, a hooded cloak, and boots.' },
+  'Одежда изысканная': { name: 'Fine clothes', cost: '15 gp', weight: '3 kg', props: 'An expensive outfit, fine fabrics, and jewellery. Required at court.' },
+  'Костюм маскировки': { name: 'Costume', cost: '5 gp', weight: '2 kg', props: 'An outfit for playing a role (soldier, merchant, beggar). Part of a disguise kit.' },
+  'Палатка двухместная': { name: 'Tent (two-person)', cost: '2 gp', weight: '10 kg', props: 'A simple tent for two adults.' },
+  'Перо для чернил': { name: 'Ink pen', cost: '2 cp', weight: '—', props: 'A sharpened quill. For writing.' },
+  'Перстень-печатка': { name: 'Signet ring', cost: '5 gp', weight: '—', props: 'A ring with a crest. Seals letters and confirms identity.' },
+  'Пергамент (лист)': { name: 'Parchment (sheet)', cost: '1 sp', weight: '—', props: 'A sheet of parchment. More durable than paper.' },
+  'Песочные часы': { name: 'Hourglass', cost: '25 gp', weight: '0.5 kg', props: 'Measures 1 hour with sand.' },
+  'Подзорная труба': { name: 'Spyglass', cost: '1000 gp', weight: '0.5 kg', props: 'Magnifies distant objects twofold.' },
+  'Походный таран': { name: 'Portable ram', cost: '4 gp', weight: '17.5 kg', props: 'Advantage on Strength checks to break down doors. With a second person, even greater advantage.' },
+  'Походный фонарь (закрытый)': { name: 'Hooded lantern', cost: '5 gp', weight: '1 kg', props: 'Bright light 30 ft., dim 30 ft. more. Bonus action lowers the hood to 5 ft. of dim. 6 hours on a pint of oil.' },
+  'Посох (фокусировка)': { name: 'Staff (focus)', cost: '5 gp', weight: '2 kg', props: 'A long staff. Can serve as a spellcasting focus for sorcerers, warlocks, wizards, etc.' },
+  'Пузырёк': { name: 'Vial', cost: '1 gp', weight: '—', props: 'A small glass vial holding 4 ounces (≈120 ml).' },
+  'Рог сигнальный': { name: 'Signal horn', cost: '3 gp', weight: '1 kg', props: 'Sounds a signal. Heard up to 1 mile away.' },
+  'Рыболовные снасти': { name: 'Fishing tackle', cost: '1 gp', weight: '2 kg', props: 'A rod, hooks, line, and floats. For catching fish.' },
+  'Свеча': { name: 'Candle', cost: '1 cp', weight: '—', props: 'A wax candle. Burns 1 hour, casting bright light 5 ft. and dim light 5 ft. more.' },
+  'Свисток сигнальный': { name: 'Signal whistle', cost: '5 cp', weight: '—', props: 'A shrill whistle. Heard up to 600 ft.' },
+  'Сосуд стеклянный': { name: 'Glass bottle', cost: '2 gp', weight: '1 kg', props: 'A glass bottle holding 1½ pints.' },
+  'Стеклянный шар (фокусировка)': { name: 'Orb (focus)', cost: '20 gp', weight: '1.5 kg', props: 'A crystal orb. A spellcasting focus for sorcerers, warlocks, or wizards.' },
+  'Сундук': { name: 'Chest', cost: '5 gp', weight: '12.5 kg', props: 'A wooden chest with a lock (sold separately). Holds 12 cubic feet or 300 lb.' },
+  'Сургуч': { name: 'Sealing wax', cost: '5 sp', weight: '—', props: 'A stick of wax for seals.' },
+  'Счёты': { name: 'Abacus', cost: '2 gp', weight: '1 kg', props: 'A wooden abacus. Advantage on Intelligence checks for addition/multiplication.' },
+  'Точильный камень': { name: 'Whetstone', cost: '1 cp', weight: '0.5 kg', props: 'A sharpening stone. Blade care during a rest.' },
+  'Духи': { name: 'Perfume', cost: '5 gp', weight: '—', props: 'A vial of scented oils. Masks foul smells and improves a first impression.' },
+  'Фляга / кружка': { name: 'Flask / tankard', cost: '2 cp', weight: '0.5 kg', props: 'A plain flask or tankard for drinks.' },
+  'Шахтёрская кирка': { name: 'Miner\'s pick', cost: '2 gp', weight: '5 kg', props: 'A heavy pick. With 4 hours of work you can tunnel a 1×1×1-foot section through rock.' },
+  'Шест (10 футов)': { name: 'Pole (10 ft.)', cost: '5 cp', weight: '3.5 kg', props: 'A long wooden pole. Useful for testing the ground ahead (a trapped tile) or as support when crossing.' },
+  'Шипы железные (10 шт.)': { name: 'Iron spikes (10)', cost: '1 gp', weight: '2.5 kg', props: 'Long iron spikes. Hammered in — wedge a door, mark a trail.' },
+  'Волшебная палочка (фокусировка)': { name: 'Wand (focus)', cost: '10 gp', weight: '0.5 kg', props: 'A wooden wand about 15 inches long. A spellcasting focus for sorcerers, warlocks, or wizards.' },
+  'Стрелы (20)': { name: 'Arrows (20)', cost: '1 gp', weight: '0.5 kg', props: 'Ammunition for bows. A quiver holds 20.' },
+  'Болты для арбалета (20)': { name: 'Crossbow bolts (20)', cost: '1 gp', weight: '0.75 kg', props: 'Ammunition for crossbows.' },
+  'Иглы для духовой трубки (50)': { name: 'Blowgun needles (50)', cost: '1 gp', weight: '0.5 kg', props: 'Ammunition for a blowgun.' },
+  'Снаряды для пращи (20)': { name: 'Sling bullets (20)', cost: '4 cp', weight: '0.75 kg', props: 'Lead pellets or smooth stones for a sling.' },
+
+  // Potions & oils
+  'Зелье лечения': { name: 'Potion of healing', cost: '50 gp', weight: '0.25 kg', props: 'Common. Drinking it as an action restores 2d4 + 2 HP.' },
+  'Зелье повышенного лечения': { name: 'Potion of greater healing', cost: '250 gp', weight: '0.25 kg', props: 'Uncommon. Restores 4d4 + 4 HP.' },
+  'Зелье превосходного лечения': { name: 'Potion of superior healing', cost: '2500 gp', weight: '0.25 kg', props: 'Rare. Restores 8d4 + 8 HP.' },
+  'Зелье высшего лечения': { name: 'Potion of supreme healing', cost: '25000 gp', weight: '0.25 kg', props: 'Very rare. Restores 10d4 + 20 HP.' },
+  'Зелье жизненной силы': { name: 'Potion of vitality', cost: '25000 gp', weight: '0.25 kg', props: 'Very rare. Removes all exhaustion and cures disease and poison; for the next 24 hours you regain the maximum on any Hit Die you spend.' },
+  'Зелье героизма': { name: 'Potion of heroism', cost: '2500 gp', weight: '0.25 kg', props: 'Rare. For 1 hour you gain 10 temporary HP and the effect of the «Bless» spell (no concentration).' },
+  'Зелье лазания': { name: 'Potion of climbing', cost: '50 gp', weight: '0.25 kg', props: 'Common. For 1 hour you gain a climbing speed equal to your speed and advantage on Strength (Athletics) checks to climb.' },
+  'Зелье полёта': { name: 'Potion of flying', cost: '25000 gp', weight: '0.25 kg', props: 'Very rare. For 1 hour you gain a flying speed equal to your speed and can hover.' },
+  'Зелье невидимости': { name: 'Potion of invisibility', cost: '25000 gp', weight: '0.25 kg', props: 'Very rare. You become invisible for 1 hour; the effect ends if you attack or cast a spell.' },
+  'Зелье неуязвимости': { name: 'Potion of invulnerability', cost: '2500 gp', weight: '0.25 kg', props: 'Rare. For 1 minute you have resistance to all damage.' },
+  'Зелье скорости': { name: 'Potion of speed', cost: '25000 gp', weight: '0.25 kg', props: 'Very rare. For 1 minute you gain the effect of the «Haste» spell — without the lethargy afterward.' },
+  'Зелье подводного дыхания': { name: 'Potion of water breathing', cost: '250 gp', weight: '0.25 kg', props: 'Uncommon. For 1 hour you can breathe underwater.' },
+  'Зелье газообразной формы': { name: 'Potion of gaseous form', cost: '2500 gp', weight: '0.25 kg', props: 'Rare. For 1 hour you turn into a cloud of mist (as the «Gaseous Form» spell).' },
+  'Зелье ясновидения': { name: 'Potion of clairvoyance', cost: '2500 gp', weight: '0.25 kg', props: 'Rare. Drinking it grants the effect of the «Clairvoyance» spell.' },
+  'Зелье чтения мыслей': { name: 'Potion of mind reading', cost: '2500 gp', weight: '0.25 kg', props: 'Rare. Grants the effect of the «Detect Thoughts» spell (save DC 13).' },
+  'Зелье дружбы с животными': { name: 'Potion of animal friendship', cost: '250 gp', weight: '0.25 kg', props: 'Uncommon. For 1 hour you can cast «Animal Friendship» at will (save DC 13).' },
+  'Зелье огненного дыхания': { name: 'Potion of fire breath', cost: '250 gp', weight: '0.25 kg', props: 'Uncommon. For 1 hour, as a bonus action you can exhale fire at a target within 30 ft.: DC 13 Dexterity save, 4d6 fire damage (three breaths total).' },
+  'Зелье роста': { name: 'Potion of growth', cost: '250 gp', weight: '0.25 kg', props: 'Uncommon. For 1d4 hours you grow in size (the "enlarge" effect of «Enlarge/Reduce»).' },
+  'Зелье уменьшения': { name: 'Potion of diminution', cost: '2500 gp', weight: '0.25 kg', props: 'Rare. For 1d4 hours you shrink in size (the "reduce" effect).' },
+  'Зелье сопротивления': { name: 'Potion of resistance', cost: '250 gp', weight: '0.25 kg', props: 'Uncommon. For 1 hour you have resistance to one damage type (set when the potion is made).' },
+  'Зелье силы холмового великана': { name: 'Potion of hill giant strength', cost: '250 gp', weight: '0.25 kg', props: 'Uncommon. For 1 hour your Strength becomes 21 (if not already higher).' },
+  'Зелье силы ледяного/каменного великана': { name: 'Potion of frost/stone giant strength', cost: '2500 gp', weight: '0.25 kg', props: 'Rare. For 1 hour your Strength becomes 23.' },
+  'Зелье силы огненного великана': { name: 'Potion of fire giant strength', cost: '2500 gp', weight: '0.25 kg', props: 'Rare. For 1 hour your Strength becomes 25.' },
+  'Зелье силы облачного великана': { name: 'Potion of cloud giant strength', cost: '25000 gp', weight: '0.25 kg', props: 'Very rare. For 1 hour your Strength becomes 27.' },
+  'Зелье силы штормового великана': { name: 'Potion of storm giant strength', cost: '50000 gp', weight: '0.25 kg', props: 'Legendary. For 1 hour your Strength becomes 29.' },
+  'Зелье яда': { name: 'Potion of poison', cost: '250 gp', weight: '0.25 kg', props: 'Uncommon. Looks and smells like a healing potion, but it is poison: the drinker makes a DC 13 Constitution save, taking 3d6 poison damage on a failure (half on a success) and becoming poisoned for 1 hour.' },
+  'Любовный напиток': { name: 'Philter of love', cost: '250 gp', weight: '0.25 kg', props: 'Uncommon. For the next 1 hour you are charmed by the first creature you see within 10 minutes of drinking it.' },
+
+  // Equipment packs
+  'Набор взломщика': { name: "Burglar's pack", cost: '16 gp', weight: '23.5 kg', props: 'Contains: a backpack, a bag of 1,000 ball bearings, 50 ft. of hempen rope, a bell, 5 candles, a crowbar, a hammer, 10 pitons, a hooded lantern, 2 flasks of oil, 5 days of rations, a tinderbox, and a waterskin.' },
+  'Набор дипломата': { name: "Diplomat's pack", cost: '39 gp', weight: '21 kg', props: 'Contains: a chest, 2 map/scroll cases, fine clothes, a bottle of ink, an ink pen, a lamp, 2 flasks of oil, 5 sheets of paper, a vial of perfume, sealing wax, and soap.' },
+  'Набор путешественника по подземельям': { name: "Dungeoneer's pack", cost: '12 gp', weight: '30 kg', props: 'Contains: a backpack, a crowbar, a hammer, 10 pitons, 10 torches, a tinderbox, 10 days of rations, a waterskin, and 50 ft. of hempen rope.' },
+  'Набор артиста': { name: "Entertainer's pack", cost: '40 gp', weight: '20 kg', props: 'Contains: a backpack, a bedroll, 2 costumes, 5 candles, 5 days of rations, a waterskin, and a disguise kit.' },
+  'Набор исследователя': { name: "Explorer's pack", cost: '10 gp', weight: '27 kg', props: 'Contains: a backpack, a bedroll, a mess kit, a tinderbox, 10 torches, 10 days of rations, a waterskin, and 50 ft. of hempen rope. A solid default choice.' },
+  'Набор священника': { name: "Priest's pack", cost: '33 gp', weight: '12.5 kg', props: 'Contains: a backpack, a blanket, 10 candles, a tinderbox, an alms box, 2 blocks of incense, a censer, vestments, 2 days of rations, and a waterskin.' },
+  'Набор учёного': { name: "Scholar's pack", cost: '40 gp', weight: '5.5 kg', props: 'Contains: a backpack, a book of lore, a bottle of ink, an ink pen, 10 sheets of parchment, a bag of sand, and a small knife.' },
+
+  // Mounts & vehicles
+  'Боевой конь': { name: 'Warhorse', cost: '400 gp', weight: '—', props: 'A trained steed. Speed 60 ft., carrying capacity 540 lb.' },
+  'Верблюд': { name: 'Camel', cost: '50 gp', weight: '—', props: 'Speed 50 ft., carrying capacity 480 lb. Endures heat and long stretches without water.' },
+  'Верховая лошадь': { name: 'Riding horse', cost: '75 gp', weight: '—', props: 'Speed 60 ft., carrying capacity 480 lb.' },
+  'Мастиф': { name: 'Mastiff', cost: '25 gp', weight: '—', props: 'A large dog. Speed 40 ft., carrying capacity 195 lb. Small characters can ride it.' },
+  'Мул / Осёл': { name: 'Mule / Donkey', cost: '8 gp', weight: '—', props: 'Speed 40 ft., carrying capacity 420 lb. A reliable pack animal.' },
+  'Пони': { name: 'Pony', cost: '30 gp', weight: '—', props: 'A small horse. Speed 40 ft., carrying capacity 225 lb. Suits Small races.' },
+  'Слон': { name: 'Elephant', cost: '200 gp', weight: '—', props: 'Speed 40 ft., carrying capacity 1,320 lb. A huge beast that doesn\'t fit everywhere.' },
+  'Тяжеловоз': { name: 'Draft horse', cost: '50 gp', weight: '—', props: 'A draught horse. Speed 40 ft., carrying capacity 540 lb. Suited to a cart.' },
+  'Корм (1 день)': { name: 'Feed (1 day)', cost: '5 cp', weight: '5 kg', props: 'A day\'s oats/hay for a horse or mule.' },
+  'Стойло (1 день)': { name: 'Stabling (1 day)', cost: '5 sp', weight: '—', props: 'Cost of stabling a horse for a day.' },
+  'Уздечка': { name: 'Bit and bridle', cost: '2 gp', weight: '0.5 kg', props: 'Bit and reins for steering a mount.' },
+  'Седло верховое': { name: 'Riding saddle', cost: '10 gp', weight: '12.5 kg', props: 'An ordinary saddle.' },
+  'Седло боевое': { name: 'Military saddle', cost: '20 gp', weight: '15 kg', props: 'With high front and back. Advantage on checks to stay mounted.' },
+  'Седло вьючное': { name: 'Pack saddle', cost: '5 gp', weight: '7.5 kg', props: 'A saddle for carrying cargo, not for riding.' },
+  'Седло экзотическое': { name: 'Exotic saddle', cost: '60 gp', weight: '20 kg', props: 'For riding unusual creatures: griffons, perytons, pegasi.' },
+  'Седельные сумки': { name: 'Saddlebags', cost: '4 gp', weight: '4 kg', props: 'Bags at the sides of a saddle. Capacity up to 8 cubic feet or 80 lb.' },
+  'Карета': { name: 'Carriage', cost: '100 gp', weight: '300 kg', props: 'A closed four-wheeled coach. Seats 4 passengers.' },
+  'Колесница': { name: 'Chariot', cost: '250 gp', weight: '50 kg', props: 'A two-wheeled war cart. Drawn by 1–2 horses.' },
+  'Повозка': { name: 'Wagon', cost: '35 gp', weight: '200 kg', props: 'A four-wheeled cargo wagon.' },
+  'Сани': { name: 'Sled', cost: '20 gp', weight: '150 kg', props: 'A sled for travel over snow/ice.' },
+  'Телега': { name: 'Cart', cost: '15 gp', weight: '100 kg', props: 'A two-wheeled cart drawn by one beast.' },
+  'Гребная лодка': { name: 'Rowboat', cost: '50 gp', weight: '50 kg', props: 'A small boat. Speed 1½ mph.' },
+  'Килевая лодка': { name: 'Keelboat', cost: '3 000 gp', weight: '—', props: 'A small river vessel (50–75 ft.). Speed 1 mph. Crew 4.' },
+  'Дракар': { name: 'Longship', cost: '10 000 gp', weight: '—', props: 'A war longship (75 ft.). Speed 3 mph. Crew 40.' },
+  'Парусный корабль': { name: 'Sailing ship', cost: '10 000 gp', weight: '—', props: 'A seagoing merchant vessel (100 ft.). Speed 2 mph. Crew 20.' },
+  'Военный корабль': { name: 'Warship', cost: '25 000 gp', weight: '—', props: 'A warship (100 ft.). Speed 2½ mph. Crew 60–80.' },
+  'Галера': { name: 'Galley', cost: '30 000 gp', weight: '—', props: 'A large oar-and-sail ship (130 ft.). Speed 4 mph. Crew 80.' },
+
+  // Tools
+  'Воровские инструменты': { name: "Thieves' tools", cost: '25 gp', weight: '0.5 kg', props: "Thieves' tools let you pick locks and disarm traps.\n\nComponents. A set of lockpicks, a thin metal probe, metal shears, a small file, a mirror on a handle, and a set of pliers.\n\nHistory. Help you recall lore about famous thieves and their methods.\n\nSleight of Hand. Help you conceal small objects on your person.\n\nPicking a lock. As an action you attempt to open a lock with a Dexterity check using the tools.\n\nDisarming a trap. As an action you disable a trap you've found.\n\nActions & DCs:\nPick a lock — DC set by the GM (usually 10–20)\nDisarm a trap — DC set by the GM (usually 10–20)" },
+  'Игровой набор': { name: 'Gaming set', cost: '1 sp – 1 gp', weight: '—', props: 'A gaming set is for a specific game of chance or skill — dice, cards, or "three-dragon ante".\n\nComponents. Depend on the game: dice and a cup; a deck of cards; tokens and a board.\n\nHistory. Helps you recall notable tournaments and famous players.\n\nInsight. Helps you see through a bluff or cheating.\n\nDeception. Helps you cheat without being caught.\n\nGame. The outcome of a match and its stakes is decided by a contest of checks using the set.' },
+  'Инструменты алхимика': { name: "Alchemist's supplies", cost: '50 gp', weight: '4 kg', props: 'Let you brew useful alchemical substances.\n\nComponents. Two glass beakers, a metal frame to heat them over a flame, a glass stirring rod, and vials of common reagents.\n\nArcana. Augment Arcana checks involving potions and alchemical processes.\n\nInvestigation. Help you identify others\' potions and reagents.\n\nCrafting. During a rest you can produce acid, alchemist\'s fire, incense, perfume, or replenish "everlasting" fire (at half market cost).' },
+  'Инструменты гончара': { name: "Potter's tools", cost: '10 gp', weight: '1.5 kg', props: 'Let you make clay objects.\n\nComponents. A potter\'s knife, a rib, ribbons, and shaping tools.\n\nHistory. Help you determine the age and origin of pottery.\n\nPerception. Examining a vessel, you notice hidden compartments and false bottoms.\n\nCrafting. During a rest you can throw and fire pots, bowls, and jugs.' },
+  'Инструменты каллиграфа': { name: "Calligrapher's supplies", cost: '10 gp', weight: '2.5 kg', props: 'For elegant writing and document work.\n\nComponents. Several kinds of ink, a set of quills, and parchment.\n\nHistory / Arcana. Help you determine a text\'s origin or features of magical script (e.g. a runic inscription).\n\nInvestigation. Studying handwriting, you discern its traits and author.\n\nSecret writing. You can compose messages only an intended reader can decipher.' },
+  'Инструменты каменщика': { name: "Mason's tools", cost: '10 gp', weight: '4 kg', props: 'For working stone and masonry.\n\nComponents. A hammer, chisels, and brushes.\n\nHistory. From the stonework you determine a structure\'s age and purpose.\n\nPerception. Help you find weak sections of wall and secret doors in stone.\n\nCrafting. Knowing the construction, you breach a stone wall or build masonry faster.' },
+  'Инструменты картографа': { name: "Cartographer's tools", cost: '15 gp', weight: '3 kg', props: 'For making and reading maps.\n\nComponents. Dividers, rulers, pens, and ink.\n\nHistory. From a map you determine the era and region of its making.\n\nSurvival. With an accurate map you lose your way less often.\n\nMapmaking. As you travel you can chart the terrain you cross.' },
+  'Инструменты кожевника': { name: "Leatherworker's tools", cost: '5 gp', weight: '2.5 kg', props: 'For tanning and working leather.\n\nComponents. Knives, an awl, a leather knife, needles, and thread.\n\nArcana / Nature. Help you identify leather goods and creature hides.\n\nCrafting. During a rest you can repair and make leather goods — belts, scabbards, light leather armour.' },
+  'Инструменты кузнеца': { name: "Smith's tools", cost: '20 gp', weight: '4 kg', props: 'For forging and repairing metal items.\n\nComponents. Hammers, tongs, files, a grindstone, and a bellows.\n\nHistory / Investigation. Help you determine the origin and quality of a metal item.\n\nStrength. Grant advantage when trying to break a metal object.\n\nCrafting & repair. During a rest you can repair and forge metal items, armour, and weapons.' },
+  'Инструменты навигатора': { name: "Navigator's tools", cost: '25 gp', weight: '1 kg', props: 'For charting a course on the open sea.\n\nComponents. A sextant, a compass, dividers, rulers, pens, ink, and parchment.\n\nSurvival. Help you keep on course and judge distance.\n\nActions & DCs:\nFix your position by the stars — DC 10\nPlot a course accounting for wind and currents — DC 15' },
+  'Инструменты отравителя': { name: "Poisoner's kit", cost: '50 gp', weight: '1 kg', props: 'For making and applying poisons.\n\nComponents. Glass vials, a mortar and pestle, chemicals, and antitoxins.\n\nNature / Survival. Help you find and identify poisonous plants and animals.\n\nInvestigation. Help you determine the poison that caused a death.\n\nCrafting. During a rest you can make a dose of poison (at half cost) and safely apply it to a weapon or food.' },
+  'Инструменты пивовара': { name: "Brewer's supplies", cost: '20 gp', weight: '4 kg', props: 'For brewing ale and making drinks.\n\nComponents. A large jug, tubing, a small cask, and a set of seasonings.\n\nHistory. Help you recall notable events tied to drink.\n\nMedicine. Knowledge of fermentation helps you tell clean water from tainted.\n\nPersuasion. Good ale wins people over.\n\nCrafting. During a long rest you can brew a batch of drink.' },
+  'Инструменты плотника': { name: "Carpenter's tools", cost: '8 gp', weight: '3 kg', props: 'For working wood and building with timber.\n\nComponents. A saw, a hammer, nails, a plane, a chisel, and sandpaper.\n\nHistory / Perception. Help you judge the age and weak points of a wooden structure and find hiding places.\n\nCrafting. During a rest you can repair and build wooden objects; you can nail a wooden door shut or pry one open.' },
+  'Инструменты повара': { name: "Cook's utensils", cost: '1 gp', weight: '4 kg', props: 'For preparing food.\n\nComponents. A metal pot, knives, spoons, a meat fork, a spatula, and a set of spices.\n\nHistory / Survival. Help you recognize what\'s edible and lay in provisions on the road.\n\nMedicine. A hearty hot meal on a rest aids recovery.\n\nCrafting. On a rest you can turn raw ingredients into nourishing, tasty food.' },
+  'Инструменты резчика по дереву': { name: "Woodcarver's tools", cost: '1 gp', weight: '2.5 kg', props: 'For artistic woodcarving.\n\nComponents. Knives, a gouge, and sandpaper.\n\nHistory / Nature. Help you identify carvings and types of wood.\n\nCrafting. You can carve figurines, boxes, hafts, and false branches to hide caches, and quickly make a simple wooden item (a shaft, a club).' },
+  'Инструменты ремонтника': { name: "Tinker's tools", cost: '50 gp', weight: '5 kg', props: 'A versatile tinker\'s kit for repairing and assembling mechanisms.\n\nComponents. Files, a hacksaw, pliers, small hammers, needles, a grindstone, and a soldering iron.\n\nInvestigation / History. Help you understand how a mechanism works and how it was made.\n\nRepair. You can mend most broken items; with 1 hour and materials you can assemble a simple device (a clockwork, a toy, a lighter).' },
+  'Инструменты сапожника': { name: "Cobbler's tools", cost: '5 gp', weight: '2.5 kg', props: 'For making and repairing footwear.\n\nComponents. Knives, a leather knife, an awl, a hammer, needles, and thread.\n\nHistory / Investigation. From footwear you determine where its owner is from and where they\'ve been.\n\nCrafting. On a rest you can repair and make footwear; good boots ease long marches.' },
+  'Инструменты стеклодува': { name: "Glassblower's tools", cost: '30 gp', weight: '2.5 kg', props: 'For blowing and working glass.\n\nComponents. A blowpipe, tongs, ribbons, and knives.\n\nHistory. From a glass piece you determine its era and origin.\n\nPerception. Help you notice something hidden in glass or a double-bottomed vessel.\n\nCrafting. On a rest you can make vessels, lenses, and glass ornaments.' },
+  'Инструменты ткача': { name: "Weaver's tools", cost: '1 gp', weight: '2.5 kg', props: 'For spinning, weaving, and sewing.\n\nComponents. Cloth, needles, scissors, dyes, and thread.\n\nHistory / Investigation. From cloth and pattern you determine its origin and owner.\n\nCrafting. On a rest you can repair and sew clothing, patch garments, and embroider signs and emblems.' },
+  'Инструменты художника': { name: "Painter's supplies", cost: '10 gp', weight: '2.5 kg', props: 'For drawing and painting.\n\nComponents. Paints, brushes, charcoal, canvas, and a folding easel.\n\nHistory. From a painting\'s style you determine its era, school, and artist.\n\nPerception. Help you accurately recall and reproduce faces and places you\'ve seen.\n\nCrafting. You can paint a picture, draw a wanted poster, or imitate another\'s artistic style.' },
+  'Инструменты ювелира': { name: "Jeweler's tools", cost: '25 gp', weight: '1 kg', props: 'For cutting and appraising gems.\n\nComponents. A small saw, files, pliers, and a loupe.\n\nInvestigation. With the loupe you appraise the authenticity and value of stones and jewellery and spot a fake.\n\nArcana. Help you determine whether magic is bound in a stone.\n\nCrafting. On a rest you can cut stones, repair and make jewellery; you can carefully remove a stone from its setting.' },
+  'Музыкальный инструмент': { name: 'Musical instrument', cost: '2–30 gp', weight: '0.5–3 kg', props: 'One of the musical instruments: lute, flute, drum, horn, lyre, bagpipes, pan flute, dulcimer, and others.\n\nHistory. Helps you recall notable events tied to music.\n\nPerformance. Playing is a Charisma (Performance) check to entertain a crowd and earn coin.\n\nComposition. Knowing a needed tune (e.g. a coded pass-song), you can play it.\n\nFor bards it serves as a spellcasting focus.' },
+  'Набор для грима': { name: 'Disguise kit', cost: '25 gp', weight: '1.5 kg', props: 'Cosmetics, wigs, and dyes for altering appearance.\n\nComponents. Wigs, makeup, hair and skin dyes, prosthetics, and small props.\n\nDeception / Performance. A good disguise strengthens deception and getting into character.\n\nInvestigation. Examining another\'s disguise, you can see through it.\n\nMaking a disguise. Over 10 minutes you create a disguise: your Charisma check with the kit sets the DC of Perception checks to detect it.' },
+  'Набор травника': { name: "Herbalism kit", cost: '5 gp', weight: '1.5 kg', props: 'For gathering herbs and making remedies.\n\nComponents. Shears, leather gloves, a grinding tool, pouches, and vials.\n\nNature / Survival. Help you find and identify plants and fungi.\n\nMedicine. Help you use herbs to heal.\n\nCrafting. During a rest you can make a potion of healing or an antitoxin (materials required).' },
+  'Набор для фальсификации': { name: "Forgery kit", cost: '15 gp', weight: '2.5 kg', props: "A forgery kit is for copying documents and reproducing a personal seal or signature.\n\nComponents. Inks of various kinds, parchment and paper of various kinds, several quills, seals and sealing wax, gold and silver leaf, and small tools for moulding melted wax into an imitation seal.\n\nArcana. Can be used with the Arcana skill to determine whether a magic item is genuine or fake.\n\nDeception. A well-made forgery — proof of nobility or a safe-conduct — lends credibility to your lies.\n\nHistory. With historical knowledge it improves your ability to forge or authenticate historical documents.\n\nInvestigation. When examining an item, proficiency with the kit helps you determine how it was made and whether it is genuine.\n\nOther tools. Skill with other tools makes forgeries more convincing (e.g. forgery kit + cartographer\'s tools = a fake map).\n\nQuick forgery. On a short rest you create a forged document up to one page long; on a long rest, up to four pages. Your Intelligence check sets the DC of the Intelligence (Investigation) check to detect the forgery.\n\nActions & DCs:\nForge handwriting — DC 15\nCopy a wax seal — DC 20" },
+
+  // Food & lodging
+  'Кружка эля': { name: 'Mug of ale', cost: '4 cp', weight: '—', props: 'A standard pint of dark or light ale — the staple of any tavern. It warms you, loosens tongues, and draws a company together by the hearth. Over a mug like this you pick up rumours and make acquaintances.' },
+  'Галлон эля': { name: 'Gallon of ale', cost: '2 sp', weight: '—', props: 'A full jug for the whole company. Enough for a long, noisy evening at a shared table; by nightfall it comes to songs, tall tales, and the occasional broken mug.' },
+  'Бутылка обычного вина': { name: 'Bottle of common wine', cost: '2 sp', weight: '—', props: 'Local table wine, tart and plain. Served in any inn with meat and cheese; it drinks easily and goes to the head before you notice.' },
+  'Бутылка тонкого вина': { name: 'Bottle of fine wine', cost: '10 gp', weight: '—', props: 'An aged wine from a renowned vineyard. A bottle on the table hints at the host\'s wealth, invites confidence, and makes a fitting gift for a person of rank.' },
+  'Кусок мяса': { name: 'Chunk of meat', cost: '3 sp', weight: '—', props: 'A hearty portion of coal-grilled meat — ribs, ham, or game, with onions and a crust of bread. The food of a labourer or mercenary after a hard day.' },
+  'Кусок сыра': { name: 'Hunk of cheese', cost: '1 sp', weight: '—', props: 'A wedge of aged, hard-rind cheese. Keeps well on the road and goes splendidly with bread, ale, and wine.' },
+  'Буханка хлеба': { name: 'Loaf of bread', cost: '2 cp', weight: '—', props: 'A warm loaf from the common oven, crusty outside and soft within. A cheap staple of the poor and travel fare for a rainy day.' },
+  'Банкет (на персону)': { name: 'Banquet (per person)', cost: '10 gp', weight: '—', props: 'A lavish multi-course dinner: courses, fine wines, music, and attentive servants. An invitation to such a banquet is a pass into noble society and a handy pretext for introductions and intrigue.' },
+  'Охотничье рагу «Три кабана»': { name: 'Hunter\'s stew "Three Boars"', cost: '5 sp', weight: '—', props: 'Specialty. A thick meat stew of three kinds of game, simmered half a day in a cast pot with roots and dark ale. Served with a heel of rye bread.\n\nEffect: after a full meal of this stew, during your next long rest you regain 1d4 more HP than usual. No more than once per day.' },
+  'Эльфийский медовый пирог «Лесной мёд»': { name: 'Elven honey cake "Forest Honey"', cost: '8 sp', weight: '—', props: 'Specialty. A thin cake of flower honey and forest nuts by an old elven recipe; its crumbs stay fresh for weeks.\n\nEffect: a slice for the road replaces a day\'s rations — for the next 8 hours you feel no hunger or thirst, and your spirits are unusually bright.' },
+  'Гномья подгорная похлёбка с грибами': { name: 'Dwarven undermountain mushroom soup', cost: '4 sp', weight: '—', props: 'Specialty. A rich soup of cave mushrooms and smoked fat, served in a hollowed loaf. It warms you to the bone.\n\nEffect: after eating the hot soup, you gain 1d4 temporary HP for 1 hour — warmth and a full belly lend you strength.' },
+  'Драконий перечный гуляш': { name: 'Dragon pepper goulash', cost: '7 sp', weight: '—', props: 'Specialty. A fiery goulash of red pepper and southern spices; the first spoonful brings out a sweat and lights a coal in your belly.\n\nEffect: the heat lasts until your next long rest — during that time you don\'t feel the cold and have advantage on saves against extreme cold.' },
+  'Рыбацкая уха «Штормовая»': { name: 'Fisherman\'s stew "Stormy"', cost: '3 sp', weight: '—', props: 'Specialty. A thick sea-fish stew with pepper and garlic, and a shot of something strong on the side. A favourite of harbour taverns.\n\nEffect: for the next 8 hours you have advantage on saves against seasickness and nausea (including weak poisons that cause vomiting).' },
+  'Глинтвейн «Зимний очаг»': { name: 'Mulled wine "Winter Hearth"', cost: '6 cp', weight: '—', props: 'Specialty. Hot wine with honey, cloves, and orange peel, served in a clay mug. The smell of festivity and warmth.\n\nEffect: for a full hour you stay warm as if by a roaring hearth, even in a freeze; your first Charisma check by a fire that hour (Persuasion or Performance) has advantage.' },
+  'Сладкий пирог тётушки Маб': { name: "Auntie Mab's sweet pie", cost: '5 cp', weight: '—', props: 'Specialty. A berry pie with a crisp crust — the taste of childhood and home. Served warm with cream.\n\nEffect: eating a slice during a rest fills you with calm confidence: your first save against the frightened condition before your next long rest has advantage.' },
+  'Полуросличий «второй завтрак»': { name: 'Halfling "second breakfast"', cost: '1 sp', weight: '—', props: 'Specialty. A hearty platter of eggs, bacon, sausages, mushrooms, and hot rolls — what no halfling leaves home without.\n\nEffect: the vigour of a big meal keeps sleep at bay for 1 hour: you have advantage on checks and saves to avoid falling asleep, dozing on watch, or giving in to fatigue on the road.' },
+  'Ночлег — убогий': { name: 'Lodging — squalid', cost: '7 cp', weight: '—', props: 'A straw pallet on a shared floor or hayloft, packed in with strangers, fleas, and snoring. The door doesn\'t lock; keep your things under your head.\n\nRest: a long rest is possible here but uneasy — noise, cold, and draughts. Old hands sleep with one eye open and their boots on.' },
+  'Ночлег — бедный': { name: 'Lodging — poor', cost: '1 sp', weight: '—', props: 'A corner on a common bench or a bunk in a room with a dozen lodgers. A thin blanket, a fresher pallet, a mug of hot water in the morning.\n\nRest: cramped and crowded, but a roof overhead and relatively dry. A full long rest passes without trouble.' },
+  'Ночлег — скромный': { name: 'Lodging — modest', cost: '5 sp', weight: '—', props: 'A small private room with a cot, a stool, and a wash basin. The door bolts; bedding is changed every other time.\n\nRest: quiet and private — the usual choice of a middling townsman and a cautious traveller.' },
+  'Ночлег — комфортный': { name: 'Lodging — comfortable', cost: '8 sp', weight: '—', props: 'A clean private room with a real bed, fresh linen, a candle, and a wash stand. Breakfast in the morning, a basin of warm water at night.\n\nRest: comfort and quiet; here you truly rest body and soul. The standard of a well-off merchant.' },
+  'Ночлег — богатый': { name: 'Lodging — wealthy', cost: '2 gp', weight: '—', props: 'Spacious rooms with a soft feather bed, a fireplace, a bath, and a servant ready to run errands. Scented linen, wine in the decanter.\n\nRest: luxury and full safety; a prompt servant at the door. The level of a rich merchant or lesser nobility.' },
+  'Ночлег — аристократический': { name: 'Lodging — aristocratic', cost: '4 gp', weight: '—', props: 'The best rooms in the house: a canopy bed, fine linen, a personal valet, a scented bath, and food at a word. The standard of a royal court.\n\nRest: flawless comfort and protection; in such rooms one doesn\'t merely rest but receives important guests and holds the quiet talks that decide fates.' },
+
+  // Lifestyle & services
+  'Образ жизни — нищенский': { name: 'Lifestyle — wretched', cost: '0 gp / day', weight: '—', props: "Cost: nothing — you simply have no money.\n\nHow you live: you sleep wherever night finds you — under a bridge, in an alley, on a church porch. You eat what's given or what you can steal; water comes from a well or a puddle. Disease, cold, and others' cruelty are constant companions.\n\nConsequences: you risk your health and often fall victim to crime. But you go unnoticed — a beggar is invisible, and that's sometimes useful." },
+  'Образ жизни — убогий': { name: 'Lifestyle — squalid', cost: '1 sp / day', weight: '—', props: "Cost: 1 sp per day.\n\nHow you live: a corner in a rotting flophouse or a slum hovel, a shared pallet with bedbugs, hearth-smoke instead of warmth. Food is stale bread, thin soup, soured beer. The water is doubtful, and there's nowhere to wash.\n\nSociety & risks: you're among the destitute, thieves, and the desperate. The watch doesn't come here and the law doesn't hold — order rests on fists. Such a life earns no respect, but you learn to survive and know the city's underside better than any lord." },
+  'Образ жизни — бедный': { name: 'Lifestyle — poor', cost: '2 sp / day', weight: '—', props: "Cost: 2 sp per day.\n\nHow you live: a cramped little room or a common barrack, plain but regular food — porridge, bread, vegetables, meat now and then. Patched but whole clothing. The life of a labourer, a day-worker, a poor craftsman.\n\nSociety: you're taken for an honest pauper — without scorn, but without trust of your purse either. Hard work from dawn to dusk, but a roof over your head every night." },
+  'Образ жизни — скромный': { name: 'Lifestyle — modest', cost: '1 gp / day', weight: '—', props: "Cost: 1 gp per day.\n\nHow you live: clean lodging in a decent quarter, hearty home food, a change of clothes, sometimes a mug at the tavern. The level of a soldier, a successful craftsman, a small trader, or a junior priest.\n\nSociety: you're a respectable townsperson. You're let into most establishments, and shopkeepers and guards speak to you as an equal. An unremarkable, steady life without want and without luxury." },
+  'Образ жизни — комфортный': { name: 'Lifestyle — comfortable', cost: '2 gp / day', weight: '—', props: "Cost: 2 gp per day.\n\nHow you live: a sound house or good rooms, a servant on hand, a varied table with wine, neat and fashionable clothes. The life of a successful craftsman, an officer, a merchant, or a respected specialist.\n\nSociety: you move in decent society, have credit with shopkeepers and a seat at the table with respectable folk. Your means show in your dress and manners." },
+  'Образ жизни — богатый': { name: 'Lifestyle — wealthy', cost: '4 gp / day', weight: '—', props: "Cost: 4 gp per day.\n\nHow you live: a spacious house with servants, a cook, fine wines, a carriage, a tailor and a barber. The life of lesser nobility, a rich trader, or a courtier.\n\nSociety: the doors of guilds, salons, and receptions open to you; people seek your acquaintance. But sustaining this life is a constant concern, and in high society you're still seen as an upstart." },
+  'Образ жизни — аристократический': { name: 'Lifestyle — aristocratic', cost: '10 gp / day', weight: '—', props: "Cost: 10 gp per day and up.\n\nHow you live: a mansion or palace rooms, a staff of servants, the finest cooks, tailors and musicians, a personal guard and a crested carriage. Every detail — from dress to dishware — speaks of your standing.\n\nSociety: the most closed circles are open to you — balls, councils, royal audiences. Your word carries weight and your patronage is prized. But luxury is paid for in more than gold: intrigue, envy, debts of honour, and a reputation easily lost and impossible to buy back." },
+  'Услуга — наёмник необученный': { name: 'Service — untrained hireling', cost: '2 sp / day', weight: '—', props: "Who they are: hired muscle — a porter, servant, oarsman, torch-bearer, digger, or messenger. Takes on rough work that needs no training.\n\nWhat they can do: haul loads, dig, row, carry a torch, guard belongings, and call for help. Illiterate, no real skill with weapons, a liability in a fight.\n\nLimits: for such pennies they won't go where it's truly dangerous. Monsters, dungeons, and war aren't worth two coppers." },
+  'Услуга — наёмник обученный': { name: 'Service — trained hireling', cost: '2 gp / day', weight: '—', props: "Who they are: a trained specialist — a guard, a sellsword, a caravan escort, a craftsman or artisan with real schooling. Ten times the cost of an unskilled hand — and worth it.\n\nWhat a trained hireling can do that an untrained one can't:\n• Fight in formation and use martial weapons and armour.\n• Read, write, and reckon — keep accounts, parse orders, read a map.\n• Give first aid: stop bleeding, set a splint, nurse the wounded.\n• Know a trade (smith, carpenter, healer, cartographer, armourer) and charge separately for it.\n• Command simple workers and keep discipline in a band.\n• Negotiate, bargain, and vouch where a literate person's word is needed.\n• Stay true to a contract under pressure — training and the honour of the craft outweigh a moment's fear.\n\nLimits: for dangerous work — dungeons, monsters, war — a trained hireling asks above the rate: a share of the loot, a bonus, or pay up front." },
+  'Услуга — посыльный': { name: 'Service — messenger', cost: '2 cp / mile', weight: '—', props: 'A letter to a neighbouring village or town.' },
+  'Услуга — повозка между городами': { name: 'Service — wagon between towns', cost: '1 cp / mile', weight: '—', props: 'Carrying people and goods by hired wagon.' },
+  'Услуга — экипаж в городе': { name: 'Service — coach within a city', cost: '3 cp / mile', weight: '—', props: 'A cab within the city.' },
+  'Услуга — экипаж между городами': { name: 'Service — coach between towns', cost: '5–10 cp / mile', weight: '—', props: 'Regular stagecoaches.' },
+  'Услуга — пассажир на корабле': { name: 'Service — ship passage', cost: '1 sp / mile', weight: '—', props: 'A passenger berth on a merchant vessel. Cabins cost more.' },
+  'Услуга — городская пошлина': { name: 'Service — city toll', cost: '1 cp', weight: '—', props: 'A fee to enter a city or bring goods through the gates.' },
+  'Услуга — заклинатель 1 ур.': { name: 'Service — spellcaster, 1st lvl', cost: '10–50 gp', weight: '—', props: 'The price of one casting of a 1st-level spell (plus material components).' },
+  'Услуга — заклинатель 3 ур.': { name: 'Service — spellcaster, 3rd lvl', cost: '50–150 gp', weight: '—', props: 'The price of one casting of a 3rd-level spell.' },
+  'Услуга — заклинатель 5 ур.': { name: 'Service — spellcaster, 5th lvl', cost: '250–500 gp', weight: '—', props: 'The price of one casting of a 5th-level spell. Above 6th level the price climbs sharply.' }
+}
+
+/** Equipment list in the requested language (English where translated, else RU). */
+export function equipmentFor(lang: string): EquipItem[] {
+  if (!isEn(lang)) return EQUIPMENT
+  return EQUIPMENT.map((e) => {
+    const o = EQUIP_EN[e.name]
+    return o ? { ...e, name: o.name, cost: o.cost, weight: o.weight, props: o.props } : e
+  })
+}
+
+export function categoryLabel(c: { id: EquipCategory; label: string }, lang: string): string {
+  return isEn(lang) ? EQUIP_CATEGORY_LABEL_EN[c.id] : c.label
+}
+export function armorTierLabel(t: ArmorTier, lang: string): string {
+  return isEn(lang) ? ARMOR_TIER_LABEL_EN[t] : ARMOR_TIER_LABEL[t]
+}
+export function mountTierLabel(t: MountTier, lang: string): string {
+  return isEn(lang) ? MOUNT_TIER_LABEL_EN[t] : MOUNT_TIER_LABEL[t]
+}
+export function masteryFor(k: MasteryKey, lang: string): { name: string; desc: string } {
+  return isEn(lang) ? MASTERY_EN[k] : MASTERY_RU[k]
+}

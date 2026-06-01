@@ -3,7 +3,6 @@ import { copyFileSync, existsSync, mkdirSync, readdirSync } from 'fs'
 import { join } from 'path'
 import { getKv, initDatabase, setKv } from './db/database'
 import { registerIpc } from './ipc'
-import { searchCreatures } from './api/open5e'
 
 interface Bounds {
   x?: number
@@ -154,9 +153,6 @@ app.whenReady().then(() => {
   )
 
   createWindow()
-
-  // Silent background cache warm-up.
-  searchCreatures({ limit: 50, ordering: 'name', edition: '5e-2024' }).catch(() => {})
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()

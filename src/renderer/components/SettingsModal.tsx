@@ -2,26 +2,31 @@ import { useState, type JSX } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSettings, type Palette } from '../store/settings'
 
-const PALETTES: { id: Palette; label: string; swatch: [string, string, string] }[] = [
-  { id: 'dark', label: 'Тёмная', swatch: ['#15100a', '#b8893b', '#7a1414'] },
-  { id: 'light', label: 'Светлая', swatch: ['#e4ded2', '#96702d', '#962020'] },
-  { id: 'blue', label: 'Сине-стальная', swatch: ['#0f141c', '#8aa0bc', '#3874b2'] },
-  { id: 'ember', label: 'Красно-оранжевая', swatch: ['#1a0e0a', '#d68430', '#c8481a'] },
-  { id: 'forest', label: 'Зелёная', swatch: ['#0c1610', '#a0984a', '#287848'] }
+const PALETTES: { id: Palette; labelKey: string; swatch: [string, string, string] }[] = [
+  { id: 'dark', labelKey: 'settings.paletteDark', swatch: ['#15100a', '#b8893b', '#7a1414'] },
+  { id: 'light', labelKey: 'settings.paletteLight', swatch: ['#e4ded2', '#96702d', '#962020'] },
+  { id: 'blue', labelKey: 'settings.paletteBlue', swatch: ['#0f141c', '#8aa0bc', '#3874b2'] },
+  { id: 'ember', labelKey: 'settings.paletteEmber', swatch: ['#1a0e0a', '#d68430', '#c8481a'] },
+  { id: 'forest', labelKey: 'settings.paletteForest', swatch: ['#0c1610', '#a0984a', '#287848'] }
+]
+
+const LANGS: { id: 'ru' | 'en'; labelKey: string }[] = [
+  { id: 'ru', labelKey: 'settings.langRu' },
+  { id: 'en', labelKey: 'settings.langEn' }
 ]
 
 export default function SettingsModal({ onClose }: { onClose: () => void }): JSX.Element {
   const { t } = useTranslation()
-  const { sound, setSound, fontScale, setFontScale, texture, setTexture, devMode, setDevMode, palette, setPalette, roleBadges, setRoleBadges } = useSettings()
+  const { language, setLanguage, sound, setSound, fontScale, setFontScale, texture, setTexture, devMode, setDevMode, palette, setPalette } = useSettings()
   const [msg, setMsg] = useState('')
 
   const doExport = async (): Promise<void> => {
     const r = await window.api.exportData()
-    setMsg(r.ok ? `Сохранено: ${r.path}` : r.error ? `Ошибка: ${r.error}` : 'Отменено')
+    setMsg(r.ok ? t('settings.savedTo', { path: r.path }) : r.error ? t('settings.errorMsg', { error: r.error }) : t('settings.cancelled'))
   }
   const doImport = async (): Promise<void> => {
     const r = await window.api.importData()
-    setMsg(r.ok ? `Импортировано монстров: ${r.monsters}` : r.error ? `Ошибка: ${r.error}` : 'Отменено')
+    setMsg(r.ok ? t('settings.importedMonsters', { n: r.monsters }) : r.error ? t('settings.errorMsg', { error: r.error }) : t('settings.cancelled'))
   }
 
   const Row = ({ label, children }: { label: string; children: React.ReactNode }): JSX.Element => (
@@ -39,6 +44,23 @@ export default function SettingsModal({ onClose }: { onClose: () => void }): JSX
           <button onClick={onClose} className="text-parchment/50 hover:text-parchment">✕</button>
         </div>
 
+        <div className="mb-3">
+          <div className="mb-1.5 text-sm text-parchment/90">{t('settings.language')}</div>
+          <div className="flex gap-2">
+            {LANGS.map((l) => (
+              <button
+                key={l.id}
+                onClick={() => setLanguage(l.id)}
+                className={`rounded-full border px-3 py-1 text-xs font-semibold transition-colors ${
+                  language === l.id ? 'border-gold bg-accent/30 text-parchment' : 'border-white/15 text-parchment/70 hover:border-gold/50'
+                }`}
+              >
+                {t(l.labelKey)}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div className="mb-1">
           <div className="mb-1.5 text-sm text-parchment/90">{t('settings.palette')}</div>
           <div className="flex flex-wrap gap-2">
@@ -46,7 +68,7 @@ export default function SettingsModal({ onClose }: { onClose: () => void }): JSX
               <button
                 key={p.id}
                 onClick={() => setPalette(p.id)}
-                title={p.label}
+                title={t(p.labelKey)}
                 className={`flex items-center gap-2 rounded-full border px-2.5 py-1 text-xs font-semibold transition-colors ${
                   palette === p.id ? 'border-gold bg-accent/30 text-parchment' : 'border-white/15 text-parchment/70 hover:border-gold/50'
                 }`}
@@ -56,7 +78,7 @@ export default function SettingsModal({ onClose }: { onClose: () => void }): JSX
                     <span key={i} className="h-3.5 w-2.5" style={{ background: c }} />
                   ))}
                 </span>
-                {p.label}
+                {t(p.labelKey)}
               </button>
             ))}
           </div>
@@ -77,14 +99,6 @@ export default function SettingsModal({ onClose }: { onClose: () => void }): JSX
               className={`rounded-full px-3 py-1 text-xs font-semibold ${texture ? 'bg-accent text-parchment' : 'bg-black/40 text-parchment/60'}`}
             >
               {texture ? t('settings.on') : t('settings.off')}
-            </button>
-          </Row>
-          <Row label="Иконки тактической роли в бестиарии">
-            <button
-              onClick={() => setRoleBadges(!roleBadges)}
-              className={`rounded-full px-3 py-1 text-xs font-semibold ${roleBadges ? 'bg-accent text-parchment' : 'bg-black/40 text-parchment/60'}`}
-            >
-              {roleBadges ? t('settings.on') : t('settings.off')}
             </button>
           </Row>
           <Row label={`${t('settings.fontSize')}: ${Math.round(fontScale * 100)}%`}>

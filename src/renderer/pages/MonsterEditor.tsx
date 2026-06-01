@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { GiPaperClip } from 'react-icons/gi'
 import StatBlock from '../components/StatBlock'
 import FormatHelp from '../components/FormatHelp'
+import TagInput from '../components/TagInput'
 import { crToDisplay } from '@shared/open5e-mapper'
 import type { NamedEntry, StatBlock as SB } from '@shared/types'
 import { emptyEntry, emptyStatBlock, statBlockToHtml, uid } from '../utils/monster'
@@ -56,11 +57,22 @@ export default function MonsterEditor(): JSX.Element {
     setPasteText('')
   }
 
+  const [habitatPool, setHabitatPool] = useState<string[]>([])
+
   useEffect(() => {
     const passed = (location.state as { monster?: SB } | null)?.monster
     if (passed) setM(passed)
     else if (key) window.api.db.getMonster(key).then((found) => found && setM(found))
   }, [key, location.state])
+
+  // Collect existing habitats across saved monsters → tag autocomplete pool.
+  useEffect(() => {
+    window.api.db.listMonsters().then((list) => {
+      const set = new Set<string>()
+      for (const mon of list) for (const env of mon.environments ?? []) if (env) set.add(env)
+      setHabitatPool([...set])
+    })
+  }, [])
 
   const set = (patch: Partial<SB>): void => setM((prev) => ({ ...prev, ...patch }))
   const setAbility = (a: keyof SB['abilities'], v: number): void =>
@@ -289,10 +301,12 @@ export default function MonsterEditor(): JSX.Element {
           <Text label={t('statblock.conditionImmunities')} value={m.conditionImmunities ?? ''} onChange={(v) => set({ conditionImmunities: v })} />
           <Text label={t('statblock.senses')} value={m.senses ?? ''} onChange={(v) => set({ senses: v })} />
           <Text label={t('statblock.languages')} value={m.languages ?? ''} onChange={(v) => set({ languages: v })} />
-          <Text
-            label={t('bestiary.habitat') + ' (через запятую)'}
-            value={m.environments.join(', ')}
-            onChange={(v) => set({ environments: v.split(',').map((s) => s.trim()).filter(Boolean) })}
+          <TagInput
+            label={t('bestiary.habitat')}
+            value={m.environments}
+            onChange={(next) => set({ environments: next })}
+            placeholder="Например: Лес"
+            suggestions={habitatPool}
           />
 
           {entryEditor('traits', t('statblock.traits'))}

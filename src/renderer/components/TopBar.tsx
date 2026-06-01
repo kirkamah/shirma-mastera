@@ -1,14 +1,12 @@
 import { useState, type CSSProperties, type JSX } from 'react'
 import { useTranslation } from 'react-i18next'
 import { GiShield, GiCog } from 'react-icons/gi'
-import { useSettings } from '../store/settings'
 import { useUi } from '../store/ui'
 import SearchBar from './SearchBar'
 import SettingsModal from './SettingsModal'
 
 export default function TopBar(): JSX.Element {
   const { t } = useTranslation()
-  const { language, toggleLanguage } = useSettings()
   const online = useUi((s) => s.online)
   const [settingsOpen, setSettingsOpen] = useState(false)
 
@@ -38,15 +36,6 @@ export default function TopBar(): JSX.Element {
             ● {t('app.offline')}
           </span>
         )}
-
-        {/* Language toggle */}
-        <button
-          onClick={toggleLanguage}
-          className="rounded-full border border-parchment/30 px-3 py-1 text-xs font-bold text-parchment hover:border-parchment/60"
-          title="RU / EN"
-        >
-          {language.toUpperCase()}
-        </button>
 
         <button
           onClick={() => setSettingsOpen(true)}

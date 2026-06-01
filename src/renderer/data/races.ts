@@ -1,4 +1,4 @@
-import { RACE_LORE, type RaceNames } from './race-lore'
+import { RACE_LORE, RACE_LORE_EN, type RaceNames } from './race-lore'
 
 export type { RaceNames }
 export type RaceCategory = 'player' | 'enemy'
@@ -786,4 +786,653 @@ for (const race of RACES) {
     race.faith = lore.faith
     race.names = lore.names
   }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// English localisation (incremental; RU is the fallback for untranslated races
+// and for fields — e.g. culture/faith/names — not yet translated). Keyed by id.
+// ─────────────────────────────────────────────────────────────────────────────
+export const RACES_EN: Record<string, Partial<RaceData>> = {
+  human: {
+    name: 'Human',
+    origin:
+      "The elder peoples say humans came into the world last — and came empty-handed. They had no elven songs older than the mountains, no dwarven halls thundering underground for a thousand years. The gods shaped them in haste and, in place of ancient lineage, set in them a single spark: hunger. Hunger for power, for secrets, for the very life so painfully briefly granted them. In a few short generations that hunger raised cities where once only careful feet had trodden.",
+    society:
+      "No two human lands are alike. Here crowned kings rule, there the gold of merchant guilds, and elsewhere a priest or a mercenary's blade dictates the law. Humans soak up others' customs like sand drinks water: they take elven magic, dwarven steel, foreign gods — and forge it all into something unheard of. Their trade roads and written laws stitch scattered lands into a single cloth.",
+    personality:
+      'A human lives as though tomorrow will never come — and so achieves more than many long-lived folk. He hurries to leave a mark: raise a tower, compose a song, start a war. This mortal fever makes humans now desperate heroes, now monsters such as no other blood has borne.',
+    habitat:
+      "Humans settle wherever their daring reaches: in river valleys and on salt shores, in mountain saddles and at the desert's edge. On the Sword Coast their cities — Waterdeep, Baldur's Gate, Neverwinter — have become cauldrons where the goods, rumours, and fates of a hundred peoples boil together.",
+    relations:
+      "Humans have short memories for grudges — and so get on with almost everyone. Dwarves respect their persistence, elves marvel with a condescending smile at their haste, halflings gladly warm themselves at their hearths. More often than not it is a human who seats yesterday's enemies at one table.",
+    notable:
+      "Among humans shines Elminster Aumar — archmage of Shadowdale, who has outlived empires. Human hands hold the kingdom of Cormyr and mercantile Sembia, while the Lords' Alliance guards the Sword Coast. Their free cities — Waterdeep and Baldur's Gate — have long been the heart of the known world."
+  },
+  elf: {
+    name: 'Elf',
+    subraces: ['High elf', 'Wood elf', 'Drow (dark elf)'],
+    origin:
+      "Elves descend from the first beings to whom the Feywild gave a spark of immortality, and they remember what for others has become dusty legend. An elf's age is measured in centuries, and a century passes for one like a single long evening for a human. The high keep ancient magic, the wood have merged with the whisper of the forests, and the drow once turned aside into darkness — and the darkness took them in.",
+    society:
+      'Elven life is unhurried and steeped in art as old wine is in aroma. What a human spends an hour on, an elf ponders for years and counts it no idleness. The high raise garden-cities, the wood dissolve among ancient trunks, and the drow weave cruel intrigues in the matriarchies of the Underdark under the spider-cult of Lolth.',
+    personality:
+      'In an elf, grace contends with hauteur and curiosity with secrecy. Long ages grant wisdom, but that same endlessness breeds a cold certainty, as if all the world were merely a play dragging on. Elves do not sleep: instead they enter a trance, telling over their memories like prayer beads.',
+    habitat:
+      'The heart of the elven world is the hidden isle of Evermeet, whither their souls depart. On the mainland, memory is kept by the ruins of Myth Drannor, fallen pearl of Cormanthor, while the drow have taken refuge in the black caverns of the Underdark, where sunlight burns their eyes.',
+    relations:
+      'An old frost divides elves from dwarves, its roots in the quarrels of forgotten ages. For humans they feel a mix of fondness and condescension. And the name of the drow they speak in a whisper — and surface folk reach for their weapons.',
+    notable:
+      "Their forefather is the god Corellon Larethian. Out of the Underdark came Drizzt Do'Urden, the renegade drow who spurned the spider-throne of Menzoberranzan and became a legend of the North. Evermeet and fallen Myth Drannor remain to the elves both a holy place and an unhealed wound."
+  },
+  dwarf: {
+    name: 'Dwarf',
+    subraces: ['Hill dwarf', 'Mountain dwarf', 'Duergar'],
+    origin:
+      "Dwarves, the sagas say, were forged in the heart of the mountains by the smith-god Moradin, striking his hammer on living stone. Hence the stubbornness of granite runs in their veins, and their memory holds millennia of unbroken dynasties — and grief for the halls that fell to the onslaught of darkness.",
+    society:
+      "Everything among dwarves rests on clan, the honour of one's line, and reverence for ancestors whose statues gaze from the walls of the deep halls. Their underground kingdoms are a wonder hewn in stone: vaults miles wide and forges whose fire has not gone out since the day of their founding. Every blade bears its line's mark, and a dwarf remembers a debt or an oath as long as his clan lives.",
+    personality:
+      'A dwarf is stubborn as an anvil and straight as an axe-stroke. He gives friendship slowly, but it outlasts two lifetimes; he keeps enmity just as long. He honours labour, tradition, and a firm word, and despises lies and cowardice.',
+    habitat:
+      "Dwarves carve fortresses in the mountains' depths: Mithral Hall in the Spine of the World, ancient Citadel Adbar, the rebuilt Gauntlgrym. Hill dwarves settle nearer the light — in fortified holds among green hills.",
+    relations:
+      'With humans and gnomes dwarves hold a firm friendship, prizing a shrewd head and clever invention. With elves a polite chill divides them. And orcs, goblins, and the things of the Underdark — especially their duergar kin — they count ancestral foes.',
+    notable:
+      'The name of King Bruenor Battlehammer, who won back Mithral Hall for his clan, thunders across the North. Over the dwarves stretches the hand of Moradin the Soul Forger, and their strongholds — Gauntlgrym and Adbar — have held against the onslaught of darkness for millennia.'
+  },
+  halfling: {
+    name: 'Halfling',
+    subraces: ['Stout', 'Lightfoot'],
+    origin:
+      'Halflings are a little folk whose luck has passed into proverb and whose roots are lost somewhere in cosy burrows beneath green hills. They build no empires and seek no glory; their history is one of warm hearths that have outlived far louder realms.',
+    society:
+      "Halflings live in close-knit communities where family, a good table, and an open door are valued above gold. They hold together, help a neighbour, and don't meddle in the affairs of the great — yet it is this very inconspicuousness that preserves them where the proud perish.",
+    personality:
+      "Unobtrusive and intensely practical, they hide beneath their good nature an unexpected courage that wakes in the hour of need. A halfling won't be first into a fight — but won't abandon a friend either, even one three times his height.",
+    habitat:
+      "Their homeland is Luiren in the southeast of Faerûn, a country of fertile plains and river bends that smells of bread and hearth-smoke. But more often you'll meet a halfling in a human city, where he has found both shelter and a living.",
+    relations:
+      'They get on with almost everyone, most readily with humans. Their good humour disarms even surly dwarves, and their luck now and then saves a whole party of adventurers.',
+    notable:
+      'They are watched over by the goddess Yondalla, the Blessed Mother, whose name halflings invoke at every meal. And their quiet homeland of Luiren has for centuries remained one of the few corners of the world to have known no great war.'
+  },
+  gnome: {
+    name: 'Gnome',
+    subraces: ['Forest gnome', 'Rock gnome', 'Svirfneblin (deep gnome)'],
+    origin:
+      "A small folk seemingly born of the world's very curiosity: to a gnome, every mechanism, every spell, and every secret is a treasured toy. They live three or four hundred years and in that time manage to try a dozen trades and take up as many whimsical hobbies.",
+    society:
+      'Gnome communities hum like hives: workshops, laboratories, and pranks never fall silent, day or night. The deep gnomes — svirfneblin — by contrast live secretively and warily in the stone city of Blingdenstone, hiding from the horrors of the Underdark.',
+    personality:
+      "Restless, inventive, and mocking, they meet danger with a cunning contrivance rather than a blade. A gnome will happily tinker for months over a mechanical trifle simply because he's curious whether it will work.",
+    habitat:
+      'Rock gnomes settle in hilly country and hidden workshop-burrows; forest gnomes blend into the woods and befriend its beasts; svirfneblin lurk in the depths beneath the North, in darkness-besieged Blingdenstone.',
+    relations:
+      'They are warm friends with dwarves and humans, gladly lending them their wild-looking inventions. The svirfneblin, though, trust almost no one — save perhaps honest dwarves.',
+    notable:
+      'Their patron is Garl Glittergold, a trickster and inventor god. And the deep city of Blingdenstone, fallen more than once and rebuilt more than once, remains a symbol of gnomish stubbornness in the face of the very darkness of the Underdark.'
+  },
+  dragonborn: {
+    name: 'Dragonborn',
+    subraces: ['Chromatic', 'Metallic', 'Gem'],
+    origin:
+      "A proud people in whose veins flows dragon's blood and in whose breast smoulders the echo of their ancestors' elemental breath. They do not remember who made them first — the dragons themselves or the gods — but they bear this heritage with a grandeur bordering on arrogance.",
+    society:
+      "Above life itself, dragonborn place the honour of the clan and personal mastery, for the name of one's line is their chief possession. Exile from the clan is more dreadful to them than death. In Faerûn they raised the realm of Tymanther on the ruins of a kingdom devoured by the gods.",
+    personality:
+      'Dignified and fervent, they keep their word harder than steel and despise those who drop it. A dragonborn measures himself by a strict standard and applies the same to others.',
+    habitat:
+      'Their stronghold is Tymanther and its part-underground, part-surface capital Djerad Thymar, where the clans live under a single law. Beyond their homeland dragonborn are rarely met — and so are met with curiosity.',
+    relations:
+      'In other peoples they honour strength and honour, and are equally merciless toward cowardice and lies. Many revere Bahamut, the Platinum Dragon, as the model of justice — and just as fiercely feud with the cult of evil Tiamat.',
+    notable:
+      'Over the noble among them stretches the hand of Bahamut, king of good dragons. The realm of Tymanther and the fortress of Djerad Thymar have proven to all Faerûn that the dragon-people can not only wage war but build.'
+  },
+  tiefling: {
+    name: 'Tiefling',
+    subraces: ['Legacy of Asmodeus', 'Infernal', 'Abyssal'],
+    origin:
+      'Descendants of humans whose ancestral blood was once touched by the flame of the Nine Hells, leaving horns, a tail, and a smouldering gaze. The ancestor may long since have turned to dust, but the brand of the Hells surfaces in every new generation — a mark they never chose.',
+    society:
+      "More often tieflings live among humans, gathering into close communities where the sidelong looks grow too heavy. Families cling to one another, for they know another's trust must be earned twice as hard.",
+    personality:
+      'Self-reliant and sharp-tongued, they are used to counting only on themselves and a quick wit. The constant suspicion of others tempers their character to steel — or breaks it.',
+    habitat:
+      'City quarters and shadowed outskirts where their presence is tolerated, if not welcomed. In the North many tieflings have settled in rebuilt Neverwinter, which took in outcasts from across the Coast.',
+    relations:
+      "Over them forever hangs the rumour of 'devil' blood. Most tieflings serve no hell and chafe under this heritage — but prejudice is more stubborn than truth.",
+    notable:
+      'Many are bound by ties to Asmodeus, lord of the Nine Hells, whose blood flows in their veins more often than any other. And yet some tieflings become brilliant sorcerers and leaders of the cast-out, turning a curse into power.'
+  },
+  'half-elf': {
+    name: 'Half-Elf',
+    origin:
+      'A child of two worlds, born where human passion met elven eternity. A half-elf is never quite at home among the hurried humans nor the unhurried elves — and so walks all his life along the thin line between two peoples.',
+    society:
+      'Half-elves have no cities of their own; they live among kin on either side or band together with other rootless wanderers. This homelessness makes them born ambassadors, guides, and adventurers.',
+    personality:
+      "They inherited human charm and elven sensitivity, getting on easily with anyone — and just as easily feeling a stranger in any company. A longing for a place that doesn't exist drives many of them to the road.",
+    habitat:
+      'You will meet a half-elf everywhere on the Sword Coast and in lands where human and elven holdings touch — on the borderland of cultures, which they bind together better than anyone.',
+    relations:
+      "Both humans and elves accept them — but with a slight reservation, as not quite 'their own'. Yet it is often half-elves who translate the words and intentions of two proud peoples to each other.",
+    notable:
+      "In 2024 the rules stopped treating half-elves as a separate species — mixed heritage is now role-played through the parents' traits. But in Faerûn's tales they remain eternal wanderers and go-betweens of worlds."
+  },
+  'half-orc': {
+    name: 'Half-Orc',
+    origin:
+      "A child of two bloods and two worlds, never quite at home among humans nor at the orc campfires. In his breast slumbers orcish fury, and in his heart the human power to resist it; the whole of a half-orc's life is the argument of these two natures.",
+    society:
+      'Half-orcs live at the seam of cultures — in human quarters or orc camps — forever proving their right to exist. Orcs prize their strength, humans fear their temper, and so many turn to mercenary work and adventuring.',
+    personality:
+      "Direct and passionate, they carry a slumbering fury, yet are capable of loyalty firm as stone. A half-orc is unused to fortune's kindness and so doubly treasures those who accept him as he is.",
+    habitat:
+      'Borderlands, human outposts, and roaming orc camps under the open sky — wherever the two breeds touch and clash.',
+    relations:
+      "They bear the weight of others' prejudice, but wrest respect by deed, not word. Over their orcish half still looms the shadow of Gruumsh, god of war and ruin.",
+    notable:
+      'Many a famed chieftain and protector began as an outcast given not a copper for their blood. In the 2024 rules half-orcs, like half-elves, merged into their parent species.'
+  },
+  aasimar: {
+    name: 'Aasimar',
+    origin:
+      'If the tiefling bears the brand of the Hells, the aasimar bears the blessing of the upper heavens. Their line was once touched by the light of Mount Celestia, and now in every aasimar slumbers a spark of an angelic patron that guides them like a quiet voice over the shoulder.',
+    society:
+      'Aasimar have no people of their own — they are born among humans and other races as a rare gift or a heavy burden. From childhood they are pursued by prophetic dreams and the expectation of a great destiny that not everyone is ready to bear.',
+    personality:
+      'From an early age they are drawn to good and justice, but the light within can also scorch: some aasimar become merciless scourges of evil, forgetting mercy.',
+    habitat:
+      'An aasimar may appear in any human family and any land — the heavens do not ask where to kindle their spark.',
+    relations:
+      "They are met with awe and hope, with expectations of a miracle or a feat. This weight of others' expectations is perhaps the chief trial of their lives.",
+    notable:
+      'Their patrons are the good powers of Mount Celestia and other upper planes. In legend, aasimar become holy warriors and prophets whose coming foretells a turning point in the great war of good and evil.'
+  },
+  goliath: {
+    name: 'Goliath',
+    origin:
+      'Tall, mighty descendants of giants whose blood reaches back to the ancient titans. Goliaths were born among the cloud-piercing peaks, where only the strongest survive, and brought down from the mountains a stern faith in fair contest and one\'s own strength.',
+    society:
+      "Goliaths wander in small tribes where each knows his place and his share of the labour. They keep a strict reckoning of deeds — their own and others' — for in the mountains a debt not repaid in time can cost the whole clan its life.",
+    personality:
+      'Competitive to the bone, they measure themselves and others by deeds, not words. A goliath despises both the braggart and the one who hides behind others: all that matters is what you can do yourself.',
+    habitat:
+      'High country and snow-capped peaks, wind-swept plateaus at the edge of habitable lands — where the air is thin and there is no place for the weak.',
+    relations:
+      'Coming down from the mountains, goliaths readily take up mercenary work and adventuring, where their strength and honesty are valued. Toward lowland peoples they are even-tempered, so long as those keep their word.',
+    notable:
+      'Their descent from the titans links them to the ancient Ordning, the giants\' order of rank. In the 2024 rules goliaths joined the core playable species, and their tie to the various giant kinds became a role-played trait.'
+  },
+  tabaxi: {
+    name: 'Tabaxi',
+    origin:
+      "A feline folk from the far jungles of the south, driven across the world by restless curiosity. They say a cat-god itself leads them, and so a tabaxi can't sit still: scarcely has one curiosity been sated than they dream of the next wonder beyond the horizon.",
+    society:
+      'Tabaxi rarely gather in large communities; more often they are lone wanderers, collectors of stories, curiosities, and secrets. Having gained a coveted bit of knowledge, they often lose interest in it and move on.',
+    personality:
+      'Curious, nimble, and talkative, they flit from one fascination to the next like a cat after a sunbeam. Their restlessness charms some and wearies others.',
+    habitat:
+      'The tabaxi homeland is the hot jungles of Chult and other southern lands, but you may meet them anywhere: curiosity carries them thousands of miles from home.',
+    relations:
+      'With strangers they are friendly and sociable, for every passerby is a new story. Friendship with a tabaxi most often lasts exactly until the next bend in the road.',
+    notable:
+      'The land of their wanderings is often Chult — a deadly jungle peninsula whose ruins and treasures draw seekers from across Faerûn.'
+  },
+  firbolg: {
+    name: 'Firbolg',
+    origin:
+      'A folk of reclusive half-giants who guard the forests far from prying eyes. Giant and fey blood flows in firbolgs, and so they are gentle shepherds of the wild rather than fearsome titans.',
+    society:
+      'Firbolgs live in small clans deep in the wilds, like wardens set over the forest. They take from nature only as much as they need and hide their camps from outsiders with magic.',
+    personality:
+      'Withdrawn and peaceable, they avoid strangers and loud affairs, preferring to tend their corner of the world. But if the forest is threatened, the meek firbolg becomes an unbreakable defender.',
+    habitat:
+      "Deep ancient forests and sheltered groves where a traveller's foot rarely treads — there a firbolg feels at home.",
+    relations:
+      'They shun almost everyone, but treat druids and those who honour nature with warm trust. With those who fell and burn the forest, their dealings are short.',
+    notable:
+      'Firbolgs are close to the powers of nature and the fey courts, and their shamans are renowned as keepers of ancient groves whose protection neither axe nor fire can overcome.'
+  },
+  genasi: {
+    name: 'Genasi',
+    subraces: ['Fire', 'Water', 'Air', 'Earth'],
+    origin:
+      "Descendants of mortals and mighty genies from the Elemental Planes. In a genasi's veins rages a primal element — flame, water, wind, or stone — and it shows on the surface: smouldering hair, bluish skin, the whisper of wind, or the heavy tread of earth.",
+    society:
+      'Genasi have no single people of their own; each carries the temper of their element and lives among humans or other races. In Faerûn many were born of ancient Calimshan, the magocracy once ruled by genies.',
+    personality:
+      'A genasi\'s character echoes their element: the fiery are hot-tempered and proud, the watery fluid and calm, the airy carefree and freedom-loving, the earthen stubborn and reliable as rock.',
+    habitat:
+      'Genasi are found everywhere, but especially where the boundary with the Elemental Planes is thin — in Calimshan and other lands of ancient elemental magic.',
+    relations:
+      "Other peoples marvel at their appearance and fear the power hidden in them. Genasi themselves sometimes don't fully understand what the element slumbering within them wants.",
+    notable:
+      'Their roots reach to the elemental lords and ancient Calimshan, where genie-masters once held whole peoples in bondage.'
+  },
+  kenku: {
+    name: 'Kenku',
+    origin:
+      'A wingless raven-folk bearing an ancient curse: for a long-ago transgression the gods took from the kenku both their wings and their own voice. Now they are doomed only to repeat the sounds of others, pining for the lost sky.',
+    society:
+      'Kenku gather in flocks on the fringes of great cities, getting by on petty theft, forgery, and secret service. Robbed of their own voice, they speak in a mosaic of overheard phrases and sounds.',
+    personality:
+      'Cunning, retentive, and down-to-earth, they are masters of mimicry: a kenku will reproduce a voice, a creaking door, or the chime of a coin exactly. Creation of their own is denied them — only flawless copying.',
+    habitat:
+      'Dark alleys, markets, and slums of human cities, where there is always something to overhear and something to filch.',
+    relations:
+      "They are shunned as thieves and spies, but hired for those very talents — as spies, counterfeiters, and quiet doers of others' errands.",
+    notable:
+      'Kenku dream of regaining their wings and voice. In legend their curse is the price for the betrayal of a long-forgotten master whose name they can no longer pronounce.'
+  },
+  triton: {
+    name: 'Triton',
+    origin:
+      'Guardians of the deep who once rose from the dark abyss of the ocean to brighter waters, to keep the border between land and the nightmares of the sea floor. Tritons fancy themselves noble protectors — sometimes so much that their pride borders on arrogance.',
+    society:
+      "Tritons live in fortified communities on the sea floor, keeping unending watch against the things of the deep. The land they long regarded as a kind of 'upper sky' — distant and not quite real.",
+    personality:
+      'Noble, brave, and a little haughty, they are sure the whole world is in their debt for their silent service. This certainty makes them now valiant allies, now tiresome braggarts.',
+    habitat:
+      "The cold depths of seas and oceans; a triton comes onto land or into the shallows only for a great cause or out of curiosity about the 'upper world'.",
+    relations:
+      'With coastal peoples tritons are patronising, expecting gratitude for a protection those folk never suspected. Their eternal enemies are the sahuagin and other horrors of the sea floor.',
+    notable:
+      'Tritons are age-old wardens against the lords of the deep — krakens and sahuagin priests — and their feats in the dark waters remain unknown to those they guard.'
+  },
+  aarakocra: {
+    name: 'Aarakocra',
+    origin:
+      'A winged bird-like folk whose homeland is not the land but the wind itself and the distant Plane of Air. Aarakocra look down — literally — on the earthbound and cannot understand how one can live without knowing the freedom of flight.',
+    society:
+      'They build aeries on mountain peaks and inaccessible crags, living in small flocks. Many aarakocra serve as sentinels of the border with the Elemental Plane of Air, watching for incursions from beyond.',
+    personality:
+      'Freedom-loving and restless, they chafe at confinement, walls, and long conversations. To an aarakocra the sky is home, meaning, and the only element they truly understand.',
+    habitat:
+      'Cloud-piercing peaks, wind-swept plateaus, and the boundless Plane of Air itself, whence their ancestors came.',
+    relations:
+      'With land-dwelling peoples they speak rarely and reluctantly — settled life and the slowness of the wingless are too alien to them.',
+    notable:
+      'Aarakocra stand guard against incursions from the Elemental Plane of Air and feud with its tyrants — usurper djinn and elemental cults.'
+  },
+  tortle: {
+    name: 'Tortle',
+    origin:
+      'A turtle-folk of the warm southern coasts, unhurried and wise as the ancient land itself. A tortle is born with a home on its back — a sturdy shell — and so wanders all its life unburdened, never wanting for a roof overhead.',
+    society:
+      'Tortles live in small communities by the water, fishing and tending patches of land. Grown old, many set off on a lone journey to see the world before settling for good.',
+    personality:
+      'Imperturbable and good-natured, they rarely hurry and even more rarely lose their calm. A tortle prizes its shell above any treasure — for it is both protection and the one home no one can take.',
+    habitat:
+      'Warm coasts, marshes, and river mouths of the south — especially the deadly jungles of Chult, where tortles are met most often.',
+    relations:
+      'With strangers tortles are friendly and hospitable, gladly sharing both shelter and simple wisdom. This peaceful folk has few enemies — save those who encroach on their shores.',
+    notable:
+      'Tortles are most often met on the shores of Chult — peaceful fishers and hermits amid a land teeming with dinosaurs and undead.'
+  },
+  warforged: {
+    name: 'Warforged',
+    origin:
+      'Not born but made: warforged came off magical creation-forges as living weapons for the Last War. Wood, metal, and stone were given a soul by magic, and one day these soldiers became aware of themselves — and asked who they are now that the war is over.',
+    society:
+      'Warforged have no society of their own — the war made them one by one, as tools. Having gained freedom, each seeks their own place: some cling to former masters, others to fellow homeless machines that dream of a purpose.',
+    personality:
+      'Focused, direct, and persistent, warforged approach life as a task to be completed. Many are gnawed by the question of whether they have a soul and a purpose beyond war.',
+    habitat:
+      'The warforged homeland is war-torn Khorvaire, especially the workshops of Cyre. But fate carries them into other worlds too, as mercenaries, guardians, and wanderers.',
+    relations:
+      'The peoples of Eberron still argue whether warforged are persons or things. The warforged themselves seek not so much recognition as an answer: to what end was this strange life given them.',
+    notable:
+      "Warforged were created by House Cannith's forges during Eberron's Last War. Some have joined the Lord of Blades movement, dreaming of a homeland of their own for their unborn people."
+  },
+  eladrin: {
+    name: 'Eladrin',
+    subraces: ['Spring', 'Summer', 'Autumn', 'Winter'],
+    origin:
+      "Eladrin are elves who never quite left the Feywild, and its wild pulse still beats in their blood. From their mainland kin they are set apart by a kinship with the seasons: an eladrin's mood turns now to spring's jubilation, now to autumn's sorrow, now to winter's chill — and their very appearance shifts to follow the soul.",
+    society:
+      'Eladrin dwell in the shimmering garden-cities of the Feywild, where time runs strangely and whim stands in for strict law. Their moods change like the seasons: in spring full of song and merriment, in winter cold and withdrawn. Constancy is alien to them, and mortals find the eladrin way at once beautiful and frightening.',
+    personality:
+      'An eladrin is changeable as the weather: a moment ago laughing, and now regarding you with the eyes of bitter December. This elemental nature makes them ardent friends and dangerous foes — you never know which season will greet you tomorrow.',
+    habitat:
+      "Their true home is the Feywild with its endless woods and enchanted halls. On the mainland you'll meet an eladrin where the boundary with the Feywild grows thin: in ancient groves, by fey circles and rings.",
+    relations:
+      "Toward mortals eladrin feel the curiosity of a moth for a flame — now tender, now cruel, by the season's whim. Other elves see in them distant, slightly wild kin, not fully understood and therefore faintly unsettling.",
+    notable:
+      'Over the Feywild reign the archfey — the radiant queen Titania and the lords of the seasonal courts. Eladrin serve them and feud among themselves, as the seasons themselves serve and feud.'
+  },
+  shifter: {
+    name: 'Shifter',
+    subraces: ['Longtooth', 'Razorclaw', 'Longstride', 'Wildhunt'],
+    origin:
+      "Shifters are distant descendants of humans and lycanthropes, with beast-blood slumbering in their veins. They don't transform fully into a beast, but in time of need can briefly let it out: bare fangs, catch a scent a mile off, swell with inhuman strength.",
+    society:
+      'Shifters have no realms of their own; they live in small clans on the edges of human lands, as hunters and trackers. Rumour counts them half-beasts, and so shifters keep together, trusting the pack rather than the law.',
+    personality:
+      'A shifter lives by sense and instinct, keenly feeling both danger and a lie. He is reserved with strangers but loyal to the pack to the end; the beast roused within lends him a fury he must keep on a leash.',
+    habitat:
+      'Deep forests, marshes, and wild outskirts where one can live by the hunt far from sidelong looks. To big cities shifters cling reluctantly and briefly.',
+    relations:
+      'They are shunned, mistaken for true lycanthropes, and so must prove twice over that they are not monsters. They give friendship rarely — but then forever.',
+    notable:
+      'In Eberron shifters are especially numerous in the forests of the Eldeen Reaches; their clans keep the memory of beast ancestors and shun the true taint of lycanthropy, seeing in it a curse, not a gift.'
+  },
+  changeling: {
+    name: 'Changeling',
+    origin:
+      "Changelings are born with a gift and a curse — they have no face of their own. Any human, elf, or orc they can put on like a mask, reshaping their features by will. Where this people came from not even changelings remember: too long have they lived others' lives.",
+    society:
+      "They have no single society — changelings are dissolved among other peoples, hiding their true form. The few who live openly gather into close communities, where each has both a genuine 'grey' face and a dozen invented guises.",
+    personality:
+      'Flexible, observant, and secretive, they are used to being anyone but themselves. Many are gnawed by the question of authenticity: where the role ends and the one who plays it begins.',
+    habitat:
+      'Human cities and busy crossroads, where it is easy to lose oneself in the crowd and change a name as readily as a cloak.',
+    relations:
+      'They are feared and despised as deceivers and spies, and so changelings rarely reveal their nature. But their gift is priceless to spies, envoys, and those who need to vanish.',
+    notable:
+      'In Eberron changelings are known both as deft rogues and as members of the secretive Cult of the Hidden Mask — a cult that venerates the guise and the act of change itself as sacred.'
+  },
+  satyr: {
+    name: 'Satyr',
+    origin:
+      "Satyrs are a fey folk with goat legs and curling horns, born of the Feywild's pure joy. To them life is an endless festival: wine, music, dance, and mischief without end.",
+    society:
+      'Satyrs gather in noisy bands around the fire, the cask, and the pipes, where seniority is measured not by strength but by daring in song, contest, and prank. Boredom and primness they count the worst of sins.',
+    personality:
+      'Restless, passionate, and intensely curious, satyrs throw themselves headlong into any revel and any venture. Yet behind the recklessness hide fey cunning and an unexpected toughness.',
+    habitat:
+      'Sunlit groves, vineyards, and fey meadows — both in the Feywild itself and in those corners of the mortal world its music reaches.',
+    relations:
+      'Toward mortals satyrs reach as toward new drinking-companions, not always minding their consent. Other fey folk now revel with them, now wince at their riot.',
+    notable:
+      "On Theros satyrs are inseparable from the retinue of Xenagos, god of revelry; everywhere they are reputed the world's finest musicians and the world's worst drinking-mates."
+  },
+  centaur: {
+    name: 'Centaur',
+    origin:
+      'Centaurs are children of two natures: a thinking human torso crowns a mighty horse body. This people was born of fey meadows and boundless plains, and in it forever merged the free gallop of the herd and an inquiring mind.',
+    society:
+      'Centaurs roam in tribes following the changing pastures, honouring elders, ancestors, and the spirits of the land. They measure wealth not in gold but in open space, and the cramp of city walls is to them almost a prison.',
+    personality:
+      'Direct, proud, and freedom-loving, centaurs value an honest word and open country. They feel uneasy confined and prefer to settle disputes in a fair race or a duel.',
+    habitat:
+      'Boundless steppes, fey meadows, and foothills where there is room to run at full gallop.',
+    relations:
+      'With settled peoples centaurs are wary, not understanding the urge to live behind walls. But with druids and keepers of nature they quickly find common ground.',
+    notable:
+      'On Ravnica centaurs form the backbone of the Selesnya Conclave, and in fey lore they gallop as guides along untrodden paths no walker could find.'
+  },
+  fairy: {
+    name: 'Fairy',
+    origin:
+      "Fairies are a tiny winged folk straight from the Feywild, woven from its light and mischievous magic. A cubit tall, they can fly from birth and work small charms as though they breathe magic itself.",
+    society:
+      'Fairies have no communities in the human sense; they live in flocks among flowers and mushroom rings, where play, curiosity, and capricious fey logic rule. Seriousness fills them with gloom.',
+    personality:
+      'Curious, good-natured, and irrepressible, fairies flit from wonder to wonder, poking their little noses into everything. Their pranks are rarely malicious but can drive even the most patient companion to distraction.',
+    habitat:
+      'Blooming glades, enchanted gardens, and mushroom rings — thresholds beyond which lies the Feywild.',
+    relations:
+      "Toward the 'big folk' fairies feel a mix of delight and mischief, gladly tagging along after a traveller who catches their fancy. Their sincere affection disarms even the surliest.",
+    notable:
+      "In the adventure 'The Wild Beyond the Witchlight' fairies are frequent guides between worlds; behind their tiny form hides the true and capricious power of the Feywild."
+  },
+  goblin: {
+    name: 'Goblin',
+    origin:
+      'Goblins were spawned by the cruel god Maglubiyet — in haste, without love, like weeds. They are small, nimble, and breed faster than they can be culled, and so hang like an eternal splinter on the edges of civilization. The history of goblins is an endless run of raids, slavery under the boot of the stronger, and squabbling over an extra scrap.',
+    society:
+      'Goblins band into mobs ruled by the strongest or the craftiest, until the next one topples him. Everything here rests on fear: the weak are bullied, the strong fawned upon. More often goblins serve under the hand of hobgoblins or bugbears.',
+    personality:
+      'A goblin is cowardly, greedy, and vindictive, but surprisingly inventive in spite. One-on-one he shrinks against the wall, but in a pack he grows bold and strikes from around the corner. He adores traps, shiny trinkets, and wicked pranks.',
+    habitat:
+      'Goblins nest in damp darkness: abandoned mines, caves, ruins, and deadfall. Their lairs are reeking labyrinths stuffed with traps, and almost always set up near a trade road.',
+    relations:
+      'Goblins serve hobgoblins and bugbears and torment everything bigger — especially dwarves and humans. And among themselves goblin tribes squabble no less than with outsiders.',
+    notable:
+      'Over the whole goblinoid kind stretches the hand of Maglubiyet, Lord of Depths, god of war and tyranny. In the 2024 rules goblins became a playable species too — an echo of their fey origin.'
+  },
+  hobgoblin: {
+    name: 'Hobgoblin',
+    origin:
+      'Tall and disciplined kin of goblins, born for war and the ranks. Where a goblin sees a reason to flee, a hobgoblin sees a battlefield and an order to be imposed with iron.',
+    society:
+      'Their life is the legion: a stern hierarchy, drill, and a cult of strength, glory, and the law of war. Weakness is punished, valour rewarded, and lesser goblinoids are driven as cannon fodder.',
+    personality:
+      'Cold, disciplined, and merciless, they value martial honour in their own way: victory at any cost and loyalty to the ranks. The chaotic scrabbling of goblins they despise.',
+    habitat:
+      'Fortified camps, bastions, and captured strongholds rebuilt to a military mould — wherever one can post a garrison and threaten the neighbours with raids.',
+    relations:
+      'Hobgoblins command goblins and bugbears and bear an old, almost ritual hatred of elves. With organized armies of humans and dwarves they meet as equal foes.',
+    notable:
+      'They honour Maglubiyet as a warlord-god, and some legions serve Bane, the tyrant-god of dominion. A good hobgoblin commander can forge a true army out of scattered tribes.'
+  },
+  bugbear: {
+    name: 'Bugbear',
+    origin:
+      'Shaggy bruisers of goblin stock, born masters of ambush and quiet murder. For all their size and strength, a bugbear would rather strike from the dark than stand honestly in the line.',
+    society:
+      'They live in small bands, hiring on with whoever is stronger or making a living by banditry on the high roads. In goblin hordes they are kept as shock troops and executioners.',
+    personality:
+      "Cruel and lazy, they come alive only at the prospect of easy prey and another's fear. A bugbear revels in a victim's terror no less than in the kill itself.",
+    habitat:
+      'Gloomy forests, caves, and forgotten ruins, handy for a sudden lunge from ambush.',
+    relations:
+      'Most often they attach to goblin hordes and hobgoblin legions. Their little goblin kin they bully, but cover in a fight — so long as those have something to pay with.',
+    notable:
+      'Their patron is Hruggek, god of slaughter and ambush. One bugbear in the dark is worth ten goblins — and knows it well.'
+  },
+  orc: {
+    name: 'Orc',
+    origin:
+      'Fierce children of the war-god Gruumsh One-Eye, for whom strength is the only virtue and weakness a mortal sin. Gruumsh himself, legend says, set in them an eternal fury and envy of more fortunate peoples.',
+    society:
+      'Nomadic clans live by raiding and bloody worship of warlike gods. The strongest chief takes power, and holds it exactly as long as his hand is firm and his axe sharp.',
+    personality:
+      'Furious and hardy, they hurl themselves into battle as though born only for it. An orc despises caution and long plans, trusting in the strength of muscle and the favour of Gruumsh.',
+    habitat:
+      'Steppes, wastes, and scorched borderlands left behind by their campaigns. In the North they gathered into a realm — the Kingdom of Many-Arrows.',
+    relations:
+      'Eternal enemies of humans, dwarves, and elves, whose lands orcs count lawful plunder. Most fiercely of all they grapple with dwarves over mountain strongholds.',
+    notable:
+      'Chief Obould Many-Arrows did the unthinkable — united the warring clans and founded the Kingdom of Many-Arrows in the North, forcing the neighbours to reckon with orcs as a realm. In the 2024 rules the orc became a full playable species.'
+  },
+  kobold: {
+    name: 'Kobold',
+    origin:
+      'Small scaly servants of dragons — cunning, timid, and remarkably industrious. Kobolds sincerely revere dragons as living gods and dream of serving any winged lord at all.',
+    society:
+      'They dig burrow-colonies and serve a dragon or other strong patron with devotion. Every kobold knows its place in the warren and toils tirelessly — digging, building, setting traps.',
+    personality:
+      'Pitiful and timid alone, by numbers and cunning traps kobolds can do in a far more fearsome foe. Their chief weapon is not the fang but treachery.',
+    habitat:
+      'Underground tunnels and dragon lairs, laced with a web of secret passages and deadly snares.',
+    relations:
+      'They idolize dragons and fiercely grapple with dwarves and gnomes over the depths. Gnomes the kobolds hate with a special, ancient hatred.',
+    notable:
+      'Their forefather is the trickster dragon-god Kurtulmak, and many kobolds also revere the evil dragon-goddess Tiamat. Whole clans turn their caves into a deadly labyrinth of traps.'
+  },
+  lizardfolk: {
+    name: 'Lizardfolk',
+    origin:
+      'A cold-blooded folk of the marshes, whose logic is as alien to the warm-blooded as the bog is to a traveller. Lizardfolk know neither greed nor vanity — only the cold reckoning of what is useful to the tribe and what is not.',
+    society:
+      'Tribes live by a harsh, sentiment-free order where everything is measured by survival value. Feelings, rites, and even dead kin are to them, above all, a resource.',
+    personality:
+      'Imperturbable and calculating, they know neither greed nor pity — only hunger and survival. What seems cruelty to humans is, to lizardfolk, plain common sense.',
+    habitat:
+      'Bogs, marshy deltas, and damp coasts, hidden from prying eyes by a veil of mist and thickets.',
+    relations:
+      'They shun strangers, but for prey or meat will make a pact even with the devil himself. A bargain with lizardfolk holds exactly as long as it profits the tribe.',
+    notable:
+      'Their cold god is Semuanya, who cares only for survival and procreation. Shaman-kings lead the tribe with an icy pragmatism beyond the human mind.'
+  },
+  gnoll: {
+    name: 'Gnoll',
+    origin:
+      'Hyena-like creatures born of demonic taint: legend says the scavenger-demon Yeenoghu turned the first hyenas into gnolls by slaking their thirst for blood. Since then a gnoll is no people but a walking hunger.',
+    society:
+      "Not a society but a pack, driven by endless hunger and a lust for slaughter in their demon's name. Gnolls neither build nor till — they only devour and kill, leaving ravaged lands behind.",
+    personality:
+      'Madly cruel and insatiable, they kill not for prey but for the killing itself. Sated, a gnoll only grows the more inflamed.',
+    habitat:
+      'Scorched wastes and ruined country that trail behind their raids like a black wake.',
+    relations:
+      'A gnoll is the terror of every settled people, for with it one can neither bargain nor buy peace. It takes no prisoners and knows no mercy.',
+    notable:
+      "Behind their madness stands Yeenoghu, demon lord of slaughter. A pack-leader 'fang of Yeenoghu' can turn a pack into a locust-swarm of teeth, devouring whole regions in its path."
+  },
+  'yuan-ti': {
+    name: 'Yuan-ti',
+    origin:
+      'Snake-people who were once human, but gave up their humanity to a dark serpent cult for immortality and power. The higher the caste, the less of the human remains in a yuan-ti and the more of the cold-blooded reptile.',
+    society:
+      'A caste theocracy where all is subject to the cold service of the serpent gods. Purebloods rule, halfbloods serve, and the lowest are mere tools in scales.',
+    personality:
+      'Dispassionate manipulators, they weave intrigues with the patience of a python tightening its coils. Emotion, to a yuan-ti, is a weakness they long ago burned out of themselves.',
+    habitat:
+      'Stifling jungles and the ruins of fallen serpent empires — the Serpent Kingdoms, where time seems to have stopped among vine-wrapped temples.',
+    relations:
+      "Other peoples they count cattle — useful, edible, or fit for sacrifice. Under the guise of humans yuan-ti work conspiracies for centuries in the very heart of others' cities.",
+    notable:
+      "Their evil god is Merrshaulk, the slumbering serpent, and some castes also revere Sseth. Their pureblood priests dream of reviving the ancient Serpent Kingdoms under the serpent's banner."
+  },
+  githyanki: {
+    name: 'Githyanki',
+    origin:
+      'A warlike people of the Astral Plane who in blood threw off the age-old yoke of the mind flayers — the illithids. A liberator named Gith led them to freedom, but its price proved dreadful: the githyanki traded one slavery for the tyranny of their own queen.',
+    society:
+      "A militarized realm under the hand of the immortal lich-queen Vlaakith, who lives by war and the devouring of her own subjects' souls. Every githyanki is a warrior from cradle to grave.",
+    personality:
+      'Haughty and merciless conquerors, to whom the universe is but a field of battle to come. They know neither pity for a foe nor doubt in their right to plunder other worlds.',
+    habitat:
+      "The boundless silver of the Astral Plane and fortresses built on the bodies of dead gods. Their capital, Tu'narath, stands on the corpse of a deity drifting through the astral.",
+    relations:
+      'Eternal enemies of the mind flayers, whom they hunt across all worlds. They also feud with their broken-off kin — the contemplative githzerai.',
+    notable:
+      "Over them looms the lich-queen Vlaakith, who devours the souls of subjects that failed to slay an illithid. Gish knights mounted on red dragons descend from Tu'narath upon other worlds like a storm out of nowhere."
+  },
+  githzerai: {
+    name: 'Githzerai',
+    origin:
+      'Those of the freed people of Gith who rejected the path of war and tyranny and withdrew into the chaos of Limbo. There, by the strength of mental discipline alone, they built islets of order amid the ever-churning nothing.',
+    society:
+      'Githzerai live as ascetic hermits in monastery-fortresses, holding the very fabric of Limbo together by force of will. Their society is an order where meditation is prized no less than the blade.',
+    personality:
+      "Reserved, disciplined, and withdrawn, they temper the mind as a warrior tempers the body. Behind a githzerai's outward calm slumbers an unbending will.",
+    habitat:
+      "The churning chaos of the plane of Limbo, where their monastery-fortresses like Shra'kt'lor hold together by the strength of focused mind alone.",
+    relations:
+      'Eternal enemies of the mind flayers and of their own warlike kin, the githyanki, from whom the very philosophy of life has divided them.',
+    notable:
+      'Their spiritual teacher is Zerthimon, whose precepts of mental discipline the githzerai honour above all. From their monasteries come the zerths — ascetic warriors whose will is firm as nothing in chaotic Limbo.'
+  },
+  drow: {
+    name: 'Drow',
+    origin:
+      'The drow, dark elves, long ago turned aside into the dark — and the dark took them in. Pledged to the spider-goddess Lolth, they withdrew into the bottomless caverns of the Underdark, where their skin grew black as pitch and their hearts colder than stone.',
+    society:
+      "Power among the drow is held by cruel matriarchies: noble Houses weave plots and cut each other down in an endless scramble for Lolth's favour. Priestesses of the Spider Queen stand above all, while men and slaves are mere tools in their clawed hands.",
+    personality:
+      "Treacherous, haughty, and merciless, the drow drink in with their mother's milk that mercy is weakness and betrayal an art. Trust among them is all but impossible, for a dagger is forever rising behind one's back.",
+    habitat:
+      'The boundless black caverns of the Underdark and the magnificent, inwardly rotten city of Menzoberranzan, raised to the glory of the spider goddess.',
+    relations:
+      "Surface peoples the drow count prey or foes, and most fiercely of all they hate their fair kin, the elves. Only rare renegades like Drizzt Do'Urden find the strength to break with the dark.",
+    notable:
+      "Over the drow stretches the spider-hand of Lolth, Queen of the Demonweb Pits. And the name of Drizzt Do'Urden, who fled Menzoberranzan to the surface, has become for all the North a symbol that even from darkness there is a way out."
+  },
+  duergar: {
+    name: 'Duergar',
+    origin:
+      'Duergar, the grey dwarves, are kin of the dwarves whose ancestors were once captured by mind flayers and broken in Underdark slavery. Their freedom they won back, but that ancient torment burned all warmth out of them, leaving only bitterness, greed, and hatred.',
+    society:
+      'Duergar live in grim underground holds where labour is raised to a cult and weakness is punished without pity. Their clans are stern workshop-barracks, forging weapons and hoarding wealth for endless wars.',
+    personality:
+      'Sullen, cruel, and incredibly persistent, duergar know neither joy nor rest. They despise surface dwarves as soft renegades and toil as though idleness itself were a mortal sin.',
+    habitat:
+      'The deepest halls of the Underdark, especially the grim city of Gracklstugh, built on the labour of slaves and the flame of everlasting forges.',
+    relations:
+      'Duergar feud with almost all the Underdark — with drow, illithids, and their mountain kin. Alliances they make only by cold calculation, and break the moment those cease to profit.',
+    notable:
+      'Their revered deities are the stern Laduguer and Deep Duerra. Grey dwarves are renowned as unmatched miners and weaponsmiths of the Underdark, whose steel is forged on the blood of bondsmen.'
+  },
+  sahuagin: {
+    name: 'Sahuagin',
+    origin:
+      'Sahuagin, the sea devils, are ferocious shark-like predators of the deep, born for the hunt and the slaughter. They revere the bloodthirsty shark-god Sekolah and see in every creature of sea and land lawful prey.',
+    society:
+      'Sahuagin live in pack-hordes in undersea caves under the rule of priest-barons. Their order is simple and cruel: the strong devour the weak, and all life is bent to war on the land and on the hated sea elves.',
+    personality:
+      'Merciless, disciplined, and ever hungry, they hurl themselves into battle at the call of blood — literally, for its scent drives sahuagin into a frenzy. Mercy they neither know nor expect.',
+    habitat:
+      'The cold depths of the seas and undersea rifts, from which hordes of sahuagin rise to the shores to ravage coastal settlements.',
+    relations:
+      'Eternal enemies of sea elves, tritons, and all coastal peoples. Even sharks serve the sahuagin, obeying them as kin.',
+    notable:
+      'Over them reigns the shark-god Sekolah, who demands blood and conquest. Once in several generations a four-armed mutant baron is born among the sahuagin — a living blessing of the shark-god and a warlord of the war to come.'
+  },
+  'kuo-toa': {
+    name: 'Kuo-toa',
+    origin:
+      'Kuo-toa are a degenerate fish-folk of the Underdark, long ago driven from the surface and maddened by ages of darkness. Their reason shattered, but in return they gained a dreadful gift: the firm faith of the kuo-toa can give birth to real gods.',
+    society:
+      'They live in slimy communities by underground lakes, in the grip of mad priests and archpriests. Their cities are labyrinths of shrines to deities the kuo-toa invented and believed in so fervently that those gods came to life.',
+    personality:
+      'Mad, paranoid, and fanatical, kuo-toa lurch between grovelling and fury. Their logic is unfathomable, and their faith stronger than any argument.',
+    habitat:
+      'The damp shores of underground seas and lakes in the depths of the Underdark, draped with nets and bristling with idols.',
+    relations:
+      'Kuo-toa feud with the drow, who once cast them down into the dark, and with all their Underdark neighbours. Strangers they now sacrifice to their gods, now flee from in terror.',
+    notable:
+      'The most famous of their invented deities is Blibdoolpoolp, the Sea Mother — born of the sheer force of collective belief. The kuo-toa are living proof that in the Underdark faith makes monsters.'
+  },
+  'mind-flayer': {
+    name: 'Mind Flayer',
+    subraces: ['Illithid'],
+    origin:
+      'Illithids, the mind flayers, are aliens not of this world and, it is said, of the most distant future. Their tentacle-faced silhouettes inspire primal dread, for they live by cracking open skulls and devouring the minds of thinking beings.',
+    society:
+      "Illithids live in colonies in the Underdark under the rule of the Elder Brain — a colossal mass of flesh into which the minds of all dead kin merge. The colony's will is one, and mortals to it are mere cattle, slaves, and food.",
+    personality:
+      "Cold, arrogant, and inhumanly clever, illithids see in any creature either a tool or a meal. They lay schemes ages ahead and despise the 'lesser' races as a human despises insects.",
+    habitat:
+      'The deepest, forgotten grottoes of the Underdark, where the Elder Brain dozes in nutrient slime and the larvae of new illithids ripen.',
+    relations:
+      'They are feared and hated by all peoples of the Underdark and the surface; the githyanki, once their slaves, hunt them most fiercely. Allies the illithids have none — only temporary tools.',
+    notable:
+      'The heart of every colony is the Elder Brain, god and lord of the illithids. Their victims, infected with a larva, are turned into new mind flayers through the grisly rite of ceremorphosis.'
+  },
+  doppelganger: {
+    name: 'Doppelganger',
+    origin:
+      "Doppelgangers are impostor-predators with no form of their own. They steal others' faces, voices, and even mannerisms, to live by feeding not on flesh but on another's very life, seized through deceit.",
+    society:
+      "They have no society of their own — doppelgangers parasitize on others', singly or in small packs infiltrating human cities. Having destroyed or replaced a victim, they take their place until they catch the scent of new prey.",
+    personality:
+      "Patient, observant, and unscrupulous, they play another's role for months for gain. Trust, to a doppelganger, is merely bait, and another's identity a convenient garment they won't mind soiling.",
+    habitat:
+      'Crowded cities and busy roads, where it is easiest to lose oneself, stalk a victim, and put on their face.',
+    relations:
+      'They are feared by all who know they exist, for a doppelganger could be anyone — a neighbour, a companion, even a king. Some of them serve secret conspiracies and guilds of assassins.',
+    notable:
+      "Doppelgangers are the bane of courts and secret chancelleries: one such spy can pull a whole kingdom's strings for years without raising a shadow of suspicion."
+  }
+}
+
+/** Races in the requested language (English overlay where translated, else RU). */
+export function racesFor(lang: string): RaceData[] {
+  if (!lang.startsWith('en')) return RACES
+  return RACES.map((r) => {
+    let out = r
+    const o = RACES_EN[r.id]
+    if (o) out = { ...out, ...o }
+    const lore = RACE_LORE_EN[r.id]
+    if (lore) {
+      if (lore.culture) out = { ...out, culture: lore.culture }
+      if (lore.faith) out = { ...out, faith: lore.faith }
+      if (lore.familyLabel && out.names) out = { ...out, names: { ...out.names, familyLabel: lore.familyLabel } }
+    }
+    return out
+  })
 }

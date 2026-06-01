@@ -12,7 +12,8 @@ import {
   GiBookCover,
   GiScrollQuill,
   GiScrollUnfurled,
-  GiCharacter
+  GiCharacter,
+  GiRollingDices
 } from 'react-icons/gi'
 
 const items: { to: string; icon: IconType; key: string }[] = [
@@ -24,6 +25,7 @@ const items: { to: string; icon: IconType; key: string }[] = [
   { to: '/hazards', icon: GiWolfTrap, key: 'nav.hazards' },
   { to: '/codex', icon: GiBookCover, key: 'nav.codex' },
   { to: '/rules', icon: GiScrollQuill, key: 'nav.rules' },
+  { to: '/random-tables', icon: GiRollingDices, key: 'nav.randomTables' },
   { to: '/character', icon: GiCharacter, key: 'nav.character' },
   { to: '/my-monsters', icon: GiScrollUnfurled, key: 'nav.myMonsters' }
 ]

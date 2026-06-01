@@ -45,6 +45,10 @@ export function registerIpc(): void {
   ipcMain.handle('db:getNotes', () => getKv('notes'))
   ipcMain.handle('db:saveNotes', (_e, content: string) => setKv('notes', content))
 
+  // Generic key/value store (monster folders, misc UI state)
+  ipcMain.handle('db:getKv', (_e, key: string) => getKv(key))
+  ipcMain.handle('db:setKv', (_e, key: string, value: string) => setKv(key, value))
+
   // Codex
   ipcMain.handle('db:listCodex', () => listCodex())
   ipcMain.handle('db:saveCodex', (_e, entry: CodexEntry) => saveCodex(entry))

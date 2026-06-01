@@ -20,6 +20,7 @@ import FormatHelp from '../components/FormatHelp'
 import CustomFormDialog, { type FormField, type FormValues } from '../components/CustomFormDialog'
 import { useCustom } from '../hooks/useCustom'
 import { useNav } from '../store/nav'
+import { confirmDialog } from '../store/dialog'
 import { uid } from '../utils/monster'
 import { OPTIONAL_RULES, RULE_CATEGORIES, type OptionalRule, type RuleBlock } from '../data/optional-rules'
 
@@ -301,8 +302,8 @@ export default function OptionalRules(): JSX.Element {
                     ✎
                   </button>
                   <button
-                    onClick={() => {
-                      if (window.confirm(`Удалить «${customSelected.name}»?`)) {
+                    onClick={async () => {
+                      if (await confirmDialog({ title: 'Удалить', message: `Удалить «${customSelected.name}»?`, danger: true, confirmText: 'Удалить' })) {
                         remove(customSelected.key)
                         setSelectedId(rules.find((r) => r.key !== customSelected.key)?.key ?? '')
                       }
