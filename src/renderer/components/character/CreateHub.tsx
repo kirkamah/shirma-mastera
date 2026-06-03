@@ -1,4 +1,5 @@
 import { useState, type JSX } from 'react'
+import { useTranslation } from 'react-i18next'
 import { GiScrollQuill, GiQuillInk, GiCharacter, GiTrashCan } from 'react-icons/gi'
 import { useCustom } from '../../hooks/useCustom'
 import { emptyCharacterSheet, deriveSheet, type CharacterSheet } from '../../data/character-sheet'
@@ -11,6 +12,7 @@ import InteractiveSheet from './InteractiveSheet'
 type Mode = 'landing' | 'guide' | 'manual' | 'constructor' | 'view'
 
 export default function CreateHub(): JSX.Element {
+  const { t } = useTranslation()
   const { items, save, remove } = useCustom<CharacterSheet>('character')
   const [mode, setMode] = useState<Mode>('landing')
   const [draft, setDraft] = useState<CharacterSheet | null>(null)
@@ -28,7 +30,7 @@ export default function CreateHub(): JSX.Element {
   }
   const doSave = (): void => {
     if (!draft) return
-    const named = { ...draft, name: draft.name.trim() || 'Безымянный герой', updatedAt: Date.now() }
+    const named = { ...draft, name: draft.name.trim() || t('cc.hub.defaultName'), updatedAt: Date.now() }
     setDraft(named)
     save(named)
     setMode('view') // after saving, show the read-only character view
@@ -41,7 +43,7 @@ export default function CreateHub(): JSX.Element {
   if (mode === 'guide') {
     return (
       <div className="h-full overflow-y-auto">
-        <button onClick={back} className="mb-2 rounded border border-ink-brown/30 px-3 py-1 text-sm text-ink-brown/80 hover:border-accent/60">← Назад</button>
+        <button onClick={back} className="mb-2 rounded border border-ink-brown/30 px-3 py-1 text-sm text-ink-brown/80 hover:border-accent/60">← {t('cc.hub.back')}</button>
         <CharacterCreationGuide />
       </div>
     )
@@ -56,12 +58,12 @@ export default function CreateHub(): JSX.Element {
     return (
       <div className="flex h-full min-h-0 flex-col">
         <div className="mb-2 flex shrink-0 items-center gap-2">
-          <button onClick={back} className="rounded border border-ink-brown/30 px-3 py-1 text-sm text-ink-brown/80 hover:border-accent/60">← Закрыть</button>
-          <h2 className="font-serif text-lg font-bold text-accent">{draft.name || 'Персонаж'}</h2>
+          <button onClick={back} className="rounded border border-ink-brown/30 px-3 py-1 text-sm text-ink-brown/80 hover:border-accent/60">← {t('cc.hub.close')}</button>
+          <h2 className="font-serif text-lg font-bold text-accent">{draft.name || t('cc.hub.character')}</h2>
           <div className="ml-auto flex gap-1">
-            <button onClick={() => setMode('manual')} className="rounded bg-accent px-3 py-1 text-sm font-semibold text-parchment hover:bg-accent/80">✎ Редактировать</button>
-            <button onClick={() => printSheet(draft)} className="rounded border border-accent/40 px-3 py-1 text-sm text-accent hover:bg-accent/10">Печать</button>
-            <button onClick={() => downloadSheetPdf(draft)} className="rounded border border-accent/40 px-3 py-1 text-sm text-accent hover:bg-accent/10">Скачать PDF</button>
+            <button onClick={() => setMode('manual')} className="rounded bg-accent px-3 py-1 text-sm font-semibold text-parchment hover:bg-accent/80">✎ {t('cc.hub.edit')}</button>
+            <button onClick={() => printSheet(draft)} className="rounded border border-accent/40 px-3 py-1 text-sm text-accent hover:bg-accent/10">{t('cc.hub.print')}</button>
+            <button onClick={() => downloadSheetPdf(draft)} className="rounded border border-accent/40 px-3 py-1 text-sm text-accent hover:bg-accent/10">{t('cc.hub.downloadPdf')}</button>
           </div>
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto">
@@ -74,30 +76,30 @@ export default function CreateHub(): JSX.Element {
   // ---- landing ----
   return (
     <div className="mx-auto h-full max-w-4xl overflow-y-auto pb-6">
-      <h2 className="mb-1 font-serif text-2xl font-bold text-accent">Создать персонажа</h2>
-      <p className="mb-4 text-sm text-ink-brown/70">Выберите способ. Конструктор только создаёт персонажа; дальше его редактируют вручную.</p>
+      <h2 className="mb-1 font-serif text-2xl font-bold text-accent">{t('cc.hub.title')}</h2>
+      <p className="mb-4 text-sm text-ink-brown/70">{t('cc.hub.subtitle')}</p>
 
       <div className="grid gap-3 sm:grid-cols-3">
-        <ChoiceCard icon={<GiScrollQuill />} title="Справочник" desc="Пошаговый гид по созданию персонажа: от замысла до листа." onClick={() => setMode('guide')} />
-        <ChoiceCard icon={<GiQuillInk />} title="Ручное создание" desc="Чистый белый лист — заполняйте поля сами, сохраняйте и печатайте." onClick={() => openNew('manual')} />
-        <ChoiceCard icon={<GiCharacter />} title="Конструктор" desc="Выбирайте расу, класс, уровень — умения, навыки, ХП и атаки считаются автоматически." highlight onClick={() => openNew('constructor')} />
+        <ChoiceCard icon={<GiScrollQuill />} title={t('cc.hub.guideTitle')} desc={t('cc.hub.guideDesc')} onClick={() => setMode('guide')} />
+        <ChoiceCard icon={<GiQuillInk />} title={t('cc.hub.manualTitle')} desc={t('cc.hub.manualDesc')} onClick={() => openNew('manual')} />
+        <ChoiceCard icon={<GiCharacter />} title={t('cc.hub.constructorTitle')} desc={t('cc.hub.constructorDesc')} highlight onClick={() => openNew('constructor')} />
       </div>
 
       {items.length > 0 && (
         <div className="mt-6">
-          <h3 className="mb-2 font-serif text-sm font-bold uppercase tracking-wider text-ink-brown/60">Мои персонажи</h3>
+          <h3 className="mb-2 font-serif text-sm font-bold uppercase tracking-wider text-ink-brown/60">{t('cc.hub.myCharacters')}</h3>
           <ul className="divide-y divide-ink-brown/10 rounded-lg border border-ink-brown/20 bg-parchment-dark/20">
             {items.map((ch) => {
               const vw = deriveSheet(ch)
-              const sub = [vw.className, ch.level ? `${ch.level} ур.` : '', vw.raceName].filter(Boolean).join(' · ')
+              const sub = [vw.className, ch.level ? t('cc.hub.level', { n: ch.level }) : '', vw.raceName].filter(Boolean).join(' · ')
               return (
                 <li key={ch.key} className="flex items-center gap-2 px-3 py-2">
                   <button onClick={() => openSaved(ch)} className="min-w-0 flex-1 text-left">
-                    <div className="truncate font-serif font-semibold text-ink-brown">{ch.name || 'Без имени'}</div>
+                    <div className="truncate font-serif font-semibold text-ink-brown">{ch.name || t('cc.hub.noName')}</div>
                     {sub && <div className="truncate text-xs text-ink-brown/50">{sub}</div>}
                   </button>
-                  <button onClick={() => printSheet(ch)} className="rounded border border-accent/40 px-2 py-1 text-xs text-accent hover:bg-accent/10" title="Печать">Печать</button>
-                  <button onClick={() => setConfirmDel(ch)} className="rounded border border-ink-brown/30 px-2 py-1 text-xs text-ink-brown/60 hover:border-red-600/60 hover:text-red-700" title="Удалить"><GiTrashCan /></button>
+                  <button onClick={() => printSheet(ch)} className="rounded border border-accent/40 px-2 py-1 text-xs text-accent hover:bg-accent/10" title={t('cc.hub.print')}>{t('cc.hub.print')}</button>
+                  <button onClick={() => setConfirmDel(ch)} className="rounded border border-ink-brown/30 px-2 py-1 text-xs text-ink-brown/60 hover:border-red-600/60 hover:text-red-700" title={t('cc.hub.delete')}><GiTrashCan /></button>
                 </li>
               )
             })}
@@ -108,11 +110,11 @@ export default function CreateHub(): JSX.Element {
       {confirmDel && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/50 p-4" onClick={() => setConfirmDel(null)}>
           <div className="parchment-texture tome-border w-full max-w-sm rounded-lg p-5 shadow-panel" onClick={(e) => e.stopPropagation()}>
-            <h3 className="font-serif text-lg font-bold text-accent">Удалить персонажа?</h3>
-            <p className="mt-1 text-sm text-ink-brown">«{confirmDel.name || 'Без имени'}» будет удалён безвозвратно.</p>
+            <h3 className="font-serif text-lg font-bold text-accent">{t('cc.hub.deleteTitle')}</h3>
+            <p className="mt-1 text-sm text-ink-brown">{t('cc.hub.deleteConfirm', { name: confirmDel.name || t('cc.hub.noName') })}</p>
             <div className="mt-4 flex justify-end gap-2">
-              <button onClick={() => setConfirmDel(null)} className="rounded border border-ink-brown/30 px-4 py-1.5 text-sm text-ink-brown/80 hover:border-accent/60">Отмена</button>
-              <button onClick={() => { remove(confirmDel.key); setConfirmDel(null) }} className="rounded bg-accent px-4 py-1.5 text-sm font-semibold text-parchment hover:bg-accent/80">Удалить</button>
+              <button onClick={() => setConfirmDel(null)} className="rounded border border-ink-brown/30 px-4 py-1.5 text-sm text-ink-brown/80 hover:border-accent/60">{t('cc.hub.cancel')}</button>
+              <button onClick={() => { remove(confirmDel.key); setConfirmDel(null) }} className="rounded bg-accent px-4 py-1.5 text-sm font-semibold text-parchment hover:bg-accent/80">{t('cc.hub.delete')}</button>
             </div>
           </div>
         </div>

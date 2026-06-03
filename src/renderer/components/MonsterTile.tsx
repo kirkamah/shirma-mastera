@@ -1,6 +1,8 @@
 import { memo, type JSX } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { StatBlock } from '@shared/types'
 import Portrait, { emblemForMonster } from './Portrait'
+import { monSizeLabel, monTypeLabel } from '../data/bestiary-ru'
 
 interface Props {
   monster: StatBlock
@@ -14,6 +16,8 @@ interface Props {
  *  re-renders tiles whose props actually changed — a noticeable win once the
  *  bestiary grows past a few hundred entries. */
 function MonsterTileBase({ monster: m, selected, picked, onSelect, onPick }: Props): JSX.Element {
+  const { i18n } = useTranslation()
+  const lang = i18n.language
   return (
     <button
       onClick={() => onSelect(m)}
@@ -49,7 +53,7 @@ function MonsterTileBase({ monster: m, selected, picked, onSelect, onPick }: Pro
         {m.name}
       </div>
       <div className="line-clamp-1 w-full text-[10px] leading-tight text-ink-brown/70">
-        {m.size}, {m.type}
+        {monSizeLabel(m.size, lang)}, {monTypeLabel(m.type, lang)}
       </div>
     </button>
   )

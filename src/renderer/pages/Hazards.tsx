@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type JSX } from 'react'
+import { Trans, useTranslation } from 'react-i18next'
 import { GiTrashCan, GiWolfTrap } from 'react-icons/gi'
 import PageFrame from '../components/PageFrame'
 import DiceText from '../components/DiceText'
@@ -6,7 +7,17 @@ import CustomFormDialog, { type FormField, type FormValues } from '../components
 import { useCustom } from '../hooks/useCustom'
 import { useNav } from '../store/nav'
 import { uid } from '../utils/monster'
-import { HAZARDS, HAZARD_CATEGORIES, TRAP_TIERS, TRAP_BASE_DAMAGE, TRAP_TIER_EFFECTS, scaleTrapDamage, type HazardCategory, type HazardItem } from '../data/hazards-ru'
+import {
+  HAZARD_CATEGORIES,
+  TRAP_BASE_DAMAGE,
+  scaleTrapDamage,
+  hazardsFor,
+  hazardCategoryLabel,
+  trapTiersFor,
+  trapTierEffectsFor,
+  type HazardCategory,
+  type HazardItem
+} from '../data/hazards-ru'
 
 interface CustomHazard {
   key: string
@@ -16,41 +27,44 @@ interface CustomHazard {
   desc: string
 }
 
-const HAZARD_FIELDS: FormField[] = [
-  { key: 'name', label: 'Название' },
-  {
-    key: 'category',
-    label: 'Тип',
-    type: 'select',
-    options: [
-      { value: 'trap', label: 'Ловушка' },
-      { value: 'poison', label: 'Яд' },
-      { value: 'disease', label: 'Болезнь' }
-    ]
-  },
-  { key: 'tag', label: 'Подзаголовок', placeholder: 'напр. При попадании' },
-  { key: 'desc', label: 'Описание / эффект', type: 'textarea' }
-]
-
 export default function Hazards(): JSX.Element {
+  const { t, i18n } = useTranslation()
+  const lang = i18n.language
   const { items: custom, save, remove } = useCustom<CustomHazard>('hazard')
   const [cat, setCat] = useState<HazardCategory>('trap')
-  const [key, setKey] = useState<string>(HAZARDS.find((x) => x.category === 'trap')?.id ?? '')
+  const base = useMemo(() => hazardsFor(lang), [lang])
+  const [key, setKey] = useState<string>(base.find((x) => x.category === 'trap')?.id ?? '')
   const [editing, setEditing] = useState<{ key: string | null; values: FormValues } | null>(null)
   const pending = useNav((s) => s.pending)
   const clearPending = useNav((s) => s.clear)
 
+  const HAZARD_FIELDS: FormField[] = [
+    { key: 'name', label: t('hazards.fName') },
+    {
+      key: 'category',
+      label: t('hazards.fType'),
+      type: 'select',
+      options: [
+        { value: 'trap', label: t('hazards.typeTrap') },
+        { value: 'poison', label: t('hazards.typePoison') },
+        { value: 'disease', label: t('hazards.typeDisease') }
+      ]
+    },
+    { key: 'tag', label: t('hazards.fTag'), placeholder: t('hazards.fTagPh') },
+    { key: 'desc', label: t('hazards.fDesc'), type: 'textarea' }
+  ]
+
   const customKeys = useMemo(() => new Set(custom.map((c) => c.key)), [custom])
-  const builtinIds = useMemo(() => new Set(HAZARDS.map((h) => h.id)), [])
+  const builtinIds = useMemo(() => new Set(base.map((h) => h.id)), [base])
   // Overlay overrides (same id as a built-in) in place, then append fully custom ones.
   const all: (HazardItem & { key?: string })[] = useMemo(() => {
     const byKey = new Map(
       custom.map((c) => [c.key, { id: c.key, key: c.key, name: c.name, category: c.category, tag: c.tag, desc: c.desc }])
     )
-    const merged = HAZARDS.map((h) => byKey.get(h.id) ?? h)
+    const merged = base.map((h) => byKey.get(h.id) ?? h)
     const extras = custom.filter((c) => !builtinIds.has(c.key)).map((c) => byKey.get(c.key)!)
     return [...merged, ...extras]
-  }, [custom, builtinIds])
+  }, [custom, base, builtinIds])
   // Selection from global search: switch to the item's category so it shows in the list.
   useEffect(() => {
     if (pending?.section !== 'hazards') return
@@ -74,11 +88,11 @@ export default function Hazards(): JSX.Element {
 
   return (
     <PageFrame
-      title="Опасности"
-      subtitle="Ловушки, яды и болезни"
+      title={t('hazards.title')}
+      subtitle={t('hazards.subtitle')}
       actions={
         <button onClick={() => setEditing({ key: null, values: { category: cat } })} className="rounded bg-accent px-3 py-1.5 text-sm font-semibold text-parchment hover:bg-accent/80">
-          + Опасность
+          {t('hazards.addBtn')}
         </button>
       }
     >
@@ -91,7 +105,7 @@ export default function Hazards(): JSX.Element {
             onClick={() => pick(c.id)}
             className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-semibold ${cat === c.id ? 'bg-accent text-parchment' : 'border border-ink-brown/30 text-ink-brown/80 hover:border-accent/60'}`}
           >
-            <Icon className="text-base" /> {c.label}
+            <Icon className="text-base" /> {hazardCategoryLabel(c, lang)}
           </button>
           )
         })}
@@ -125,7 +139,7 @@ export default function Hazards(): JSX.Element {
                 <div className="flex shrink-0 gap-1">
                   <button
                     onClick={() => setEditing({ key: selected.id, values: { name: selected.name, category: selected.category, tag: selected.tag ?? '', desc: selected.desc } })}
-                    title="Редактировать"
+                    title={t('common.edit')}
                     className="rounded border border-accent/50 px-2 py-1 text-xs text-accent hover:bg-accent/10"
                   >
                     ✎
@@ -133,7 +147,7 @@ export default function Hazards(): JSX.Element {
                   {(selIsCustomOnly || selIsOverride) && (
                     <button
                       onClick={() => { remove(selected.id); setKey('') }}
-                      title={selIsOverride ? 'Сбросить к оригиналу' : 'Удалить'}
+                      title={selIsOverride ? t('equip.resetOriginal') : t('common.delete')}
                       className="rounded border border-accent/40 px-2 py-1 text-xs text-accent hover:bg-accent/10"
                     >
                       {selIsOverride ? '↺' : <GiTrashCan />}
@@ -147,45 +161,40 @@ export default function Hazards(): JSX.Element {
               </p>
 
               {selected.category === 'trap' && (() => {
-                const baseDmg = TRAP_BASE_DAMAGE[selected.name]
-                const effects = TRAP_TIER_EFFECTS[selected.name]
+                const tierKey = selected.srcName ?? selected.name
+                const baseDmg = TRAP_BASE_DAMAGE[tierKey]
+                const effects = trapTierEffectsFor(tierKey, lang)
                 return (
                   <div className="mt-5 rounded-lg border border-ink-brown/20 bg-parchment-dark/30 p-4">
                     <h3 className="mb-1 flex items-center gap-2 font-serif text-lg font-bold text-accent">
-                      <GiWolfTrap className="shrink-0" /> Уровни силы ловушки (1–5)
+                      <GiWolfTrap className="shrink-0" /> {t('hazards.tierTitle')}
                     </h3>
                     <p className="mb-3 text-[13px] leading-relaxed text-ink-brown/70">
                       {baseDmg ? (
-                        <>
-                          Чем выше уровень, тем сильнее масштабируется <b>собственный урон этой ловушки</b> (кликни по
-                          костям, чтобы бросить), растёт СЛ и добавляются эффекты. Базовый уровень (2) — ровно как в
-                          описании выше.
-                        </>
+                        <Trans i18nKey="hazards.tierIntroDamage" components={{ b: <b /> }} />
                       ) : (
-                        <>
-                          Эта ловушка <b>не наносит урона</b> — повышение уровня лишь усиливает её эффект и поднимает СЛ.
-                        </>
+                        <Trans i18nKey="hazards.tierIntroNoDamage" components={{ b: <b /> }} />
                       )}
                     </p>
                     <div className="overflow-hidden rounded-md border border-ink-brown/20">
                       <table className="w-full border-collapse text-left text-[13px]">
                         <thead>
                           <tr className="bg-accent/15 text-accent">
-                            <th className="px-2 py-1.5 font-semibold">#</th>
-                            <th className="px-2 py-1.5 font-semibold">Уровень</th>
-                            <th className="px-2 py-1.5 font-semibold">Урон</th>
-                            <th className="px-2 py-1.5 font-semibold">СЛ</th>
-                            <th className="px-2 py-1.5 font-semibold">Дополнительный эффект</th>
+                            <th className="px-2 py-1.5 font-semibold">{t('hazards.colNum')}</th>
+                            <th className="px-2 py-1.5 font-semibold">{t('hazards.colLevel')}</th>
+                            <th className="px-2 py-1.5 font-semibold">{t('hazards.colDamage')}</th>
+                            <th className="px-2 py-1.5 font-semibold">{t('hazards.colDc')}</th>
+                            <th className="px-2 py-1.5 font-semibold">{t('hazards.colExtra')}</th>
                           </tr>
                         </thead>
                         <tbody>
-                          {TRAP_TIERS.map((tier) => (
+                          {trapTiersFor(lang).map((tier) => (
                             <tr key={tier.level} className="border-t border-ink-brown/15 odd:bg-parchment/40 text-ink-brown">
                               <td className="px-2 py-1.5 text-center font-bold text-accent">{tier.level}</td>
                               <td className="whitespace-nowrap px-2 py-1.5 font-serif font-semibold">{tier.name}</td>
                               <td className="whitespace-nowrap px-2 py-1.5 font-semibold">
                                 {baseDmg ? (
-                                  <DiceText text={scaleTrapDamage(baseDmg, tier.factor)} label={`Урон · ${tier.name}`} />
+                                  <DiceText text={scaleTrapDamage(baseDmg, tier.factor, lang)} label={`${t('hazards.colDamage')} · ${tier.name}`} />
                                 ) : (
                                   <span className="text-ink-brown/40">—</span>
                                 )}
@@ -207,13 +216,13 @@ export default function Hazards(): JSX.Element {
 
       {editing && (
         <CustomFormDialog
-          title={editing.key === null ? 'Новая опасность' : 'Редактировать опасность'}
+          title={editing.key === null ? t('hazards.newHazard') : t('hazards.editHazard')}
           fields={HAZARD_FIELDS}
           initial={editing.values}
           allowCopy={editing.key !== null}
           onSave={(v, mode) => {
-            const base = editing.key
-            const k = mode === 'copy' || base === null ? uid('chazard') : base
+            const editKey = editing.key
+            const k = mode === 'copy' || editKey === null ? uid('chazard') : editKey
             const name = mode === 'copy' && !/\(копия\)/i.test(String(v.name)) ? `${v.name} (копия)` : String(v.name || 'Без названия')
             save({ key: k, name, category: String(v.category || 'trap') as HazardCategory, tag: String(v.tag || ''), desc: String(v.desc || '') })
             setCat(String(v.category || 'trap') as HazardCategory)

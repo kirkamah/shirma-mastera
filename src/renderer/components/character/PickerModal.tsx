@@ -1,4 +1,5 @@
 import { useState, type JSX, type ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 import Modal from '../Modal'
 
 export interface PickItem {
@@ -25,6 +26,7 @@ export default function PickerModal<T extends PickItem>({
   onPick: (item: T) => void
   onClose: () => void
 }): JSX.Element {
+  const { t } = useTranslation()
   const [sel, setSel] = useState<string>(selectedId ?? items[0]?.id ?? '')
   const current = items.find((i) => i.id === sel) ?? items[0]
 
@@ -52,14 +54,14 @@ export default function PickerModal<T extends PickItem>({
         </div>
         <div className="mt-3 flex shrink-0 justify-end gap-2 border-t border-ink-brown/15 pt-3">
           <button onClick={onClose} className="rounded border border-ink-brown/30 px-4 py-1.5 text-sm text-ink-brown/80 hover:border-accent/60">
-            Отмена
+            {t('cc.picker.cancel')}
           </button>
           <button
             onClick={() => current && onPick(current)}
             disabled={!current}
             className="rounded bg-accent px-5 py-1.5 text-sm font-semibold text-parchment hover:bg-accent/80 disabled:opacity-40"
           >
-            Выбрать
+            {t('cc.picker.select')}
           </button>
         </div>
       </div>

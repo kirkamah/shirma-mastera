@@ -1,4 +1,5 @@
 import { useState, type JSX } from 'react'
+import { useTranslation } from 'react-i18next'
 import { rollDice } from '../../utils/roll'
 import {
   ABILITIES,
@@ -15,11 +16,11 @@ import {
 } from '../../data/character-rules'
 import type { Abilities, AbilityMethod, CharacterSheet } from '../../data/character-sheet'
 
-const METHODS: { id: AbilityMethod; label: string }[] = [
-  { id: 'point-buy', label: 'Покупка очков' },
-  { id: 'standard-array', label: 'Стандартный набор' },
-  { id: 'roll', label: '4к6 − мин.' },
-  { id: 'manual', label: 'Вручную' }
+const METHODS: { id: AbilityMethod; labelKey: string }[] = [
+  { id: 'point-buy', labelKey: 'cc.ability.methodPointBuy' },
+  { id: 'standard-array', labelKey: 'cc.ability.methodStandardArray' },
+  { id: 'roll', labelKey: 'cc.ability.methodRoll' },
+  { id: 'manual', labelKey: 'cc.ability.methodManual' }
 ]
 
 /** Assign the values of `pool` to the six abilities in order (a starting permutation). */
@@ -38,6 +39,7 @@ export default function AbilityScoreStep({
   onChange: (patch: Partial<CharacterSheet>) => void
   bgTrio: AbilityKey[]
 }): JSX.Element {
+  const { t } = useTranslation()
   const [pool, setPool] = useState<number[]>([])
   const a = sheet.baseAbilities
   const setA = (next: Abilities): void => onChange({ baseAbilities: next })
@@ -83,26 +85,26 @@ export default function AbilityScoreStep({
               method === m.id ? 'bg-accent text-parchment' : 'border border-ink-brown/30 text-ink-brown/80 hover:border-accent/60'
             }`}
           >
-            {m.label}
+            {t(m.labelKey)}
           </button>
         ))}
       </div>
 
       {method === 'point-buy' && (
         <p className="text-xs text-ink-brown/70">
-          Осталось очков: <b className={spent > POINT_BUY_BUDGET ? 'text-red-600' : 'text-accent'}>{POINT_BUY_BUDGET - spent}</b> из {POINT_BUY_BUDGET}
+          {t('cc.ability.pointsLeft')} <b className={spent > POINT_BUY_BUDGET ? 'text-red-600' : 'text-accent'}>{POINT_BUY_BUDGET - spent}</b> {t('cc.ability.pointsOutOf', { n: POINT_BUY_BUDGET })}
         </p>
       )}
       {method === 'standard-array' && (
-        <p className="text-xs text-ink-brown/70">Набор: {STANDARD_ARRAY.join(', ')} — каждое значение используется один раз.</p>
+        <p className="text-xs text-ink-brown/70">{t('cc.ability.standardArrayLabel')} {STANDARD_ARRAY.join(', ')} {t('cc.ability.eachValueOnce')}</p>
       )}
       {method === 'roll' && (
         <button onClick={rollPool} className="rounded bg-accent px-3 py-1 text-xs font-semibold text-parchment hover:bg-accent/80">
-          {pool.length ? 'Перебросить' : 'Бросить'} 4к6 ×6
+          {pool.length ? t('cc.ability.reroll') : t('cc.ability.roll')} {t('cc.ability.rollDiceSuffix')}
         </button>
       )}
       {method === 'roll' && pool.length > 0 && (
-        <p className="text-xs text-ink-brown/70">Выпало: {pool.join(', ')} — распределите по характеристикам (каждое значение один раз).</p>
+        <p className="text-xs text-ink-brown/70">{t('cc.ability.rolledLabel')} {pool.join(', ')} {t('cc.ability.distributeHint')}</p>
       )}
 
       <div className="space-y-1">
@@ -120,7 +122,7 @@ export default function AbilityScoreStep({
                     onDec={() => base > POINT_BUY_MIN && setOne(k, base - 1)}
                     onInc={() => base < POINT_BUY_MAX && spent + (POINT_BUY_COST[base + 1] - POINT_BUY_COST[base]) <= POINT_BUY_BUDGET && setOne(k, base + 1)}
                   />
-                  <span className="w-10 text-[11px] text-ink-brown/50">{POINT_BUY_COST[base]} оч.</span>
+                  <span className="w-10 text-[11px] text-ink-brown/50">{t('cc.ability.pointsCost', { n: POINT_BUY_COST[base] })}</span>
                 </div>
               ) : assignPool && assignPool.length > 0 ? (
                 <select
@@ -136,7 +138,7 @@ export default function AbilityScoreStep({
                   {!assignPool.includes(base) && <option value={base}>{base}</option>}
                 </select>
               ) : method === 'roll' ? (
-                <span className="text-xs italic text-ink-brown/50">бросьте кости выше</span>
+                <span className="text-xs italic text-ink-brown/50">{t('cc.ability.rollDiceAbove')}</span>
               ) : (
                 <input
                   type="number"
@@ -185,13 +187,14 @@ function BackgroundIncreases({
   onChange: (patch: Partial<CharacterSheet>) => void
   bgTrio: AbilityKey[]
 }): JSX.Element {
+  const { t } = useTranslation()
   const inc = sheet.backgroundIncreases
   const pattern = Object.values(inc).some((n) => n === 2) ? '2+1' : '1+1+1'
   const plusTwo = (Object.keys(inc) as AbilityKey[]).find((k) => inc[k] === 2)
   const plusOne = (Object.keys(inc) as AbilityKey[]).find((k) => inc[k] === 1 && pattern === '2+1')
 
   if (bgTrio.length < 2) {
-    return <p className="text-xs italic text-ink-brown/50">Выберите предысторию, чтобы распределить прибавки к характеристикам.</p>
+    return <p className="text-xs italic text-ink-brown/50">{t('cc.ability.selectBackgroundFirst')}</p>
   }
 
   const apply = (p: '2+1' | '1+1+1', two?: AbilityKey, one?: AbilityKey): void => {
@@ -206,10 +209,10 @@ function BackgroundIncreases({
 
   return (
     <div className="rounded border border-accent/30 bg-accent/5 p-2 text-sm">
-      <div className="mb-1 text-xs font-semibold text-accent">Прибавки предыстории ({bgTrio.map((k) => ABILITY_RU[k]).join(', ')})</div>
+      <div className="mb-1 text-xs font-semibold text-accent">{t('cc.ability.backgroundIncreases')} ({bgTrio.map((k) => ABILITY_RU[k]).join(', ')})</div>
       <div className="flex flex-wrap items-center gap-2">
         <label className="flex items-center gap-1 text-xs">
-          <input type="radio" checked={pattern === '2+1'} onChange={() => apply('2+1', bgTrio[0], bgTrio[1])} /> +2 и +1
+          <input type="radio" checked={pattern === '2+1'} onChange={() => apply('2+1', bgTrio[0], bgTrio[1])} /> {t('cc.ability.patternTwoOne')}
         </label>
         <label className="flex items-center gap-1 text-xs">
           <input type="radio" checked={pattern === '1+1+1'} onChange={() => apply('1+1+1')} /> +1/+1/+1

@@ -1,11 +1,15 @@
 import { type JSX } from 'react'
+import { useTranslation } from 'react-i18next'
 import { GiPencil } from 'react-icons/gi'
 import { useSpellPopup } from '../store/spellPopup'
 import { schoolVisual } from '../data/school-visuals'
+import { spellSchoolLabel, spellLevelLabel, spellClassLabel } from '../data/spells-ru'
 import DiceText from './DiceText'
 
 /** Global modal that shows a spell's full card when a «spell» link is clicked. */
 export default function SpellPopup(): JSX.Element | null {
+  const { t, i18n } = useTranslation()
+  const lang = i18n.language
   const spell = useSpellPopup((s) => s.spell)
   const onEdit = useSpellPopup((s) => s.onEdit)
   const close = useSpellPopup((s) => s.close)
@@ -30,7 +34,7 @@ export default function SpellPopup(): JSX.Element | null {
                   onEdit(spell)
                   close()
                 }}
-                title="Редактировать заклинание"
+                title={t('spells.editSpell')}
                 className="text-gold-soft hover:text-accent"
               >
                 <GiPencil />
@@ -40,17 +44,17 @@ export default function SpellPopup(): JSX.Element | null {
           </div>
         </div>
         <p className="text-sm italic text-ink-brown/70">
-          {spell.level === 0 ? 'Заговор' : `${spell.level} уровень`} · <span style={{ color }} className="font-semibold not-italic">{spell.school}</span>
-          {spell.concentration ? ' · концентрация' : ''}
-          {spell.ritual ? ' · ритуал' : ''}
+          {spellLevelLabel(spell.level, lang)} · <span style={{ color }} className="font-semibold not-italic">{spellSchoolLabel(spell.school, lang)}</span>
+          {spell.concentration ? ` · ${t('spells.concFull')}` : ''}
+          {spell.ritual ? ` · ${t('spells.ritualFull')}` : ''}
         </p>
         <hr className="fleuron" />
         <div className="grid grid-cols-2 gap-1 text-sm text-ink-brown">
-          {spell.castingTime && <p><b className="text-accent">Время:</b> {spell.castingTime}</p>}
-          {spell.rangeText && <p><b className="text-accent">Дистанция:</b> {spell.rangeText}</p>}
-          {spell.components && <p><b className="text-accent">Компоненты:</b> {spell.components}</p>}
-          {spell.duration && <p><b className="text-accent">Длительность:</b> {spell.duration}</p>}
-          {spell.classes.length > 0 && <p className="col-span-2"><b className="text-accent">Классы:</b> {spell.classes.join(', ')}</p>}
+          {spell.castingTime && <p><b className="text-accent">{t('spells.fTime')}:</b> {spell.castingTime}</p>}
+          {spell.rangeText && <p><b className="text-accent">{t('spells.fRange')}:</b> {spell.rangeText}</p>}
+          {spell.components && <p><b className="text-accent">{t('spells.fComp')}:</b> {spell.components}</p>}
+          {spell.duration && <p><b className="text-accent">{t('spells.fDuration')}:</b> {spell.duration}</p>}
+          {spell.classes.length > 0 && <p className="col-span-2"><b className="text-accent">{t('spells.fClasses')}:</b> {spell.classes.map((c) => spellClassLabel(c, lang)).join(', ')}</p>}
         </div>
         <hr className="fleuron" />
         <p className="whitespace-pre-line text-[15px] leading-relaxed text-ink-brown">
@@ -58,7 +62,7 @@ export default function SpellPopup(): JSX.Element | null {
         </p>
         {spell.higherLevel && (
           <p className="mt-2 whitespace-pre-line text-[15px] leading-relaxed text-ink-brown">
-            <b className="text-accent">На более высоких уровнях.</b> <DiceText text={spell.higherLevel} label={spell.name} />
+            <b className="text-accent">{t('spells.higherLabel')}</b> <DiceText text={spell.higherLevel} label={spell.name} />
           </p>
         )}
       </div>

@@ -1,4 +1,5 @@
 import { type JSX } from 'react'
+import { useTranslation } from 'react-i18next'
 import { GiRollingDices } from 'react-icons/gi'
 import { rollDice } from '../../utils/roll'
 import { hitDieSize, HIT_DIE_AVG, formatMod } from '../../data/character-rules'
@@ -15,7 +16,8 @@ export default function HpStep({
   hitDie?: string
   conMod: number
 }): JSX.Element {
-  if (!hitDie) return <p className="text-xs italic text-ink-brown/50">Выберите класс, чтобы рассчитать хиты.</p>
+  const { t } = useTranslation()
+  if (!hitDie) return <p className="text-xs italic text-ink-brown/50">{t('cc.hp.selectClassPrompt')}</p>
   const die = hitDieSize(hitDie)
   const rolls = sheet.hpRolls ?? []
   const extraLevels = Math.max(0, sheet.level - 1)
@@ -50,27 +52,27 @@ export default function HpStep({
     <div className="space-y-2 text-sm">
       <div className="flex flex-wrap gap-1">
         <button className={btn(sheet.hpMethod === 'average')} onClick={applyAverage}>
-          Среднее ({HIT_DIE_AVG[die] ?? '—'}/ур.)
+          {t('cc.hp.averageMethod', { n: HIT_DIE_AVG[die] ?? '—' })}
         </button>
         <button className={btn(sheet.hpMethod === 'rolled')} onClick={() => onChange({ hpMethod: 'rolled' })}>
-          Броски костей
+          {t('cc.hp.rolledMethod')}
         </button>
         <button className={btn(sheet.hpMethod === 'manual')} onClick={() => onChange({ hpMethod: 'manual' })}>
-          Вручную
+          {t('cc.hp.manualMethod')}
         </button>
       </div>
 
       <p className="text-xs text-ink-brown/70">
-        1 ур.: максимум {hitDie} = <b>{die}</b> + Телосложение ({formatMod(conMod)}) = <b>{die + conMod}</b>.
+        {t('cc.hp.level1MaxLabel', { n: hitDie })} <b>{die}</b> + {t('cc.hp.constitution')} ({formatMod(conMod)}) = <b>{die + conMod}</b>.
       </p>
 
       {sheet.hpMethod === 'rolled' && (
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <button onClick={rollAll} className="inline-flex items-center gap-1 rounded bg-accent px-2.5 py-1 text-xs font-semibold text-parchment hover:bg-accent/80">
-              <GiRollingDices /> Бросить все ({extraLevels}{hitDie})
+              <GiRollingDices /> {t('cc.hp.rollAll', { n: `${extraLevels}${hitDie}` })}
             </button>
-            <span className="text-[11px] text-ink-brown/50">брошено {rolledCount}/{extraLevels}</span>
+            <span className="text-[11px] text-ink-brown/50">{t('cc.hp.rolledCount', { n: `${rolledCount}/${extraLevels}` })}</span>
           </div>
           <div className="grid grid-cols-1 gap-1 sm:grid-cols-2">
             {Array.from({ length: extraLevels }, (_, i) => {
@@ -78,13 +80,13 @@ export default function HpStep({
               const r = rolls[i]
               return (
                 <div key={i} className="flex items-center gap-2 rounded border border-ink-brown/15 bg-parchment/40 px-2 py-0.5 text-[12px]">
-                  <span className="w-12 text-ink-brown/60">Ур. {lvl}</span>
+                  <span className="w-12 text-ink-brown/60">{t('cc.hp.levelShort', { n: lvl })}</span>
                   {r ? (
                     <span className="font-mono">
                       [<b className="text-accent">{r}</b>] {formatMod(conMod)} = <b>{Math.max(1, r + conMod)}</b>
                     </span>
                   ) : (
-                    <span className="text-ink-brown/40">не брошено</span>
+                    <span className="text-ink-brown/40">{t('cc.hp.notRolled')}</span>
                   )}
                   <button onClick={() => rollOne(i)} className="ml-auto inline-flex items-center gap-1 rounded border border-accent/40 px-2 text-xs text-accent hover:bg-accent/10">
                     <GiRollingDices /> {hitDie}
@@ -97,7 +99,7 @@ export default function HpStep({
       )}
 
       <div className="flex items-center gap-2">
-        <span className="text-xs text-ink-brown/60">Максимум хитов:</span>
+        <span className="text-xs text-ink-brown/60">{t('cc.hp.maxHp')}</span>
         <input
           type="number"
           value={sheet.maxHp || ''}

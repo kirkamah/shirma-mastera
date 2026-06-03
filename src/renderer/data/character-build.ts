@@ -1,3 +1,5 @@
+import { RACE_BUILD_EN, CLASS_BUILD_EN, FEAT_BUILD_EN, BACKGROUND_BUILD_EN } from './builds-en'
+
 // Mechanical reference for player character building: races (ability score
 // increases + racial traits), classes (HD, saves, key features), feats and
 // backgrounds. Distinct from data/races.ts which holds lore-only fields.
@@ -2549,3 +2551,86 @@ export const BACKGROUND_BUILDS: BackgroundBuild[] = [
     source: 'PH24'
   }
 ]
+
+// ════════════════════════════ English (EN) display overlay ════════════════════════════
+// RU arrays above are canonical (constructor + sheet match by id/name). These
+// localize* helpers return an EN-overlaid COPY for display on the «Игрок» page
+// (RU fallback per build; custom user builds have no overlay → returned as-is).
+const isEnBuild = (lang: string): boolean => lang.startsWith('en')
+
+function olTraits(src: BuildTrait[], en?: [string, string][]): BuildTrait[] {
+  if (!en) return src
+  return src.map((tr, i) => (en[i] ? { ...tr, name: en[i][0] || tr.name, desc: en[i][1] || tr.desc } : tr))
+}
+
+export function localizeRace(r: RaceBuild, lang: string): RaceBuild {
+  if (!isEnBuild(lang)) return r
+  const o = RACE_BUILD_EN[r.id]
+  if (!o) return r
+  return {
+    ...r,
+    name: o.name || r.name,
+    asi: o.asi || r.asi,
+    size: o.size || r.size,
+    langs: o.langs || r.langs,
+    traits: olTraits(r.traits, o.traits),
+    subraces: r.subraces?.map((s, i) => {
+      const so = o.subraces?.[i]
+      return so ? { ...s, name: so.name || s.name, asi: so.asi || s.asi, traits: olTraits(s.traits, so.traits) } : s
+    })
+  }
+}
+
+export function localizeClass(c: ClassBuild, lang: string): ClassBuild {
+  if (!isEnBuild(lang)) return c
+  const o = CLASS_BUILD_EN[c.id]
+  if (!o) return c
+  return {
+    ...c,
+    name: o.name || c.name,
+    primary: o.primary || c.primary,
+    saves: o.saves || c.saves,
+    armor: o.armor || c.armor,
+    weapons: o.weapons || c.weapons,
+    tools: o.tools || c.tools,
+    skills: o.skills || c.skills,
+    features: olTraits(c.features, o.features),
+    subclasses: c.subclasses?.map((s, i) => {
+      const so = o.subclasses?.[i]
+      return so ? { ...s, name: so.name || s.name, meta: so.meta || s.meta, features: olTraits(s.features, so.features) } : s
+    })
+  }
+}
+
+export function localizeFeat(f: FeatBuild, lang: string): FeatBuild {
+  if (!isEnBuild(lang)) return f
+  const o = FEAT_BUILD_EN[f.id]
+  if (!o) return f
+  return { ...f, name: o.name || f.name, prereq: o.prereq || f.prereq, desc: o.desc || f.desc, bonuses: o.bonuses || f.bonuses }
+}
+
+export function localizeBackground(b: BackgroundBuild, lang: string): BackgroundBuild {
+  if (!isEnBuild(lang)) return b
+  const o = BACKGROUND_BUILD_EN[b.id]
+  if (!o) return b
+  return {
+    ...b,
+    name: o.name || b.name,
+    skills: o.skills || b.skills,
+    tools: o.tools || b.tools,
+    langs: o.langs || b.langs,
+    equipment: o.equipment || b.equipment,
+    abilities: o.abilities || b.abilities,
+    feat: o.feat || b.feat,
+    suggestion: o.suggestion || b.suggestion,
+    lore: o.lore || b.lore,
+    feature: o.feature && b.feature ? { ...b.feature, name: o.feature[0] || b.feature.name, desc: o.feature[1] || b.feature.desc } : b.feature
+  }
+}
+
+/** Localised build name by id (for the sidebar list); RU fallback. */
+export function buildNameFor(kind: 'race' | 'class' | 'feat' | 'background', id: string, fallback: string, lang: string): string {
+  if (!isEnBuild(lang)) return fallback
+  const m = kind === 'race' ? RACE_BUILD_EN[id] : kind === 'class' ? CLASS_BUILD_EN[id] : kind === 'feat' ? FEAT_BUILD_EN[id] : BACKGROUND_BUILD_EN[id]
+  return m?.name || fallback
+}

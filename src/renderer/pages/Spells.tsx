@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type JSX } from 'react'
+import { useTranslation } from 'react-i18next'
 import { GiTrashCan, GiMagnifyingGlass } from 'react-icons/gi'
 import PageFrame from '../components/PageFrame'
 import CustomFormDialog, { type FormField, type FormValues } from '../components/CustomFormDialog'
@@ -7,47 +8,19 @@ import { useSpellPopup } from '../store/spellPopup'
 import { useCustom } from '../hooks/useCustom'
 import { uid } from '../utils/monster'
 import { SCHOOL_RU } from '@shared/translations'
-import { RU_SPELLS } from '../data/spells-ru'
+import { RU_SPELLS, spellsFor, spellSchoolLabel, spellLevelLabel } from '../data/spells-ru'
 import { schoolVisual } from '../data/school-visuals'
 import type { Spell } from '@shared/types'
 
 type Source = 'ru' | 'open5e'
 type SortMode = 'level' | 'school' | 'name'
 const LEVELS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-const levelLabel = (l: number): string => (l === 0 ? 'Заговор' : `${l} уровень`)
-const levelHeader = (l: number): string => (l === 0 ? 'Заговоры' : `${l} уровень`)
-const SORTS: { id: SortMode; label: string }[] = [
-  { id: 'level', label: 'По уровню' },
-  { id: 'school', label: 'По школе' },
-  { id: 'name', label: 'По алфавиту' }
-]
 
 interface SpellGroup {
   key: string
   label: string
   spells: Spell[]
 }
-
-const SPELL_FIELDS: FormField[] = [
-  { key: 'name', label: 'Название' },
-  { key: 'level', label: 'Уровень (0–9)', type: 'number' },
-  { key: 'school', label: 'Школа', type: 'select', options: Object.values(SCHOOL_RU).map((s) => ({ value: s, label: s })) },
-  { key: 'castingTime', label: 'Время накладывания', placeholder: '1 действие' },
-  { key: 'rangeText', label: 'Дистанция', placeholder: '60 футов' },
-  { key: 'components', label: 'Компоненты', placeholder: 'В, С, М' },
-  { key: 'duration', label: 'Длительность', placeholder: 'Мгновенная' },
-  { key: 'concentration', label: 'Концентрация', type: 'checkbox' },
-  { key: 'ritual', label: 'Ритуал', type: 'checkbox' },
-  {
-    key: 'classes',
-    label: 'Классы',
-    type: 'tags',
-    placeholder: 'Например: Волшебник',
-    suggestions: ['Бард', 'Жрец', 'Друид', 'Колдун', 'Паладин', 'Следопыт', 'Волшебник', 'Чародей', 'Изобретатель']
-  },
-  { key: 'desc', label: 'Описание', type: 'textarea' },
-  { key: 'higherLevel', label: 'На более высоких уровнях', type: 'textarea' }
-]
 
 function spellToValues(s: Spell): FormValues {
   return {
@@ -68,6 +41,8 @@ function valuesToSpell(v: FormValues, key: string): Spell {
 }
 
 export default function Spells(): JSX.Element {
+  const { t, i18n } = useTranslation()
+  const lang = i18n.language
   const edition = useSettings((s) => s.edition)
   const openSpell = useSpellPopup((s) => s.open)
   const { items: customSpells, save, remove } = useCustom<Spell>('spell')
@@ -81,6 +56,38 @@ export default function Spells(): JSX.Element {
   const [sort, setSort] = useState<SortMode>('level')
   const [editing, setEditing] = useState<{ key: string | null; values: FormValues } | null>(null)
 
+  // Section header label by level (keeps the RU plural "Заговоры" vs the dropdown's "Заговор").
+  const levelHeader = (l: number): string =>
+    lang.startsWith('en') ? (l === 0 ? 'Cantrips' : `Level ${l}`) : l === 0 ? 'Заговоры' : `${l} уровень`
+
+  const SORTS: { id: SortMode; label: string }[] = [
+    { id: 'level', label: t('spells.sortLevel') },
+    { id: 'school', label: t('spells.sortSchool') },
+    { id: 'name', label: t('spells.sortName') }
+  ]
+
+  const SPELL_FIELDS: FormField[] = [
+    { key: 'name', label: t('spells.fName') },
+    { key: 'level', label: t('spells.fLevel'), type: 'number' },
+    { key: 'school', label: t('spells.fSchool'), type: 'select', options: Object.values(SCHOOL_RU).map((s) => ({ value: s, label: spellSchoolLabel(s, lang) })) },
+    { key: 'castingTime', label: t('spells.fTime'), placeholder: '1 действие' },
+    { key: 'rangeText', label: t('spells.fRange'), placeholder: '60 футов' },
+    { key: 'components', label: t('spells.fComp'), placeholder: 'В, С, М' },
+    { key: 'duration', label: t('spells.fDuration'), placeholder: 'Мгновенная' },
+    { key: 'concentration', label: t('spells.fConc'), type: 'checkbox' },
+    { key: 'ritual', label: t('spells.fRitual'), type: 'checkbox' },
+    {
+      key: 'classes',
+      label: t('spells.fClasses'),
+      type: 'tags',
+      placeholder: 'Например: Волшебник',
+      suggestions: ['Бард', 'Жрец', 'Друид', 'Колдун', 'Паладин', 'Следопыт', 'Волшебник', 'Чародей', 'Изобретатель']
+    },
+    { key: 'desc', label: t('spells.fDesc'), type: 'textarea' },
+    { key: 'higherLevel', label: t('spells.fHigher'), type: 'textarea' }
+  ]
+
+  const ruSpells = useMemo(() => spellsFor(lang), [lang])
   const customKeys = useMemo(() => new Set(customSpells.map((c) => c.key)), [customSpells])
   const builtinSpellIds = useMemo(() => new Set(RU_SPELLS.map((s) => s.key)), [])
   const customByKey = useMemo(() => new Map(customSpells.map((c) => [c.key, c])), [customSpells])
@@ -105,7 +112,7 @@ export default function Spells(): JSX.Element {
   // For the RU set, overlay user overrides over built-in spells, then append fully custom ones.
   const pool =
     source === 'ru'
-      ? [...RU_SPELLS.map((s) => customByKey.get(s.key) ?? s), ...customSpells.filter((c) => !builtinSpellIds.has(c.key))]
+      ? [...ruSpells.map((s) => customByKey.get(s.key) ?? s), ...customSpells.filter((c) => !builtinSpellIds.has(c.key))]
       : fetched
   const schools = useMemo(() => [...new Set(pool.map((s) => s.school))].filter(Boolean).sort(), [pool])
   const byName = (a: Spell, b: Spell): number => a.name.localeCompare(b.name, 'ru')
@@ -125,13 +132,13 @@ export default function Spells(): JSX.Element {
     const map = new Map<string, SpellGroup>()
     for (const s of filtered) {
       const key = sort === 'level' ? String(s.level) : s.school
-      const label = sort === 'level' ? levelHeader(s.level) : s.school
+      const label = sort === 'level' ? levelHeader(s.level) : spellSchoolLabel(s.school, lang)
       const g = map.get(key) ?? { key, label, spells: [] }
       g.spells.push(s)
       map.set(key, g)
     }
     return [...map.values()]
-  }, [filtered, sort])
+  }, [filtered, sort, lang])
 
   const sel = 'rounded-md border border-ink-brown/30 bg-parchment/60 px-2 py-1 text-sm text-ink-brown focus:border-accent focus:outline-none'
   const hasFilters = query.trim() !== '' || level !== 'all' || school !== 'all'
@@ -148,17 +155,17 @@ export default function Spells(): JSX.Element {
 
   return (
     <PageFrame
-      title="Заклинания"
-      subtitle={source === 'ru' ? `${RU_SPELLS.length + customSpells.length} заклинаний` : offline ? 'Офлайн — кэш' : 'Open5e (англ. описания)'}
+      title={t('spells.title')}
+      subtitle={source === 'ru' ? t('spells.countSpells', { n: RU_SPELLS.length + customSpells.length }) : offline ? t('spells.srcOffline') : t('spells.srcOpen5e')}
       actions={
         <div className="flex items-center gap-1">
-          {srcBtn('ru', 'Русские')}
+          {srcBtn('ru', t('spells.srcRu'))}
           {srcBtn('open5e', 'Open5e')}
           <button
             onClick={() => setEditing({ key: null, values: { level: 1, school: 'Воплощение', castingTime: '1 действие', components: 'В, С', duration: 'Мгновенная', concentration: false, ritual: false } })}
             className="ml-1 rounded bg-accent px-2 py-1 text-xs font-semibold text-parchment hover:bg-accent/80"
           >
-            + Заклинание
+            {t('spells.addBtn')}
           </button>
         </div>
       }
@@ -170,25 +177,25 @@ export default function Spells(): JSX.Element {
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Поиск заклинания…"
+              placeholder={t('spells.searchPh')}
               className="w-full rounded-md border border-ink-brown/30 bg-parchment/70 py-1.5 pl-8 pr-7 text-sm text-ink-brown focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/40"
             />
             {query && (
-              <button onClick={() => setQuery('')} title="Очистить" className="absolute right-1.5 top-1/2 -translate-y-1/2 text-ink-brown/40 hover:text-accent">
+              <button onClick={() => setQuery('')} title={t('spells.clear')} className="absolute right-1.5 top-1/2 -translate-y-1/2 text-ink-brown/40 hover:text-accent">
                 ✕
               </button>
             )}
           </div>
           <select value={level} onChange={(e) => setLevel(e.target.value === 'all' ? 'all' : +e.target.value)} className={sel}>
-            <option value="all">Все уровни</option>
+            <option value="all">{t('spells.allLevels')}</option>
             {LEVELS.map((l) => (
-              <option key={l} value={l}>{levelLabel(l)}</option>
+              <option key={l} value={l}>{spellLevelLabel(l, lang)}</option>
             ))}
           </select>
           <select value={school} onChange={(e) => setSchool(e.target.value)} className={sel}>
-            <option value="all">Все школы</option>
+            <option value="all">{t('spells.allSchools')}</option>
             {(schools.length ? schools : Object.values(SCHOOL_RU)).map((s) => (
-              <option key={s} value={s}>{s}</option>
+              <option key={s} value={s}>{spellSchoolLabel(s, lang)}</option>
             ))}
           </select>
           <div className="flex items-center overflow-hidden rounded-md border border-ink-brown/30">
@@ -205,11 +212,11 @@ export default function Spells(): JSX.Element {
             ))}
           </div>
           <span className="rounded-full bg-accent/10 px-2 py-0.5 text-xs font-semibold text-accent">
-            {loading ? 'Загрузка…' : `${filtered.length} закл.`}
+            {loading ? t('common.loading') : t('spells.countShort', { n: filtered.length })}
           </span>
           {hasFilters && (
             <button onClick={resetFilters} className="text-xs text-ink-brown/55 underline decoration-dotted underline-offset-2 hover:text-accent">
-              Сбросить
+              {t('spells.reset')}
             </button>
           )}
         </div>
@@ -222,14 +229,14 @@ export default function Spells(): JSX.Element {
               <button
                 key={s}
                 onClick={() => setSchool(active ? 'all' : s)}
-                title={s}
+                title={spellSchoolLabel(s, lang)}
                 className={`flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium transition-colors ${
                   active ? 'border-transparent text-parchment' : 'border-ink-brown/20 bg-parchment/50 text-ink-brown/75 hover:border-accent/50'
                 }`}
                 style={active ? { backgroundColor: color } : { color }}
               >
                 <Icon className="shrink-0" />
-                {s}
+                {spellSchoolLabel(s, lang)}
               </button>
             )
           })}
@@ -238,7 +245,7 @@ export default function Spells(): JSX.Element {
 
       <div className="min-h-0 flex-1 overflow-y-auto pr-1">
         {groups.map((g) => {
-          const head = g.label && sort === 'school' ? schoolVisual(g.label) : null
+          const head = g.label && sort === 'school' ? schoolVisual(g.key) : null
           return (
             <section key={g.key} className="mb-5">
               {g.label && (
@@ -258,7 +265,7 @@ export default function Spells(): JSX.Element {
                     <div key={s.key} className="relative">
                       {source === 'ru' && isCustom && (
                         <div className="absolute right-1 top-1 z-10 flex gap-1">
-                          <button onClick={() => remove(s.key)} title={builtinSpellIds.has(s.key) ? 'Сбросить к оригиналу' : 'Удалить'} className="rounded bg-sidebar/80 px-1 text-xs text-accent hover:text-red-400">
+                          <button onClick={() => remove(s.key)} title={builtinSpellIds.has(s.key) ? t('equip.resetOriginal') : t('common.delete')} className="rounded bg-sidebar/80 px-1 text-xs text-accent hover:text-red-400">
                             {builtinSpellIds.has(s.key) ? '↺' : <GiTrashCan />}
                           </button>
                         </div>
@@ -268,7 +275,7 @@ export default function Spells(): JSX.Element {
                         className="flex h-full w-full flex-col gap-1.5 rounded-lg border border-ink-brown/20 bg-parchment-dark/40 p-3 text-left transition-all hover:-translate-y-0.5 hover:border-accent/60 hover:bg-parchment/70 hover:shadow-panel"
                       >
                         <div className="flex items-center gap-2 self-stretch">
-                          <Icon className="shrink-0 text-3xl drop-shadow-sm" style={{ color }} title={s.school} />
+                          <Icon className="shrink-0 text-3xl drop-shadow-sm" style={{ color }} title={spellSchoolLabel(s.school, lang)} />
                           <span className="ml-auto flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold wax-seal">
                             {s.level === 0 ? '0' : s.level}
                           </span>
@@ -278,10 +285,10 @@ export default function Spells(): JSX.Element {
                           {s.name}
                         </div>
                         <div className="line-clamp-1 text-[11px] font-medium leading-tight" style={{ color }}>
-                          {s.school}
+                          {spellSchoolLabel(s.school, lang)}
                           <span className="text-ink-brown/65">
-                            {s.concentration ? ' · конц.' : ''}
-                            {s.ritual ? ' · ритуал' : ''}
+                            {s.concentration ? ` · ${t('spells.concInline')}` : ''}
+                            {s.ritual ? ` · ${t('spells.ritualInline')}` : ''}
                           </span>
                         </div>
                       </button>
@@ -292,12 +299,12 @@ export default function Spells(): JSX.Element {
             </section>
           )
         })}
-        {filtered.length === 0 && !loading && <div className="p-6 text-center text-ink-brown/50">Ничего не найдено</div>}
+        {filtered.length === 0 && !loading && <div className="p-6 text-center text-ink-brown/50">{t('common.empty')}</div>}
       </div>
 
       {editing && (
         <CustomFormDialog
-          title={editing.key === null ? 'Новое заклинание' : 'Редактировать заклинание'}
+          title={editing.key === null ? t('spells.newSpell') : t('spells.editSpell')}
           fields={SPELL_FIELDS}
           initial={editing.values}
           allowCopy={editing.key !== null}

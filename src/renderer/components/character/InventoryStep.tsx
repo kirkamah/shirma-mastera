@@ -1,4 +1,5 @@
 import { useMemo, useState, type JSX } from 'react'
+import { useTranslation } from 'react-i18next'
 import { GiCrossedSwords, GiOpenFolder, GiFullFolder } from 'react-icons/gi'
 import { uid } from '../../utils/monster'
 import { EQUIPMENT, MASTERY_RU, type EquipItem } from '../../data/equipment-ru'
@@ -40,10 +41,6 @@ interface Folder {
   deny?: string
 }
 
-/** Official PH'24 wording for the «no armour proficiency» warning. */
-const ARMOR_DENY =
-  'Владение доспехами. Кто угодно может напялить доспех или пристегнуть щит к руке. Но только тот, кто знает, как носить доспех, может носить его эффективно. Ваш класс даёт владение некоторыми видами доспехов. Если вы носите доспех, которым не владеете, вы совершаете с помехой все проверки характеристик, спасброски и броски атаки, использующие Силу или Ловкость, и вы не можете накладывать заклинания.'
-
 /** Pull a trailing gold amount ("…, 15 зм" / "…мантия и 8 зм") off an item
  *  bundle, returning the cleaned item text and the bundled gold separately. */
 function splitTrailingGold(text: string): { items: string; gold: number } {
@@ -80,6 +77,7 @@ export default function InventoryStep({
   classId?: string
   bgEquipment?: string
 }): JSX.Element {
+  const { t } = useTranslation()
   const [q, setQ] = useState('')
   const [openFolder, setOpenFolder] = useState<string | null>(null)
   const [shopOpen, setShopOpen] = useState(false)
@@ -182,17 +180,17 @@ export default function InventoryStep({
 
   // Folders for the shop (shown when the search box is empty).
   const folders: Folder[] = [
-    { id: 'wsimple', label: 'Простое оружие', test: (e) => e.category === 'weapon-simple', allowed: prof.simple, deny: 'Класс не владеет простым оружием — атаки им идут без бонуса владения.' },
-    { id: 'wmartial', label: 'Воинское оружие', test: (e) => e.category === 'weapon-martial', allowed: prof.martial, deny: 'Класс не владеет воинским оружием — атаки им идут без бонуса владения и без свойства мастерства.' },
-    { id: 'light', label: 'Лёгкие доспехи', test: (e) => e.category === 'armor' && e.tier === 'light', allowed: prof.light, deny: ARMOR_DENY },
-    { id: 'medium', label: 'Средние доспехи', test: (e) => e.category === 'armor' && e.tier === 'medium', allowed: prof.medium, deny: ARMOR_DENY },
-    { id: 'heavy', label: 'Тяжёлые доспехи', test: (e) => e.category === 'armor' && e.tier === 'heavy', allowed: prof.heavy, deny: ARMOR_DENY },
-    { id: 'shield', label: 'Щиты', test: (e) => e.category === 'armor' && e.tier === 'shield', allowed: prof.shield, deny: ARMOR_DENY },
-    { id: 'gear', label: 'Снаряжение', test: (e) => e.category === 'gear', allowed: true },
-    { id: 'tools', label: 'Инструменты', test: (e) => e.category === 'tools', allowed: true },
-    { id: 'potions', label: 'Зелья и эликсиры', test: (e) => e.category === 'potions', allowed: true },
-    { id: 'packs', label: 'Наборы снаряжения', test: (e) => e.category === 'packs', allowed: true },
-    { id: 'mounts', label: 'Транспорт и животные', test: (e) => e.category === 'mounts', allowed: true }
+    { id: 'wsimple', label: t('cc.inv.folderSimpleWeapons'), test: (e) => e.category === 'weapon-simple', allowed: prof.simple, deny: t('cc.inv.denySimpleWeapons') },
+    { id: 'wmartial', label: t('cc.inv.folderMartialWeapons'), test: (e) => e.category === 'weapon-martial', allowed: prof.martial, deny: t('cc.inv.denyMartialWeapons') },
+    { id: 'light', label: t('cc.inv.folderLightArmor'), test: (e) => e.category === 'armor' && e.tier === 'light', allowed: prof.light, deny: t('cc.inv.armorDeny') },
+    { id: 'medium', label: t('cc.inv.folderMediumArmor'), test: (e) => e.category === 'armor' && e.tier === 'medium', allowed: prof.medium, deny: t('cc.inv.armorDeny') },
+    { id: 'heavy', label: t('cc.inv.folderHeavyArmor'), test: (e) => e.category === 'armor' && e.tier === 'heavy', allowed: prof.heavy, deny: t('cc.inv.armorDeny') },
+    { id: 'shield', label: t('cc.inv.folderShields'), test: (e) => e.category === 'armor' && e.tier === 'shield', allowed: prof.shield, deny: t('cc.inv.armorDeny') },
+    { id: 'gear', label: t('cc.inv.folderGear'), test: (e) => e.category === 'gear', allowed: true },
+    { id: 'tools', label: t('cc.inv.folderTools'), test: (e) => e.category === 'tools', allowed: true },
+    { id: 'potions', label: t('cc.inv.folderPotions'), test: (e) => e.category === 'potions', allowed: true },
+    { id: 'packs', label: t('cc.inv.folderPacks'), test: (e) => e.category === 'packs', allowed: true },
+    { id: 'mounts', label: t('cc.inv.folderMounts'), test: (e) => e.category === 'mounts', allowed: true }
   ]
 
   const searchList = useMemo(() => {
@@ -214,26 +212,26 @@ export default function InventoryStep({
     <div className="space-y-2 text-sm">
       {bg && (
         <div className="rounded border border-ink-brown/20 bg-parchment/40 p-2">
-          <div className="mb-1 text-xs font-semibold text-accent">Снаряжение предыстории — выберите одно:</div>
+          <div className="mb-1 text-xs font-semibold text-accent">{t('cc.inv.bgEquipPrompt')}</div>
           <div className="flex flex-wrap gap-1">
-            <button onClick={takeBgItems} className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${sheet.bgEquipChoice === 'items' ? 'bg-accent text-parchment' : 'border border-ink-brown/30 text-ink-brown/80 hover:border-accent/60'}`}>Взять вещи{bg.gold ? ` (+${bg.gold} зм)` : ''}</button>
-            <button onClick={takeBgGold} className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${sheet.bgEquipChoice === 'gold' ? 'bg-accent text-parchment' : 'border border-ink-brown/30 text-ink-brown/80 hover:border-accent/60'}`}>Взять золото ({bg.altGold} зм)</button>
+            <button onClick={takeBgItems} className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${sheet.bgEquipChoice === 'items' ? 'bg-accent text-parchment' : 'border border-ink-brown/30 text-ink-brown/80 hover:border-accent/60'}`}>{t('cc.inv.takeItems')}{bg.gold ? ` ${t('cc.inv.plusGold', { n: bg.gold })}` : ''}</button>
+            <button onClick={takeBgGold} className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${sheet.bgEquipChoice === 'gold' ? 'bg-accent text-parchment' : 'border border-ink-brown/30 text-ink-brown/80 hover:border-accent/60'}`}>{t('cc.inv.takeGold', { n: bg.altGold })}</button>
           </div>
-          {sheet.bgEquipChoice === 'items' && <p className="mt-1 text-[12px] text-ink-brown/80">{bg.items}{bg.gold ? ` + ${bg.gold} зм` : ''}</p>}
+          {sheet.bgEquipChoice === 'items' && <p className="mt-1 text-[12px] text-ink-brown/80">{bg.items}{bg.gold ? ` + ${t('cc.inv.goldAmount', { n: bg.gold })}` : ''}</p>}
         </div>
       )}
 
       {start ? (
         <div className="rounded border border-ink-brown/20 bg-parchment/40 p-2">
-          <div className="mb-1 text-xs font-semibold text-accent">Снаряжение класса — выберите одно:</div>
+          <div className="mb-1 text-xs font-semibold text-accent">{t('cc.inv.classEquipPrompt')}</div>
           <div className="flex flex-wrap gap-1">
-            <button onClick={takeItems} className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${sheet.equipChoice === 'items' ? 'bg-accent text-parchment' : 'border border-ink-brown/30 text-ink-brown/80 hover:border-accent/60'}`}>Взять вещи{startGear?.gold ? ` (+${startGear.gold} зм)` : ''}</button>
-            <button onClick={takeGold} className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${sheet.equipChoice === 'gold' ? 'bg-accent text-parchment' : 'border border-ink-brown/30 text-ink-brown/80 hover:border-accent/60'}`}>Взять золото ({start.gold} зм)</button>
+            <button onClick={takeItems} className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${sheet.equipChoice === 'items' ? 'bg-accent text-parchment' : 'border border-ink-brown/30 text-ink-brown/80 hover:border-accent/60'}`}>{t('cc.inv.takeItems')}{startGear?.gold ? ` ${t('cc.inv.plusGold', { n: startGear.gold })}` : ''}</button>
+            <button onClick={takeGold} className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${sheet.equipChoice === 'gold' ? 'bg-accent text-parchment' : 'border border-ink-brown/30 text-ink-brown/80 hover:border-accent/60'}`}>{t('cc.inv.takeGold', { n: start.gold })}</button>
           </div>
-          {sheet.equipChoice === 'items' && <p className="mt-1 text-[12px] text-ink-brown/80">{startGear?.items}{startGear?.gold ? ` + ${startGear.gold} зм в кошелёк` : ''}</p>}
+          {sheet.equipChoice === 'items' && <p className="mt-1 text-[12px] text-ink-brown/80">{startGear?.items}{startGear?.gold ? ` + ${t('cc.inv.goldToWallet', { n: startGear.gold })}` : ''}</p>}
         </div>
       ) : (
-        <p className="text-xs italic text-ink-brown/50">Выберите класс, чтобы получить стартовое снаряжение или золото.</p>
+        <p className="text-xs italic text-ink-brown/50">{t('cc.inv.pickClassHint')}</p>
       )}
 
       {/* Shop — always available. Take your granted items AND spend whatever gold
@@ -242,19 +240,19 @@ export default function InventoryStep({
       <div className="rounded border border-ink-brown/20 bg-parchment/40 p-2">
         <button onClick={() => setShopOpen((o) => !o)} className="flex w-full items-center gap-2 text-left">
           {shopOpen ? <GiOpenFolder className="text-accent" /> : <GiFullFolder className="text-accent" />}
-          <span className="text-xs font-semibold text-accent">Снаряжение</span>
-          <span className="ml-auto text-[12px] text-ink-brown/80">Кошелёк: <b className="text-accent">{coinStr}</b></span>
+          <span className="text-xs font-semibold text-accent">{t('cc.inv.shopTitle')}</span>
+          <span className="ml-auto text-[12px] text-ink-brown/80">{t('cc.inv.walletLabel')} <b className="text-accent">{coinStr}</b></span>
           <span className="text-ink-brown/40">{shopOpen ? '▾' : '▸'}</span>
         </button>
 
         {shopOpen && (
           <div className="mt-2">
-            <p className="text-[12px] text-ink-brown/70">Выберите папку снаряжения. Купленное оружие сразу появляется в атаках листа.</p>
-            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Поиск снаряжения по всем папкам…" className="mt-1 w-full rounded border border-ink-brown/30 bg-parchment/60 px-2 py-1 text-sm focus:border-accent focus:outline-none" />
+            <p className="text-[12px] text-ink-brown/70">{t('cc.inv.shopHint')}</p>
+            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('cc.inv.searchPlaceholder')} className="mt-1 w-full rounded border border-ink-brown/30 bg-parchment/60 px-2 py-1 text-sm focus:border-accent focus:outline-none" />
 
             {q.trim() ? (
               <div className="mt-1 max-h-64 overflow-y-auto rounded border border-ink-brown/15">
-                {searchList.length === 0 ? <p className="px-2 py-2 text-[12px] italic text-ink-brown/50">Ничего не найдено.</p> : searchList.map(ItemBtn)}
+                {searchList.length === 0 ? <p className="px-2 py-2 text-[12px] italic text-ink-brown/50">{t('cc.inv.nothingFound')}</p> : searchList.map(ItemBtn)}
               </div>
             ) : (
               <div className="mt-1 space-y-1">
@@ -268,7 +266,7 @@ export default function InventoryStep({
                       <button onClick={() => setOpenFolder(open ? null : f.id)} className="flex w-full items-center gap-2 px-2 py-1.5 text-left text-[13px] hover:bg-accent/5">
                         {open ? <GiOpenFolder className="text-accent" /> : <GiFullFolder className="text-accent" />}
                         <span className="font-semibold text-ink-brown">{f.label}</span>
-                        {restricted && <span className="text-[10px] text-amber-700" title="Класс не владеет этой категорией">⚠</span>}
+                        {restricted && <span className="text-[10px] text-amber-700" title={t('cc.inv.categoryNotProficient')}>⚠</span>}
                         <span className="ml-auto text-[11px] text-ink-brown/40">{list.length}</span>
                       </button>
                       {open && (
@@ -291,15 +289,15 @@ export default function InventoryStep({
       {/* Spellcasting focus reminder */}
       {isCaster && !hasFocus && (
         <div className="rounded border border-amber-500/50 bg-amber-100/50 p-2 text-[12px] leading-snug text-amber-800">
-          ⚠ Заклинательному классу нужна <b>магическая фокусировка</b> или <b>мешочек с компонентами</b>, чтобы накладывать заклинания с материальными компонентами. Загляните в папку «Снаряжение» и купите подходящую фокусировку (посох, кристалл, жезл, святой символ, друидическую фокусировку) либо мешочек с компонентами.
+          ⚠ {t('cc.inv.focusReminderPre')}<b>{t('cc.inv.focusReminderArcane')}</b>{t('cc.inv.focusReminderOr')}<b>{t('cc.inv.focusReminderPouch')}</b>{t('cc.inv.focusReminderPost')}
         </div>
       )}
 
       {/* Inventory — remove-only (no free editing); removing refunds the cost. */}
       <div>
-        <div className="text-xs font-semibold text-ink-brown/70">Инвентарь {poolCp ? <span className="font-normal text-ink-brown/50">· кошелёк {coinStr}</span> : null}</div>
+        <div className="text-xs font-semibold text-ink-brown/70">{t('cc.inv.inventoryTitle')} {poolCp ? <span className="font-normal text-ink-brown/50">{t('cc.inv.walletInline', { coins: coinStr })}</span> : null}</div>
         {items.length === 0 ? (
-          <p className="text-[12px] italic text-ink-brown/50">Пусто — добавьте вещи предыстории/класса или купите снаряжение.</p>
+          <p className="text-[12px] italic text-ink-brown/50">{t('cc.inv.emptyInventory')}</p>
         ) : (
           <ul className="mt-1 divide-y divide-ink-brown/10 rounded border border-ink-brown/15">
             {items.map((i) => (
@@ -307,15 +305,15 @@ export default function InventoryStep({
                 {i.qty > 1 && <span className="rounded bg-ink-brown/10 px-1 text-[11px] font-semibold text-ink-brown/70">[{i.qty}]</span>}
                 <span className="min-w-0 flex-1 truncate text-ink-brown" title={i.name}>
                   {i.name}
-                  {i.weapon && <GiCrossedSwords className="ml-1 inline-block text-accent" title="Оружие — добавлено в «Мои атаки»" />}
-                  {i.armorTier === 'shield' && <span className="ml-1 text-[11px] text-accent">(+{i.armorBase ?? 2} к КД)</span>}
-                  {i.armorTier && i.armorTier !== 'shield' && <span className="ml-1 text-[11px] text-accent">(КД {i.armorBase ?? 10}{i.armorTier === 'heavy' ? '' : ' + Лов'})</span>}
+                  {i.weapon && <GiCrossedSwords className="ml-1 inline-block text-accent" title={t('cc.inv.weaponInAttacks')} />}
+                  {i.armorTier === 'shield' && <span className="ml-1 text-[11px] text-accent">{t('cc.inv.shieldAcBonus', { n: i.armorBase ?? 2 })}</span>}
+                  {i.armorTier && i.armorTier !== 'shield' && <span className="ml-1 text-[11px] text-accent">({t('cc.inv.acLabel')} {i.armorBase ?? 10}{i.armorTier === 'heavy' ? '' : ` + ${t('cc.inv.dexAbbr')}`})</span>}
                 </span>
                 {i.cost && <span className="text-[10px] text-ink-brown/40">{i.cost}</span>}
                 {i.grant ? (
-                  <span title="Получено от класса/предыстории — убирается переключением «Взять золото»" className="px-1 text-[11px] text-ink-brown/40">🔒</span>
+                  <span title={t('cc.inv.grantedLockTitle')} className="px-1 text-[11px] text-ink-brown/40">🔒</span>
                 ) : (
-                  <button onClick={() => removeOne(i)} title="Удалить предмет (вернуть деньги)" className="rounded border border-ink-brown/30 px-1.5 text-xs text-ink-brown/60 hover:border-red-600/60 hover:text-red-700">✕</button>
+                  <button onClick={() => removeOne(i)} title={t('cc.inv.removeItemTitle')} className="rounded border border-ink-brown/30 px-1.5 text-xs text-ink-brown/60 hover:border-red-600/60 hover:text-red-700">✕</button>
                 )}
               </li>
             ))}
@@ -326,10 +324,10 @@ export default function InventoryStep({
       {/* Weapon mastery (PH24) */}
       {mCount > 0 && (
         <div className="rounded border border-accent/30 bg-accent/5 p-2">
-          <div className="text-xs font-semibold text-accent">Мастерство оружия — выбрано {masteryOnCount}/{mCount}</div>
+          <div className="text-xs font-semibold text-accent">{t('cc.inv.masteryTitle', { selected: masteryOnCount, total: mCount })}</div>
 
           {masteryWeapons.length === 0 ? (
-            <p className="mt-1 text-[12px] italic text-ink-brown/60">Получите оружие от класса/предыстории или купите его, чтобы назначить ему свойство мастерства.</p>
+            <p className="mt-1 text-[12px] italic text-ink-brown/60">{t('cc.inv.masteryEmpty')}</p>
           ) : (
             <ul className="mt-1 space-y-1">
               {masteryWeapons.map((w) => {

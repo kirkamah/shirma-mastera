@@ -1,4 +1,5 @@
 import { type JSX } from 'react'
+import { useTranslation } from 'react-i18next'
 import { GiScrollQuill } from 'react-icons/gi'
 import DiceText from '../DiceText'
 
@@ -9,110 +10,112 @@ interface CreationStep {
   ref?: string
 }
 
-const CREATION_STEPS: CreationStep[] = [
-  {
-    title: 'Замысел героя',
-    lead: 'Сначала идея, потом цифры. Решите, кто ваш персонаж и почему он отправился в путь.',
-    points: [
-      'Кто он: происхождение, ремесло, мечта и страх. Что выгнало его из дома?',
-      'Какую роль вы хотите в партии — боец на передовой, маг, плут-ловкач, лекарь?',
-      'Согласуйте с мастером сеттинг, тон и уровень, с которого начинаете.'
-    ]
-  },
-  {
-    title: 'Выбор вида (расы)',
-    lead: 'Вид задаёт телесную природу героя и его врождённые черты.',
-    points: [
-      'Даёт черты вида: тёмное зрение, наследия, размер, скорость, языки.',
-      'Важно: в правилах 2024 прибавки к характеристикам даёт НЕ вид, а предыстория.',
-      'Сравните виды и их черты на вкладке «Расы».'
-    ],
-    ref: 'Расы'
-  },
-  {
-    title: 'Выбор класса',
-    lead: 'Класс — это профессия и боевая роль персонажа, его главный набор умений.',
-    points: [
-      'Определяет кость хитов, владения оружием и доспехами, два спасброска и навыки.',
-      'Даёт ключевые умения по уровням; подкласс выбирается обычно на 3 уровне.',
-      'Основная характеристика класса — туда стоит вложить лучший балл.',
-      'Полное описание классов и подклассов — на вкладке «Классы».'
-    ],
-    ref: 'Классы'
-  },
-  {
-    title: 'Выбор предыстории',
-    lead: 'В правилах 2024 предыстория — фундамент персонажа, а не просто флавор.',
-    points: [
-      'Даёт прибавки к характеристикам: +2 и +1 (или +1/+1/+1) к трём на выбор.',
-      'Даёт владение двумя навыками, инструментом и черту происхождения.',
-      'Включает стартовое снаряжение или золото на покупку.',
-      'Выберите ту, что отвечает замыслу: солдат, мудрец, преступник, моряк… — вкладка «Предыстории».'
-    ],
-    ref: 'Предыстории'
-  },
-  {
-    title: 'Характеристики',
-    lead: 'Шесть характеристик: Сила, Ловкость, Телосложение, Интеллект, Мудрость, Харизма.',
-    points: [
-      'Стандартный набор: 15, 14, 13, 12, 10, 8 — распределите по характеристикам.',
-      'Покупка очков: 27 очков, каждая характеристика от 8 до 15 до прибавок.',
-      'Броски: 4к6, отбросить меньшую кость, и так шесть раз (по согласию с мастером).',
-      'Затем добавьте прибавки предыстории. На 1 уровне характеристика не выше 20.',
-      'Модификатор = (характеристика − 10) ÷ 2 с округлением вниз.'
-    ]
-  },
-  {
-    title: 'Производные значения',
-    lead: 'Из вида, класса и характеристик считаются боевые числа персонажа.',
-    points: [
-      'Хиты на 1 уровне: максимум кости хитов класса + модификатор Телосложения.',
-      'Класс Доспеха: от брони и Ловкости (или особой защиты класса). Бонус мастерства на 1 ур. = +2.',
-      'Владение спасбросками — от класса; навыками — от класса и предыстории.',
-      'Пассивная Внимательность = 10 + модификатор Мудрости (+ мастерство, если владеете).'
-    ]
-  },
-  {
-    title: 'Снаряжение',
-    lead: 'Возьмите стартовый набор класса или предыстории — либо золото и купите снаряжение.',
-    points: [
-      'Оружие и доспех под вашу боевую роль; щит для защиты.',
-      'Заклинателям — фокусировка или книга заклинаний; набор путешественника на всех.',
-      'Цены, вес и описания предметов смотрите в разделе «Снаряжение».'
-    ]
-  },
-  {
-    title: 'Заклинания',
-    lead: 'Если класс умеет колдовать — подберите магию на старте.',
-    points: [
-      'Выберите заговоры и заклинания 1 уровня из списка вашего класса.',
-      'Базовая характеристика заклинаний задаёт СЛ спасброска = 8 + мастерство + модификатор.',
-      'Бонус к попаданию заклинанием = мастерство + модификатор базовой характеристики.',
-      'Списки и описания заклинаний — в разделе «Заклинания».'
-    ]
-  },
-  {
-    title: 'Личность и отыгрыш',
-    lead: 'Цифры готовы — вдохните в персонажа жизнь.',
-    points: [
-      'Пропишите черту характера, идеал, привязанность и изъян.',
-      'Придумайте имя, внешность, манеру речи и главную цель в приключении.',
-      'Свяжите героя с миром, мастерской завязкой и остальной партией.'
-    ]
-  },
-  {
-    title: 'Финальная проверка',
-    lead: 'Соберите всё на листе персонажа и сверьтесь с мастером.',
-    points: [
-      'Перепроверьте модификаторы, владения, КД, хиты и спасброски.',
-      'Убедитесь, что прибавки предыстории учтены, а максимум характеристики не превышен.',
-      'Согласуйте спорные детали с мастером — и в путь!'
-    ]
-  }
-]
-
 /** Standalone step-by-step character-creation reference. */
 export default function CharacterCreationGuide(): JSX.Element {
+  const { t } = useTranslation()
+
+  const CREATION_STEPS: CreationStep[] = [
+    {
+      title: t('cc.guide.step1.title'),
+      lead: t('cc.guide.step1.lead'),
+      points: [
+        t('cc.guide.step1.point1'),
+        t('cc.guide.step1.point2'),
+        t('cc.guide.step1.point3')
+      ]
+    },
+    {
+      title: t('cc.guide.step2.title'),
+      lead: t('cc.guide.step2.lead'),
+      points: [
+        t('cc.guide.step2.point1'),
+        t('cc.guide.step2.point2'),
+        t('cc.guide.step2.point3')
+      ],
+      ref: t('cc.guide.step2.ref')
+    },
+    {
+      title: t('cc.guide.step3.title'),
+      lead: t('cc.guide.step3.lead'),
+      points: [
+        t('cc.guide.step3.point1'),
+        t('cc.guide.step3.point2'),
+        t('cc.guide.step3.point3'),
+        t('cc.guide.step3.point4')
+      ],
+      ref: t('cc.guide.step3.ref')
+    },
+    {
+      title: t('cc.guide.step4.title'),
+      lead: t('cc.guide.step4.lead'),
+      points: [
+        t('cc.guide.step4.point1'),
+        t('cc.guide.step4.point2'),
+        t('cc.guide.step4.point3'),
+        t('cc.guide.step4.point4')
+      ],
+      ref: t('cc.guide.step4.ref')
+    },
+    {
+      title: t('cc.guide.step5.title'),
+      lead: t('cc.guide.step5.lead'),
+      points: [
+        t('cc.guide.step5.point1'),
+        t('cc.guide.step5.point2'),
+        t('cc.guide.step5.point3'),
+        t('cc.guide.step5.point4'),
+        t('cc.guide.step5.point5')
+      ]
+    },
+    {
+      title: t('cc.guide.step6.title'),
+      lead: t('cc.guide.step6.lead'),
+      points: [
+        t('cc.guide.step6.point1'),
+        t('cc.guide.step6.point2'),
+        t('cc.guide.step6.point3'),
+        t('cc.guide.step6.point4')
+      ]
+    },
+    {
+      title: t('cc.guide.step7.title'),
+      lead: t('cc.guide.step7.lead'),
+      points: [
+        t('cc.guide.step7.point1'),
+        t('cc.guide.step7.point2'),
+        t('cc.guide.step7.point3')
+      ]
+    },
+    {
+      title: t('cc.guide.step8.title'),
+      lead: t('cc.guide.step8.lead'),
+      points: [
+        t('cc.guide.step8.point1'),
+        t('cc.guide.step8.point2'),
+        t('cc.guide.step8.point3'),
+        t('cc.guide.step8.point4')
+      ]
+    },
+    {
+      title: t('cc.guide.step9.title'),
+      lead: t('cc.guide.step9.lead'),
+      points: [
+        t('cc.guide.step9.point1'),
+        t('cc.guide.step9.point2'),
+        t('cc.guide.step9.point3')
+      ]
+    },
+    {
+      title: t('cc.guide.step10.title'),
+      lead: t('cc.guide.step10.lead'),
+      points: [
+        t('cc.guide.step10.point1'),
+        t('cc.guide.step10.point2'),
+        t('cc.guide.step10.point3')
+      ]
+    }
+  ]
+
   return (
     <div className="mx-auto max-w-3xl pb-6">
       <div className="rounded-xl border-2 border-gold/50 bg-gradient-to-b from-accent/15 to-parchment-dark/10 p-5 shadow-panel">
@@ -121,15 +124,14 @@ export default function CharacterCreationGuide(): JSX.Element {
             <GiScrollQuill />
           </span>
           <div>
-            <h2 className="font-serif text-2xl font-bold text-accent">Справочник создания персонажа</h2>
+            <h2 className="font-serif text-2xl font-bold text-accent">{t('cc.guide.heading')}</h2>
             <p className="text-sm italic text-ink-brown/70">
-              Пошаговый путь от замысла до готового героя по правилам Книги игрока 2024
+              {t('cc.guide.subtitle')}
             </p>
           </div>
         </div>
         <p className="mt-3 text-[14px] leading-relaxed text-ink-brown/85">
-          Это не справочник, а маршрут. Идите по шагам сверху вниз; за подробностями по расам,
-          классам, чертам и предысториям переходите на соседние вкладки этого раздела.
+          {t('cc.guide.intro')}
         </p>
       </div>
 
@@ -143,7 +145,7 @@ export default function CharacterCreationGuide(): JSX.Element {
               <h3 className="font-serif text-lg font-bold text-accent">{s.title}</h3>
               {s.ref && (
                 <span className="ml-auto rounded-full border border-gold/50 px-2 py-0.5 text-[11px] font-semibold text-gold">
-                  вкладка «{s.ref}»
+                  {t('cc.guide.tabBadge', { n: s.ref })}
                 </span>
               )}
             </div>

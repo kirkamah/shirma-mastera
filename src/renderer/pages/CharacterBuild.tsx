@@ -13,6 +13,11 @@ import {
   BACKGROUND_BUILDS,
   featByName,
   featCategory,
+  localizeRace,
+  localizeClass,
+  localizeFeat,
+  localizeBackground,
+  buildNameFor,
   type RaceBuild,
   type ClassBuild,
   type FeatBuild,
@@ -21,6 +26,7 @@ import {
   type ClassProgression
 } from '../data/character-build'
 import { progressionFor, FULL_CASTER_SLOTS, HALF_CASTER_SLOTS, THIRD_CASTER_SLOTS, PACT_SLOTS } from '../data/class-progression'
+import { CLASS_PROGRESSION_EN } from '../data/class-progression-en'
 import type { CasterKind } from '../data/character-build'
 import { useFeatPopup } from '../store/featPopup'
 import { useNav } from '../store/nav'
@@ -68,12 +74,13 @@ function SourceChip({ source }: { source?: string }): JSX.Element | null {
 }
 
 function TraitRow({ trait, showLevel }: { trait: BuildTrait; showLevel?: boolean }): JSX.Element {
+  const { t } = useTranslation()
   return (
     <div className="border-b border-ink-brown/10 pb-2 last:border-b-0 last:pb-0">
       <div className="flex items-baseline gap-2">
         {showLevel && trait.level != null && (
           <span className="rounded bg-accent/15 px-1.5 py-0.5 text-[11px] font-bold text-accent">
-            {trait.level} ур.
+            {t('build.levelSuffix', { n: trait.level })}
           </span>
         )}
         <h4 className="font-serif text-[14px] font-semibold text-ink-brown">{trait.name}</h4>
@@ -151,6 +158,8 @@ function FeatLink({ name }: { name: string }): JSX.Element {
 }
 
 function RaceDetail({ r }: { r: RaceBuild }): JSX.Element {
+  const { t, i18n } = useTranslation()
+  const ft = i18n.language.startsWith('en') ? 'ft.' : 'фт.'
   return (
     <div>
       <div className="flex items-start justify-between gap-3 border-b-2 border-accent/30 pb-2">
@@ -161,11 +170,11 @@ function RaceDetail({ r }: { r: RaceBuild }): JSX.Element {
         <SourceChip source={r.source} />
       </div>
       <div className="mt-3 grid grid-cols-3 gap-2">
-        <StatLine label="Размер:" value={r.size} />
-        <StatLine label="Скорость:" value={`${r.speed} фт.`} />
-        <StatLine label="Языки:" value={r.langs} />
+        <StatLine label={t('build.raceSize')} value={r.size} />
+        <StatLine label={t('build.raceSpeed')} value={`${r.speed} ${ft}`} />
+        <StatLine label={t('build.langs')} value={r.langs} />
       </div>
-      <SectionCard title="Расовые черты" variant="muted">
+      <SectionCard title={t('build.racialTraits')} variant="muted">
         {r.traits.map((t) => (
           <TraitRow key={t.name} trait={t} />
         ))}
@@ -185,10 +194,11 @@ function RaceDetail({ r }: { r: RaceBuild }): JSX.Element {
  *  scaling columns + (for casters) spell-slot columns by spell level.
  *  The wrapper uses w-fit so the table shrinks to its content instead of
  *  stretching across the entire detail panel. */
-function ProgressionTable({ progression }: { progression: ClassProgression }): JSX.Element {
+function ProgressionTable({ progression, en }: { progression: ClassProgression; en?: { columns: string[]; features: Record<number, string> } }): JSX.Element {
+  const { t } = useTranslation()
   const slotHeaders: string[] =
     progression.caster === 'pact'
-      ? ['Ячеек', 'Ур. ячейки']
+      ? [t('build.progPactCount'), t('build.progPactLevel')]
       : progression.caster === 'half'
         ? ['1', '2', '3', '4', '5']
         : progression.caster === 'full'
@@ -206,7 +216,7 @@ function ProgressionTable({ progression }: { progression: ClassProgression }): J
     return []
   }
 
-  const groupLabel = progression.caster === 'pact' ? 'Магия договора' : 'Ячейки заклинаний'
+  const groupLabel = progression.caster === 'pact' ? t('build.progPact') : t('build.progSlots')
 
   return (
     <div className="mt-4 inline-block max-w-full overflow-x-auto rounded-lg border border-ink-brown/25 bg-parchment-dark/20">
@@ -224,11 +234,11 @@ function ProgressionTable({ progression }: { progression: ClassProgression }): J
             </tr>
           )}
           <tr className="border-b border-ink-brown/25 bg-ink-brown/[0.08] font-serif text-[11px] uppercase tracking-wider text-ink-brown/70">
-            <th className="px-2 py-1.5 text-center">Ур.</th>
-            <th className="px-2 py-1.5 text-center">БМ</th>
-            <th className="px-2 py-1.5 text-left">Особенности</th>
-            {progression.columns.map((c) => (
-              <th key={c} className="px-2 py-1.5 text-center whitespace-nowrap">{c}</th>
+            <th className="px-2 py-1.5 text-center">{t('build.progLevel')}</th>
+            <th className="px-2 py-1.5 text-center">{t('build.progPB')}</th>
+            <th className="px-2 py-1.5 text-left">{t('build.progFeatures')}</th>
+            {progression.columns.map((c, ci) => (
+              <th key={c} className="px-2 py-1.5 text-center whitespace-nowrap">{en?.columns[ci] ?? c}</th>
             ))}
             {slotHeaders.map((h, i) => (
               <th
@@ -247,7 +257,7 @@ function ProgressionTable({ progression }: { progression: ClassProgression }): J
               <tr key={r.level} className="border-t border-ink-brown/10 even:bg-ink-brown/[0.03]">
                 <td className="px-2 py-1 text-center font-semibold text-accent">{r.level}</td>
                 <td className="px-2 py-1 text-center">+{r.pb}</td>
-                <td className="px-2 py-1">{r.features || '—'}</td>
+                <td className="px-2 py-1">{(en?.features[r.level] ?? r.features) || '—'}</td>
                 {progression.columns.map((c) => (
                   <td key={c} className="px-2 py-1 text-center whitespace-nowrap">{r.cols?.[c] ?? '—'}</td>
                 ))}
@@ -271,6 +281,7 @@ function ProgressionTable({ progression }: { progression: ClassProgression }): J
 /** Compact slot table for a subclass-level caster (Eldritch Knight, Arcane
  *  Trickster). Rendered inside the subclass card. */
 function SubclassSlotsTable({ kind }: { kind: CasterKind }): JSX.Element | null {
+  const { t } = useTranslation()
   const data =
     kind === 'third' ? THIRD_CASTER_SLOTS
     : kind === 'half' ? HALF_CASTER_SLOTS
@@ -282,12 +293,12 @@ function SubclassSlotsTable({ kind }: { kind: CasterKind }): JSX.Element | null 
   return (
     <div className="inline-block max-w-full overflow-x-auto rounded-lg border border-spell/40 bg-spell/[0.05]">
       <div className="border-b border-spell/30 bg-spell/10 px-3 py-1 font-serif text-[11px] uppercase tracking-wider text-spell">
-        Ячейки заклинаний подкласса
+        {t('build.subSlots')}
       </div>
       <table className="border-collapse text-[12px] leading-tight">
         <thead>
           <tr className="border-b border-spell/20 bg-spell/[0.05] text-[11px] uppercase tracking-wider text-spell/70">
-            <th className="px-2 py-1 text-center">Ур.</th>
+            <th className="px-2 py-1 text-center">{t('build.progLevel')}</th>
             {headers.map((h) => (
               <th key={h} className="px-2 py-1 text-center">{h}</th>
             ))}
@@ -320,16 +331,17 @@ function ExpandedSpellsTable({
   rows: { level: number; spells: string[] }[]
   label: string
 }): JSX.Element {
+  const { t } = useTranslation()
   return (
     <div className="inline-block max-w-full overflow-x-auto rounded-lg border border-spell/40 bg-spell/[0.05]">
       <div className="border-b border-spell/30 bg-spell/10 px-3 py-1 font-serif text-[11px] uppercase tracking-wider text-spell">
-        Расширенные заклинания подкласса
+        {t('build.expTitle')}
       </div>
       <table className="border-collapse text-[12px] leading-tight">
         <thead>
           <tr className="border-b border-spell/20 bg-spell/[0.05] text-[11px] uppercase tracking-wider text-spell/70">
-            <th className="px-2 py-1 text-center">Ур. ячейки</th>
-            <th className="px-2 py-1 text-left">Заклинания (всегда подготовлены)</th>
+            <th className="px-2 py-1 text-center">{t('build.expSlotLvl')}</th>
+            <th className="px-2 py-1 text-left">{t('build.expSpells')}</th>
           </tr>
         </thead>
         <tbody className="text-ink-brown">
@@ -348,26 +360,28 @@ function ExpandedSpellsTable({
 }
 
 function ClassDetail({ c }: { c: ClassBuild }): JSX.Element {
+  const { t, i18n } = useTranslation()
   const progression = progressionFor(c.id)
+  const progEn = i18n.language.startsWith('en') ? CLASS_PROGRESSION_EN[c.id] : undefined
   return (
     <div>
       <div className="flex items-start justify-between gap-3 border-b-2 border-accent/30 pb-2">
         <div>
           <h2 className="font-serif text-3xl font-bold text-accent">{c.name}</h2>
-          <p className="text-sm italic text-ink-brown/70">Основная характеристика — {c.primary.toLowerCase()}</p>
+          <p className="text-sm italic text-ink-brown/70">{t('build.classPrimary', { a: c.primary.toLowerCase() })}</p>
         </div>
         <SourceChip source={c.source} />
       </div>
       <div className="mt-3 space-y-1">
-        <StatLine label="Кость хитов:" value={`1${c.hitDie} за уровень`} />
-        <StatLine label="Спасброски:" value={c.saves} />
-        <StatLine label="Броня:" value={c.armor} />
-        <StatLine label="Оружие:" value={c.weapons} />
-        {c.tools && <StatLine label="Инструменты:" value={c.tools} />}
-        <StatLine label="Навыки:" value={c.skills} />
+        <StatLine label={t('build.classHitDie')} value={t('build.classHitDieVal', { d: c.hitDie })} />
+        <StatLine label={t('build.classSaves')} value={c.saves} />
+        <StatLine label={t('build.classArmor')} value={c.armor} />
+        <StatLine label={t('build.classWeapons')} value={c.weapons} />
+        {c.tools && <StatLine label={t('build.classTools')} value={c.tools} />}
+        <StatLine label={t('build.classSkills')} value={c.skills} />
       </div>
-      {progression && <ProgressionTable progression={progression} />}
-      <SectionCard title="Ключевые умения" variant="muted">
+      {progression && <ProgressionTable progression={progression} en={progEn} />}
+      <SectionCard title={t('build.keyFeatures')} variant="muted">
         {c.features.map((t) => (
           <TraitRow key={`${t.level}-${t.name}`} trait={t} showLevel />
         ))}
@@ -399,19 +413,20 @@ function ClassDetail({ c }: { c: ClassBuild }): JSX.Element {
 }
 
 function FeatDetail({ f }: { f: FeatBuild }): JSX.Element {
+  const { t } = useTranslation()
   return (
     <div>
       <div className="flex items-start justify-between gap-3 border-b-2 border-accent/30 pb-2">
         <div>
           <h2 className="font-serif text-3xl font-bold text-accent">{f.name}</h2>
-          {f.prereq && <p className="text-sm italic text-ink-brown/70">Требование: {f.prereq}</p>}
+          {f.prereq && <p className="text-sm italic text-ink-brown/70">{t('build.featReq', { p: f.prereq })}</p>}
         </div>
         <SourceChip source={f.source} />
       </div>
       <p className="mt-3 text-[15px] leading-relaxed text-ink-brown">
         <DiceText text={f.desc} label={f.name} />
       </p>
-      <SectionCard title="Что даёт" variant="muted">
+      <SectionCard title={t('build.featGives')} variant="muted">
         <ul className="list-disc space-y-1 pl-5 text-[14px] leading-snug text-ink-brown">
           {f.bonuses.map((b, i) => (
             <li key={i}>
@@ -425,6 +440,7 @@ function FeatDetail({ f }: { f: FeatBuild }): JSX.Element {
 }
 
 function BackgroundDetail({ b }: { b: BackgroundBuild }): JSX.Element {
+  const { t } = useTranslation()
   return (
     <div>
       <div className="flex items-start justify-between gap-3 border-b-2 border-accent/30 pb-2">
@@ -439,24 +455,24 @@ function BackgroundDetail({ b }: { b: BackgroundBuild }): JSX.Element {
         </section>
       )}
       <div className="mt-3 space-y-1">
-        {b.abilities && <StatLine label="Характеристики (+2/+1 или +1/+1/+1):" value={b.abilities} />}
-        <StatLine label="Владение навыками:" value={b.skills} />
-        {b.tools && <StatLine label="Владение инструментами:" value={b.tools} />}
-        {b.langs && <StatLine label="Языки:" value={b.langs} />}
-        <StatLine label="Снаряжение:" value={b.equipment} />
+        {b.abilities && <StatLine label={t('build.bgAbilities')} value={b.abilities} />}
+        <StatLine label={t('build.bgSkills')} value={b.skills} />
+        {b.tools && <StatLine label={t('build.bgTools')} value={b.tools} />}
+        {b.langs && <StatLine label={t('build.langs')} value={b.langs} />}
+        <StatLine label={t('build.bgEquipment')} value={b.equipment} />
         {b.feat && (
           <p className="text-sm leading-snug">
-            <span className="font-semibold text-accent">Черта:</span> <FeatLink name={b.feat} />
+            <span className="font-semibold text-accent">{t('build.bgFeat')}</span> <FeatLink name={b.feat} />
           </p>
         )}
       </div>
       {b.feature && (
-        <SectionCard title="Особенность" variant="muted">
+        <SectionCard title={t('build.bgFeature')} variant="muted">
           <TraitRow trait={b.feature} />
         </SectionCard>
       )}
       {b.suggestion && (
-        <SectionCard title="Зацепки для отыгрыша" variant="muted">
+        <SectionCard title={t('build.bgHooks')} variant="muted">
           <p className="text-[14px] italic leading-snug text-ink-brown/80">{b.suggestion}</p>
         </SectionCard>
       )}
@@ -465,7 +481,8 @@ function BackgroundDetail({ b }: { b: BackgroundBuild }): JSX.Element {
 }
 
 export default function CharacterBuild(): JSX.Element {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const lang = i18n.language
   const [tab, setTab] = useState<Tab>('races')
   const [selectedId, setSelectedId] = useState<string>(RACE_BUILDS[0].id)
   const [featCat, setFeatCat] = useState<string>('all')
@@ -515,7 +532,7 @@ export default function CharacterBuild(): JSX.Element {
   }
 
   const deleteCustom = async (): Promise<void> => {
-    if (!(await confirmDialog({ title: 'Удалить', message: `Удалить «${selected?.name}»?`, danger: true }))) return
+    if (!(await confirmDialog({ title: t('common.delete'), message: t('build.deleteConfirm', { name: selected?.name }), danger: true }))) return
     await window.api.db.deleteCustom(selectedId)
     await reloadCustom()
   }
@@ -537,18 +554,18 @@ export default function CharacterBuild(): JSX.Element {
     if (!selected) return null
     if (tab === 'races') {
       const r = findRace(selected.id)
-      return r ? <RaceDetail r={r} /> : null
+      return r ? <RaceDetail r={localizeRace(r, lang)} /> : null
     }
     if (tab === 'classes') {
       const c = findClass(selected.id)
-      return c ? <ClassDetail c={c} /> : null
+      return c ? <ClassDetail c={localizeClass(c, lang)} /> : null
     }
     if (tab === 'feats') {
       const f = FEAT_BUILDS.find((x) => x.id === selected.id)
-      return f ? <FeatDetail f={f} /> : null
+      return f ? <FeatDetail f={localizeFeat(f, lang)} /> : null
     }
     const b = findBackground(selected.id)
-    return b ? <BackgroundDetail b={b} /> : null
+    return b ? <BackgroundDetail b={localizeBackground(b, lang)} /> : null
   })()
 
   return (
@@ -632,7 +649,9 @@ export default function CharacterBuild(): JSX.Element {
                 }`}
               >
                 <Portrait emblem={iconFor(x.id)} size={28} />
-                <span className="min-w-0 truncate">{x.name}</span>
+                <span className="min-w-0 truncate">
+                  {buildNameFor(tab === 'races' ? 'race' : tab === 'classes' ? 'class' : tab === 'feats' ? 'feat' : 'background', x.id, x.name, lang)}
+                </span>
               </button>
             ))}
           </div>

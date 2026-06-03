@@ -10,6 +10,9 @@ export interface HazardItem {
   /** short tag shown under the name (e.g. poison delivery method) */
   tag?: string
   desc: string
+  /** RU source name, carried on EN items so the trap-tier tables (keyed by the
+   *  Russian name) can still be looked up regardless of display language. */
+  srcName?: string
 }
 
 export const HAZARD_CATEGORIES: { id: HazardCategory; label: string; icon: IconType }[] = [
@@ -62,9 +65,11 @@ export const TRAP_BASE_DAMAGE: Record<string, string> = {
 }
 
 /** Scale every «NкD» term in a damage expression by `factor`, keeping the die
- *  size and rounding the dice count (min 1). E.g. ("2к6 + 2к10", 1.5) → "3к6 + 3к10". */
-export function scaleTrapDamage(expr: string, factor: number): string {
-  return expr.replace(/(\d+)\s*к\s*(\d+)/g, (_, n: string, d: string) => `${Math.max(1, Math.round(Number(n) * factor))}к${d}`)
+ *  size and rounding the dice count (min 1). E.g. ("2к6 + 2к10", 1.5) → "3к6 + 3к10".
+ *  In English the die letter is rendered as «d» so it reads "3d6 + 3d10". */
+export function scaleTrapDamage(expr: string, factor: number, lang = 'ru'): string {
+  const letter = lang.startsWith('en') ? 'd' : 'к'
+  return expr.replace(/(\d+)\s*к\s*(\d+)/g, (_, n: string, d: string) => `${Math.max(1, Math.round(Number(n) * factor))}${letter}${d}`)
 }
 
 /** Unique per-tier «additional effect» text for each built-in trap (5 entries,
@@ -567,3 +572,486 @@ export const HAZARDS: HazardItem[] = [
     'Редкая зловещая хворь: кожа твердеет и покрывается каменными чешуйками. Симптомы через 2к4 дня. В конце каждого длительного отдыха — спасбросок Телосложения СЛ 15: при провале скорость существа уменьшается на 5 футов (накапливается).\n\nКогда скорость достигает 0, тело коченеет, и существо становится опутанным; при следующем провале оно полностью каменеет и становится парализованным, пока болезнь не излечат. На ранней стадии снимается заклинанием «Малое восстановление», после окаменения — «Высшее восстановление» или сравнимой магией.'
   )
 ]
+
+// ════════════════════════════ English (EN) overlay ════════════════════════════
+// RU above stays the source of truth. The structures below mirror it for the EN
+// UI language; untranslated bits fall back to RU. Dice are written with «d» and
+// DCs as «DC …» — both stay interactive (see utils/diceParser).
+const isEn = (lang: string): boolean => lang.startsWith('en')
+
+const HAZARD_CATEGORY_LABEL_EN: Record<HazardCategory, string> = {
+  trap: 'Traps',
+  poison: 'Poisons',
+  disease: 'Diseases'
+}
+
+/** Localised category label for the page tabs (RU plural by default). */
+export function hazardCategoryLabel(c: { id: HazardCategory; label: string }, lang: string): string {
+  return isEn(lang) ? HAZARD_CATEGORY_LABEL_EN[c.id] : c.label
+}
+
+const TRAP_TIERS_EN: { name: string; dc: string; extra: string }[] = [
+  { name: 'Weak', dc: '−2 to listed', extra: 'Only the base effect; usually non-lethal — it scares and warns the party more than it harms.' },
+  { name: 'Standard', dc: 'as written', extra: 'The reference version of the trap — exactly as described above.' },
+  { name: 'Reinforced', dc: '+1', extra: 'Adds a condition for 1 round: prone, restrained, or poisoned.' },
+  { name: 'Formidable', dc: '+2', extra: 'A condition for 1 minute; the trap resets and triggers again after 1 round.' },
+  { name: 'Critical', dc: '+3', extra: 'A severe condition (stunned or paralyzed), the affected area is doubled, and disarming is made with disadvantage.' }
+]
+
+/** Trap power scale in the requested language (RU fallback). */
+export function trapTiersFor(lang: string): TrapTier[] {
+  if (!isEn(lang)) return TRAP_TIERS
+  return TRAP_TIERS.map((t, i) => ({ ...t, name: TRAP_TIERS_EN[i].name, dc: TRAP_TIERS_EN[i].dc, extra: TRAP_TIERS_EN[i].extra }))
+}
+
+/** Per-tier effects in English, keyed by the trap's RU name (same keys as TRAP_TIER_EFFECTS). */
+const TRAP_TIER_EFFECTS_EN: Record<string, string[]> = {
+  'Отравленные дротики': [
+    'Weak poison — damage only.',
+    'The target is poisoned until the end of its next turn.',
+    'The target is poisoned for 1 minute (save at the end of each turn).',
+    'While poisoned, its speed is reduced by 10 feet from numbness.',
+    'Neurotoxin: on a failure the target is paralyzed for 1 round, then poisoned for 1 minute.'
+  ],
+  'Яма с кольями': [
+    'A shallow pit — easy to climb out, damage only.',
+    'At the bottom the target is knocked prone.',
+    'Barbed stakes: the target is restrained, escaping as an action (Strength check).',
+    'Oil-slicked bottom: climbing out only with disadvantage; bleeding 1d6 at the start of each turn until bound.',
+    'A hidden second row of stakes strikes from below: stake damage again each turn until the target is pulled out.'
+  ],
+  'Падающая сеть': [
+    'A light net — escape with a DC 10 Strength check without using an action.',
+    'Creatures beneath the net are restrained (speed 0), escaping as an action.',
+    'A weighted net: the target is also knocked prone.',
+    'A hooked net: trying to break free deals 1d4 piercing, and two successes in a row are needed.',
+    "A steel net cinches tight: the target is restrained and can't speak; the net's AC is 18."
+  ],
+  'Усыпляющий газ': [
+    'A light dose — poisoned (drowsy) for 1 minute, without sleep.',
+    'On a failure the target falls asleep (unconscious) for 1 minute.',
+    'Thicker gas: the save is made with disadvantage, and waking requires an action.',
+    "Sleep for 10 minutes; damage doesn't wake the sleeper — only a hard shake.",
+    'The gas spreads into adjoining halls; on waking the creature gains a level of exhaustion from suffocating nightmares.'
+  ],
+  'Огненная руна': [
+    'The flash scorches — damage only.',
+    'Flammable items on the target catch fire.',
+    'The target burns: 1d6 fire at the start of each turn until it puts out the flames as an action.',
+    'The blast knocks prone and stuns until the end of its next turn.',
+    'A firestorm lingers for 1 minute: the area is difficult terrain, 2d6 for entering it or ending a turn in it.'
+  ],
+  'Катящийся валун': [
+    'A smaller stone — damage only.',
+    'On a failure the target is knocked prone.',
+    'The boulder drags the target 10 feet and knocks it prone.',
+    'The boulder rolls on, chasing victims for 2 more rounds (another attack).',
+    'The vault collapses behind the boulder: the passage is blocked, and a pinned target is restrained by the rubble.'
+  ],
+  'Отравленная игла в замке': [
+    "A blunt needle — only the prick's damage.",
+    'The target is poisoned for 1 hour.',
+    'The hand goes numb: disadvantage on attacks and checks with that hand while the target is poisoned.',
+    'Poisoned for 24 hours and regains no hit points on a rest while the poison lasts.',
+    'A rare toxin: on a failure the target is paralyzed for 1 minute (save at the end of each turn).'
+  ],
+  'Маятник с лезвием': [
+    'A dulled blade — damage only.',
+    'The pendulum swings for 1 more round, repeating its attack across the area.',
+    'A deep cut: bleeding 1d6 at the start of each turn until bound (DC 12 Medicine).',
+    'Two crossing blades: it attacks twice, and a hit knocks prone.',
+    "The blade hangs over a chasm: a knocked-down target falls (extra damage), and at the GM's discretion suffers a grievous injury."
+  ],
+  'Опускающийся потолок': [
+    'Descends slowly (6 rounds) — easy to escape.',
+    'Reaches the floor in 4 rounds; the doors lock.',
+    'In 3 rounds; the floor is strewn with rubble — difficult terrain.',
+    'In 2 rounds; the walls close in too, stripping away the cover at the edges.',
+    "In 1 round: those who don't escape die under the slab, and the body can't be recovered without lifting it (DC 25 Strength)."
+  ],
+  'Стрелковая батарея в стене': [
+    'A single volley — one attack against the target.',
+    'Two attacks against each creature in the corridor.',
+    "Barbed bolts: a hit reduces the target's speed by 10 feet.",
+    'The battery reloads and fires at the start of each turn for 2 more rounds.',
+    'Poisoned bolts: on a hit, a Constitution save or be poisoned for 1 minute.'
+  ],
+  'Струя пламени': [
+    'A brief flare — damage only.',
+    'Unsecured objects catch fire.',
+    'The line of fire lingers until the end of the next turn (2d6 for entering or ending a turn in it).',
+    'The target catches fire: 1d6 at the start of each turn until extinguished; disadvantage on concentration.',
+    'The flames burn away the air: choking (no speech or reaction) plus a smokescreen for 1 minute.'
+  ],
+  'Глиф взрыва': [
+    'A weak glyph — damage only.',
+    'The shockwave knocks prone on a failure.',
+    'The blast hurls the target 10 feet from the centre.',
+    'A secondary burst at the start of the next turn (half the radius, half the damage).',
+    'A chain detonation: it sets off neighbouring glyphs and explosives; survivors are stunned until the end of their next turn.'
+  ],
+  'Падающая решётка': [
+    'A light grate — damage only, easy to lift.',
+    'It blocks the passage, splitting the party (lift with DC 20 Strength).',
+    'A target beneath the grate is pinned — restrained until the grate is lifted.',
+    'Spikes underneath: a pinned target takes 1d10 at the start of its turn.',
+    'It drops instantly, and a second falls behind: the party is trapped in a sector with another trap.'
+  ],
+  'Молниевая руна': [
+    'A weak discharge — damage only.',
+    'In metal armour the target loses its reaction until the end of its next turn.',
+    'The arc jumps to a creature within 5 feet (half damage).',
+    'The target is stunned until the end of its next turn.',
+    'Chain lightning across all metal-clad targets on the line; water in the area carries the current for 1 more round.'
+  ],
+  'Кислотный распылитель': [
+    'Diluted acid — damage only.',
+    'An unenchanted weapon or armour takes −1 from corrosion.',
+    'The acid keeps eating: 1d6 at the start of each turn until washed off as an action.',
+    'A cumulative −2 to armour AC (or the weapon breaks at −5).',
+    'A splash in the eyes: a Constitution save or be blinded for 1 minute, and the acid keeps eating away.'
+  ],
+  'Облако ядовитых спор': [
+    'Sparse spores — damage only, no poisoning.',
+    'The target is poisoned for 1 minute (save at the end of each turn).',
+    'The spores take root: 1d6 poison at the start of each turn while the target is poisoned.',
+    'The cloud lingers for 1 minute and spreads 5 feet per round.',
+    'Fungus in the lungs: for the first round the target is incapacitated by coughing; on a failure by 5+ it contracts a disease.'
+  ],
+  'Иллюзорный пол над ямой': [
+    'A shallow pit — fall damage only.',
+    'Stakes at the bottom — extra piercing damage.',
+    'The illusion hides the walls too: the fallen creature is disoriented (disadvantage on its first attempt to climb out).',
+    'The pit is twice as deep (double fall damage), the walls slick (DC 15 Athletics).',
+    'Another trap or a predator waits at the bottom; the illusion closes over, hiding the fallen creature from the party.'
+  ],
+  'Магическая тревога': [
+    'A silent signal — only the creator senses the intrusion.',
+    'A loud chime within 60 feet wakes the guards.',
+    'The intruder is tagged with a magical mark — visible to guards for 1 hour.',
+    'It summons the nearest patrol or enchanted guardians within 1 round.',
+    "It seals the exits (arcane lock) and imposes disadvantage on the whole party's stealth for 1 minute."
+  ],
+  'Руна стужи': [
+    'A frosty breath — damage only.',
+    'Surfaces ice over — difficult terrain.',
+    "Frostbite: the target's speed is reduced by 10 feet for 1 minute.",
+    'On a failure the target is restrained in a crust of ice (escape with a DC 15 Strength check).',
+    'The target freezes through: paralyzed for 1 round, then its speed is 0; the ice holds the area for 1 minute.'
+  ],
+  'Сдвигающиеся стены с шипами': [
+    'The walls close in slowly (5 rounds).',
+    'They meet in 3 rounds; a pinned target takes the base damage.',
+    'Barbed spikes: on a failure the pinned target is impaled (restrained).',
+    'In 2 rounds and with no niches — the save is made with disadvantage.',
+    'In 1 round: the closing means instant death for those pinned, their bodies run through.'
+  ],
+  'Затопляемая камера': [
+    'The water rises slowly (8 rounds), with an air pocket.',
+    'The chamber fills in 5 rounds — risk of drowning.',
+    'The water is freezing: after submersion, disadvantage on actions from the cold.',
+    'In 3 rounds; the current drags toward the drain (DC 15 Athletics, or the target is restrained against the grate).',
+    'Fills in 2 rounds, with a predator in the water; a lowered grate blocks any attempt to surface.'
+  ],
+  'Магнитная плита': [
+    'A weak field — a held weapon is dragged down (disadvantage on the first attack).',
+    'Plate is pulled fast: a creature in metal armour is restrained (escape with DC 14 Strength).',
+    'The field wrenches weapon and shield from the hands (DC 12 Strength check) toward the plate.',
+    'The field grows: it restrains everyone in metal in the area; metal projectiles fly toward the plate (an area attack).',
+    'A giant magnet: a target in plate is immobilised and helpless, with disadvantage on Dexterity saves, while the field is active.'
+  ]
+}
+
+/** Per-tier effects in the requested language (RU fallback). */
+export function trapTierEffectsFor(name: string, lang: string): string[] | undefined {
+  return isEn(lang) ? TRAP_TIER_EFFECTS_EN[name] : TRAP_TIER_EFFECTS[name]
+}
+
+/** English overlay for each built-in hazard, keyed by the RU name. */
+const HAZARDS_EN: Record<string, { name: string; tag: string; desc: string }> = {
+  // ---------- TRAPS ----------
+  'Отравленные дротики': {
+    name: 'Poison Darts',
+    tag: 'Mechanical · dangerous',
+    desc: "Trigger: a hidden pressure plate in the floor. When a creature steps on the square, a volley of darts shoots from the walls at everyone in a 10×10-foot area: +6 to hit, on a hit 2 (1d4) piercing damage and 11 (2d10) poison damage.\n\nDetection: DC 15 Perception (spot the plate and the holes). Disarm: DC 15 Dexterity with thieves' tools (jam the plate)."
+  },
+  'Яма с кольями': {
+    name: 'Spiked Pit',
+    tag: 'Mechanical · dangerous',
+    desc: 'A camouflaged pit 10 feet deep, sharpened stakes at the bottom. A DC 12 Dexterity save to catch the edge in time. On a failure the creature falls: 3 (1d6) bludgeoning damage from the fall and 11 (2d10) piercing damage from the stakes.\n\nDetecting the cover: DC 10 Perception.'
+  },
+  'Падающая сеть': {
+    name: 'Falling Net',
+    tag: 'Mechanical · nuisance',
+    desc: 'A tripwire across the corridor drops a weighted 10×10-foot net. Everyone beneath it is restrained (speed 0). To escape, succeed on a DC 10 Strength check as an action (or deal 5 slashing damage to the net; AC 10).\n\nSpotting the wire: DC 10 Perception; disarm: DC 15 Dexterity.'
+  },
+  'Усыпляющий газ': {
+    name: 'Sleeping Gas',
+    tag: 'Mechanical · dangerous',
+    desc: 'Trigger: opening a chest or door without disarming the catch. The room fills with a cloud of sweetish gas. Each creature in the area makes a DC 13 Constitution save; on a failure it falls asleep for 1 minute. A sleeper wakes if it takes damage or is shaken hard.'
+  },
+  'Огненная руна': {
+    name: 'Fire Rune',
+    tag: 'Magical · deadly',
+    desc: 'A glowing rune flares when a creature comes within 5 feet. A burst of flame fills a 20-foot-radius sphere. Each creature in the area makes a DC 13 Dexterity save, taking 22 (4d10) fire damage on a failure or half as much on a success.\n\nDetection: DC 13 Investigation or a detect-magic spell.'
+  },
+  'Катящийся валун': {
+    name: 'Rolling Boulder',
+    tag: 'Mechanical · deadly',
+    desc: 'A loosed stone ball rolls down the corridor, chasing its victims at 60 feet per round. A creature in its path makes a DC 15 Dexterity save; on a failure, 55 (10d10) bludgeoning damage and it is knocked prone, on a success half and it presses against the wall.'
+  },
+  'Отравленная игла в замке': {
+    name: 'Poison Needle in a Lock',
+    tag: 'Mechanical · nuisance',
+    desc: "A needle hidden in the lock of a casket or door. On trying to open it without the key: 1 piercing damage and 11 (2d10) poison damage, DC 15 Constitution save for half.\n\nDetection: DC 20 Perception; disarm: DC 15 Dexterity with thieves' tools."
+  },
+  'Маятник с лезвием': {
+    name: 'Blade Pendulum',
+    tag: 'Mechanical · dangerous',
+    desc: "Trigger: a taut wire across the corridor. A heavy scythe-like blade, hung in shadow beneath the ceiling, tears free of its mounts and attacks every creature in its path: +8 to hit, on a hit 22 (4d10) slashing damage. After the swing the pendulum keeps swaying for 1 more round.\n\nDetection: DC 15 Perception (the wire and the slot in the ceiling); disarm: DC 15 Dexterity with thieves' tools (jam or cut the wire)."
+  },
+  'Опускающийся потолок': {
+    name: 'Descending Ceiling',
+    tag: 'Mechanical · lethal',
+    desc: "Trigger: a hidden plate in the floor. The doors clang shut and the stone ceiling begins to descend slowly — 1 foot per round. After 4 rounds it reaches the floor. A creature that fails to escape takes 55 (10d10) bludgeoning damage, DC 18 Dexterity save for half.\n\nDetection: DC 15 Perception (the plate and the seams in the ceiling); disarm: DC 20 Dexterity with thieves' tools at the wall gear-mechanism, or a DC 20 Strength check to hold a door open."
+  },
+  'Стрелковая батарея в стене': {
+    name: 'Wall Bolt Battery',
+    tag: 'Mechanical · dangerous',
+    desc: "Trigger: a release lever beneath a floor plate. Crossbow bolts fly from a row of holes in the wall down the whole corridor. Each creature in the corridor is attacked twice: +8 to hit, 11 (2d10) piercing damage per hit.\n\nDetection: DC 15 Perception (the holes disguised as masonry); disarm: DC 15 Dexterity with thieves' tools (jam the plate) or DC 20 Strength (brace it)."
+  },
+  'Струя пламени': {
+    name: 'Flame Jet',
+    tag: 'Mechanical · dangerous',
+    desc: "Trigger: a tripwire near the floor. Nozzles of alchemist's oil are hidden in the walls; a 15-foot line of fire sweeps down the corridor. Every creature in the area takes 22 (4d10) fire damage, DC 15 Dexterity save for half. Light unsecured objects catch fire.\n\nDetection: DC 14 Perception (the nozzles and the smell of oil); disarm: DC 15 Dexterity with thieves' tools (shut off the supply)."
+  },
+  'Глиф взрыва': {
+    name: 'Explosive Glyph',
+    tag: 'Magical · lethal',
+    desc: 'An almost invisible magical glyph is inscribed on the floor or an object, triggering on approach or touch. A burst of flame covers everything within 20 feet: 36 (8d8) fire damage, DC 16 Dexterity save for half.\n\nDetection: DC 15 Investigation or a detect-magic spell; disarm: dispel magic (DC 15 check) or DC 16 Arcana to erase the rune.'
+  },
+  'Падающая решётка': {
+    name: 'Falling Portcullis',
+    tag: 'Mechanical · dangerous',
+    desc: 'Trigger: a release wire or plate. A heavy iron grate crashes down from the ceiling, blocking the passage and often splitting the party. A creature beneath it takes 22 (4d10) bludgeoning damage, DC 15 Dexterity save — a success means leaping aside unharmed.\n\nDetection: DC 13 Perception (the grooves in the ceiling); lift the grate: DC 20 Strength check.'
+  },
+  'Молниевая руна': {
+    name: 'Lightning Rune',
+    tag: 'Magical · dangerous',
+    desc: 'A rune on the doorway discharges an arc of lightning along a straight 30-foot line. Each creature on the line takes 27 (5d10) lightning damage, DC 15 Dexterity save for half. Metal armour worsens the effect: on a failure the creature also loses its reaction until the end of its next turn.\n\nDetection: DC 15 Investigation or detect magic; disarm: dispel magic (DC 15).'
+  },
+  'Кислотный распылитель': {
+    name: 'Acid Sprayer',
+    tag: 'Mechanical · dangerous',
+    desc: "Trigger: opening a door or chest. Vials of caustic acid are hidden behind a false panel; a fan of acid sprays into the face. 18 (4d8) acid damage, DC 15 Dexterity save for half. On a failure an unenchanted weapon or piece of armour takes a −1 penalty from corrosion.\n\nDetection: DC 15 Perception (damp streaks and a sharp smell); disarm: DC 15 Dexterity with thieves' tools (carefully remove the vials)."
+  },
+  'Облако ядовитых спор': {
+    name: 'Cloud of Poison Spores',
+    tag: 'Mechanical · dangerous',
+    desc: "Trigger: a pressure plate. A puffball sac hidden under the floor bursts, releasing a cloud of spores in a 10-foot radius. Each creature in the cloud makes a DC 13 Constitution save: on a failure it takes 11 (2d10) poison damage and is poisoned for 1 minute (repeat the save at the end of each turn).\n\nDetection: DC 14 Perception (a swollen patch of floor); disarm: DC 13 Dexterity with thieves' tools (pierce the sac from afar)."
+  },
+  'Иллюзорный пол над ямой': {
+    name: 'Illusory Floor over a Pit',
+    tag: 'Magical · dangerous',
+    desc: 'An illusion of solid floor is laid over a 20-foot-deep pit. The first to step on it falls right through, taking 7 (2d6) bludgeoning damage from the fall, plus 11 (2d10) piercing if there are stakes at the bottom.\n\nDetection: a DC 15 Investigation check on careful inspection, or any creature actively probing the floor notices the trick; disarm: dispel magic (DC 13) dispels the illusion but does not close the pit.'
+  },
+  'Магическая тревога': {
+    name: 'Magical Alarm',
+    tag: 'Magical · nuisance',
+    desc: 'An unseen warding spell covers a threshold or chest. When the boundary is crossed it deals no damage but emits a deafening mental chime within 60 feet and/or wakes nearby guards and sleeping monsters. A surprise attack by the party becomes impossible.\n\nDetection: DC 15 Investigation or detect magic; disarm: dispel magic (DC 13).'
+  },
+  'Руна стужи': {
+    name: 'Rune of Frost',
+    tag: 'Magical · lethal',
+    desc: 'A frost rune unleashes a 30-foot cone of freezing cold. Every creature in the cone takes 36 (8d8) cold damage, DC 16 Constitution save for half. Surfaces in the area ice over and become difficult terrain.\n\nDetection: DC 16 Investigation or detect magic; disarm: dispel magic (DC 15).'
+  },
+  'Сдвигающиеся стены с шипами': {
+    name: 'Closing Spiked Walls',
+    tag: 'Mechanical · lethal',
+    desc: "The room's doors slam shut and two opposite walls studded with iron spikes begin to close in — 5 feet per round. After 3 rounds they meet. A creature between them takes 55 (10d10) piercing damage, DC 17 Dexterity save for half if there is a niche or gap nearby.\n\nDetection: DC 15 Perception (the rails and seams along the walls); disarm: DC 20 Dexterity with thieves' tools at the mechanism, or wedge a sturdy object into the tracks (DC 18 Strength check)."
+  },
+  'Затопляемая камера': {
+    name: 'Flooding Chamber',
+    tag: 'Mechanical · dangerous',
+    desc: 'The door seals behind the party and water gushes into the room through grates — the level rises 1 foot per round. When the chamber fills (after 5 rounds), characters risk drowning (see the breath-holding rules). There is no damage as such, but the threat is deadly.\n\nDetection: DC 14 Perception (the water channels and damp walls); disarm: find and open the drain mechanism (DC 15 Investigation check) or break down the door (DC 18 Strength).'
+  },
+  'Магнитная плита': {
+    name: 'Magnetic Plate',
+    tag: 'Mechanical · nuisance',
+    desc: 'A powerful magical magnet hidden under the floor activates when a creature enters a 10-foot-diameter area. All metal weapons, shields, and plate armour are yanked toward the floor: a creature in metal armour is restrained, DC 14 Strength save to break free. Unsecured metal weapons in hand are wrenched away (DC 12 Strength save, or the item falls to the plate).\n\nDetection: DC 15 Perception or detect magic (metal filings stuck to the floor); disarm: dispel magic (DC 13).'
+  },
+
+  // ---------- POISONS ----------
+  'Яд змеи': {
+    name: 'Snake Venom',
+    tag: 'Injury',
+    desc: 'Apply to a weapon or piece of ammunition (enough for one attack). On the next hit the target makes a DC 11 Constitution save, taking 10 (3d6) poison damage on a failure or half on a success.'
+  },
+  'Сонная отрава дроу': {
+    name: 'Drow Sleep Poison',
+    tag: 'Injury',
+    desc: 'The target makes a DC 13 Constitution save. On a failure it is poisoned for 1 hour. If the save fails by 5 or more, the target also falls unconscious while it remains poisoned (or until it takes damage / is shaken awake).'
+  },
+  'Кровь убийцы': {
+    name: "Assassin's Blood",
+    tag: 'Ingested',
+    desc: 'The creature makes a DC 10 Constitution save. On a failure: 6 (1d12) poison damage and poisoned for 24 hours. On a success: half damage and not poisoned.'
+  },
+  'Эссенция эфира': {
+    name: 'Essence of Ether',
+    tag: 'Inhaled',
+    desc: 'A cloud of gas in a 10-foot radius. A creature in the cloud makes a DC 15 Constitution save; on a failure it is poisoned for 8 hours and falls unconscious. A sleeper wakes on taking damage or after being shaken.'
+  },
+  'Яд виверны': {
+    name: 'Wyvern Poison',
+    tag: 'Injury',
+    desc: "The target makes a DC 15 Constitution save, taking 24 (7d6) poison damage on a failure or half on a success. A costly and dangerous poison harvested from a wyvern's stinger."
+  },
+  'Яд пурпурного червя': {
+    name: 'Purple Worm Poison',
+    tag: 'Injury',
+    desc: 'One of the strongest poisons known. The target makes a DC 19 Constitution save, taking 42 (12d6) poison damage on a failure or half on a success.'
+  },
+  'Дурман правды': {
+    name: 'Truth Serum',
+    tag: 'Ingested',
+    desc: "The creature makes a DC 11 Constitution save; on a failure it is poisoned for 1 hour. A poisoned creature can't deliberately lie, as though under a compulsion."
+  },
+  'Яд гигантского скорпиона': {
+    name: 'Giant Scorpion Venom',
+    tag: 'Injury',
+    desc: 'Apply to a weapon or piece of ammunition (enough for one attack). On the next hit the target makes a DC 12 Constitution save, taking 22 (4d10) poison damage on a failure or half on a success. Harvested from the glands of a slain or restrained giant scorpion.'
+  },
+  'Экстракт чёрного лотоса': {
+    name: 'Black Lotus Extract',
+    tag: 'Injury',
+    desc: "The rarest of assassins'-guild poisons, nearly odourless. Apply to a weapon or piece of ammunition (enough for one attack). On the next hit the target makes a DC 17 Constitution save: on a failure, 33 (6d10) poison damage and the poisoned condition for 1 minute; on a success, half damage and no poisoning. While poisoned, the target repeats the save at the end of each of its turns."
+  },
+  'Кровь василиска': {
+    name: 'Basilisk Blood',
+    tag: 'Injury',
+    desc: 'A thick greenish fluid that numbs the flesh. Apply to a weapon (enough for one attack). On a hit the target makes a DC 14 Constitution save: on a failure it takes 11 (2d10) poison damage and its speed is halved for 1 minute as its limbs stiffen. The target repeats the save at the end of each of its turns, ending the effect on a success.'
+  },
+  'Слизь трупного червя': {
+    name: 'Carrion Crawler Mucus',
+    tag: 'Contact',
+    desc: 'Mucus harvested from a dead or restrained carrion crawler. A creature that touches a poisoned surface or weapon makes a DC 13 Constitution save: on a failure it is poisoned for 1 minute and also paralyzed. The target repeats the save at the end of each of its turns, ending the effect on a success.'
+  },
+  'Масло таггита': {
+    name: 'Oil of Taggit',
+    tag: 'Contact',
+    desc: 'A creature that touches an object coated with this oil makes a DC 13 Constitution save: on a failure it is poisoned for 24 hours and falls unconscious. A sleeper wakes if it takes damage or if another creature uses an action to shake it awake. A favourite of slavers and kidnappers.'
+  },
+  'Дым горелого отура': {
+    name: 'Burnt Othur Fumes',
+    tag: 'Inhaled',
+    desc: 'A caustic yellow smoke that rises when othur crystals are burned. A creature that inhales it makes a DC 13 Constitution save: on a failure it takes 10 (3d6) poison damage and must repeat the save at the start of each of its turns. On each new failure, another 3 (1d6) poison damage. After three successful saves the poison ends.'
+  },
+  'Порча': {
+    name: 'Blight',
+    tag: 'Inhaled',
+    desc: 'A fine suspension of black spores that robs the victim of sight. A creature that inhales it makes a DC 15 Constitution save: on a failure it is blinded for 1 minute. The target repeats the save at the end of each of its turns, ending the effect on a success.'
+  },
+  'Удушающая пыльца': {
+    name: 'Choking Powder',
+    tag: 'Inhaled',
+    desc: "A fine stinging powder thrown from a flask that fills a small room. Each creature in the cloud makes a DC 14 Constitution save: on a failure it takes 7 (2d6) poison damage, can't speak or breathe normally as it chokes and coughs, and loses its reaction until the start of its next turn. A creature that doesn't need to breathe or wears a sealed filtered helm is unaffected."
+  },
+  'Полуночные слёзы': {
+    name: 'Midnight Tears',
+    tag: 'Ingested',
+    desc: 'A refined poison for quiet murders: slipped into food or drink, it does nothing until midnight. If the poison is not neutralised before midnight, the target makes a DC 17 Constitution save, taking 31 (9d6) poison damage on a failure or half on a success.'
+  },
+  'Бледная настойка': {
+    name: 'Pale Tincture',
+    tag: 'Ingested',
+    desc: "A slow poison that wastes its victim unnoticed. The target makes a DC 16 Constitution save: on a failure it takes 3 (1d6) poison damage and is poisoned. The poisoned creature repeats the save every 24 hours, taking 3 (1d6) poison damage on a failure. This damage can't be healed by any means while the poison lasts. After seven successful saves the effect ends."
+  },
+  'Оцепенение': {
+    name: 'Torpor',
+    tag: 'Ingested',
+    desc: "Slipped into food or drink. The target makes a DC 15 Constitution save: on a failure it is poisoned for 4d6 hours. A creature poisoned this way is incapacitated — it can't take actions or reactions and only dimly perceives what is happening."
+  },
+  'Пыль забвения': {
+    name: 'Dust of Oblivion',
+    tag: 'Ingested',
+    desc: "A sweetish colourless powder dissolved in a drink. The target makes a DC 14 Constitution save: on a failure it is poisoned for 1 hour and can't recall the events of the past hour, and struggles to hold on to new ones. While the effect lasts, the target makes all Intelligence and Wisdom checks with disadvantage. Memory of the lost hour does not return even after the effect ends."
+  },
+  'Желчь зелёного дракона': {
+    name: 'Green Dragon Bile',
+    tag: 'Contact',
+    desc: 'An oily bile reeking of chlorine. A creature that touches a coated surface or weapon makes a DC 15 Constitution save: on a failure it takes 18 (4d8) poison damage and is poisoned for 1 minute, on a success half damage. The poisoned target repeats the save at the end of each of its turns, ending the effect on a success.'
+  },
+
+  // ---------- DISEASES ----------
+  'Хохочущая лихорадка': {
+    name: 'Cackle Fever',
+    tag: 'Airborne',
+    desc: 'Strikes humanoids (except gnomes), spread by close contact and the coughing of the infected. Symptoms appear after 1d4 hours: fever and confusion. The infected gains 1 level of exhaustion, removable only by curing the disease.\n\nAny strong shock — entering combat, taking damage, being frightened — forces a DC 13 Constitution save: on a failure, 5 (1d10) psychic damage and incapacitation from mad laughter for 1 minute (repeat the save at the end of each turn).\n\nAt the end of each long rest, a DC 13 Constitution save; on a success the DC drops by 1d6. When the DC falls to 0, the creature recovers.'
+  },
+  'Канализационная чума': {
+    name: 'Sewer Plague',
+    tag: 'On a bite',
+    desc: 'It breeds in filth and spreads through the bites of rats, otyughs, and other creatures of the sewers. Symptoms appear after 1d4 days: lethargy and stomach cramps. The infected gains 1 level of exhaustion, regains only half the hit points from spending Hit Dice, and gains no hit points from a long rest.\n\nAt the end of each long rest, a DC 11 Constitution save: on a failure +1 level of exhaustion, on a success −1. When exhaustion drops below 1, the creature recovers.'
+  },
+  'Гниль зрения': {
+    name: 'Sight Rot',
+    tag: 'Waterborne',
+    desc: 'A disease of stagnant water: the eyes bleed and cloud over. A creature that drinks infected water makes a DC 15 Constitution save or becomes infected. After 1 day vision begins to blur — −1 to attack rolls and ability checks that rely on sight.\n\nAt the end of each long rest the penalty worsens by 1; at −5 the creature goes fully blind until its sight is restored by magic (e.g. «Lesser Restoration»). The disease is also cured by a rare eyebright flower: one dose a day for three days.'
+  },
+  'Гниль мумии': {
+    name: 'Mummy Rot',
+    tag: 'Undead curse',
+    desc: "The touch of a mummy or other ancient undead lays a rotting curse. The cursed creature can't regain hit points, and its hit point maximum drops by 10 (3d6) for every 24 hours that pass.\n\nIf the hit point maximum falls to 0, the creature dies and crumbles to dust. Removed by «Remove Curse», «Greater Restoration», or comparable magic."
+  },
+  'Гнилостная лихорадка': {
+    name: 'Putrid Fever',
+    tag: 'Through wounds',
+    desc: 'It enters the body through dirty wounds, swamp water, and the bites of scavengers. Symptoms appear after 1d3 days: fever, chills, and weakness in the limbs. While the disease lasts, the creature makes Strength saves, Strength checks, and Strength-based weapon attack rolls with disadvantage.\n\nAt the end of each long rest, a DC 12 Constitution save. After two successful saves the creature recovers; on a failure the symptoms persist another day.'
+  },
+  'Огневица разума': {
+    name: 'Mind Fever',
+    tag: 'Airborne',
+    desc: '“The fever that burns away the mind.” Symptoms after 1 day: high temperature, delirium, lapses of thought. The infected makes Intelligence checks and saves to maintain concentration with disadvantage.\n\nAt the end of each long rest, a DC 13 Constitution save: on a failure, for the next day the creature also can\'t cast spells of 1st level or higher — its mind is too clouded. After three successful saves the creature recovers.'
+  },
+  'Трясучка': {
+    name: 'The Shakes',
+    tag: 'On contact',
+    desc: "Spread by touch and shared belongings; the body is wracked by ceaseless trembling. Symptoms after 1d4 days. While the disease lasts, the creature makes Dexterity checks and attack rolls with disadvantage, and can't perform fine handwork (picking locks, delicate manipulation).\n\nAt the end of each long rest, a DC 12 Constitution save. After two successful saves the creature recovers."
+  },
+  'Слизистая погибель': {
+    name: 'Slimy Doom',
+    tag: 'Waterborne',
+    desc: 'A horrid affliction: the skin softens and begins to weep, threatening to dissolve the victim into a puddle of slime. Symptoms after 1 day: painful spasms and weeping sores. When the creature takes damage, it makes a DC 14 Constitution save or becomes incapacitated until the end of its next turn from convulsions.\n\nAt the end of each long rest, a DC 14 Constitution save: on a failure the hit point maximum drops by 5 (cumulative). After three successful saves the creature recovers; the lost hit point maximum is restored by a long rest after the cure.'
+  },
+  'Красная короста': {
+    name: 'Red Scab',
+    tag: 'On contact',
+    desc: "The skin turns crimson, swells, and itches; the sufferer is plagued by aching joints. Symptoms after 1d4 days. While the disease lasts, the creature's speed is reduced by 10 feet and it makes Strength checks with disadvantage.\n\nAt the end of each long rest, a DC 12 Constitution save. After two successful saves the creature recovers."
+  },
+  'Пепельные лёгкие': {
+    name: 'Ashen Lung',
+    tag: 'Inhaled',
+    desc: 'It develops from inhaling grave dust, spores, and ash in crypts and mines. Symptoms after 1d6 days: a racking cough and shortness of breath. The infected gains 1 level of exhaustion, removable only by a cure.\n\nUnder any exertion (dashing, combat, running) the creature makes a DC 13 Constitution save or doubles over coughing, losing its reaction until the start of its next turn. At the end of each long rest, a DC 13 Constitution save; after three successful saves the creature recovers.'
+  },
+  'Горловые пиявки': {
+    name: 'Throat Leeches',
+    tag: 'Waterborne',
+    desc: "Eggs swallowed with dirty water hatch in the throat. Symptoms after 1d4 days: choking, wheezing, and a lump in the throat. While the disease lasts, the creature makes concentration saves with disadvantage and can't utter the verbal components of spells without a DC 12 Constitution save (on a failure the spell fails).\n\nAt the end of each long rest, a DC 13 Constitution save; after two successes the parasites die. «Lesser Restoration», or cauterising with salt and fire, cures the disease at once."
+  },
+  'Каменная короста': {
+    name: 'Stone Scab',
+    tag: 'On contact',
+    desc: "A rare and sinister affliction: the skin hardens and is covered in stony scales. Symptoms after 2d4 days. At the end of each long rest, a DC 15 Constitution save: on a failure the creature's speed is reduced by 5 feet (cumulative).\n\nWhen speed reaches 0 the body stiffens and the creature is restrained; on the next failure it petrifies completely and is paralyzed until the disease is cured. In the early stage it's removed by «Lesser Restoration»; after petrification, by «Greater Restoration» or comparable magic."
+  }
+}
+
+/** Hazard list in the requested language (English where translated, else RU).
+ *  EN items keep `srcName` = the RU name so trap-tier lookups still resolve. */
+export function hazardsFor(lang: string): HazardItem[] {
+  if (!isEn(lang)) return HAZARDS
+  return HAZARDS.map((h) => {
+    const o = HAZARDS_EN[h.name]
+    return o ? { ...h, name: o.name, tag: o.tag, desc: o.desc, srcName: h.name } : { ...h, srcName: h.name }
+  })
+}

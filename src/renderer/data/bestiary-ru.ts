@@ -1,5 +1,9 @@
 import type { NamedEntry, StatBlock } from '@shared/types'
 import { parseMonsters } from './compact'
+import { MONSTER_EN, MONSTER_FLAVOR_EN } from './bestiary-en'
+import ADD_A from './bestiary-add/ruA'
+import ADD_B from './bestiary-add/ruB'
+import ADD_C from './bestiary-add/ruC'
 
 // Curated, hand-translated Russian SRD bestiary used as the offline primary
 // source. Dice are written in Russian "к" notation so Quick Roll works and
@@ -6808,5 +6812,126 @@ export const RU_BESTIARY: StatBlock[] = [
   ...parseMonsters(MONSTERS_COMPACT_2),
   ...parseMonsters(MONSTERS_COMPACT_3),
   ...parseMonsters(MONSTERS_COMPACT_4),
-  ...parseMonsters(MONSTERS_COMPACT_5)
+  ...parseMonsters(MONSTERS_COMPACT_5),
+  ...parseMonsters(ADD_A),
+  ...parseMonsters(ADD_B),
+  ...parseMonsters(ADD_C)
 ].map((m) => (m.flavor ? m : { ...m, flavor: MONSTER_FLAVOR[m.name] }))
+
+// ════════════════════════════ English (EN) overlay ════════════════════════════
+// RU is the source of truth. `monstersFor('en')` overlays the free-text fields
+// (name, flavor, senses, languages, damage res/imm, condition imm, and the
+// trait/action/bonus/reaction/legendary entries) from MONSTER_EN, keyed by RU
+// name; entries are matched by position. `size`/`type`/`alignment` stay Russian
+// (emblems + filters key on them) — localise them for DISPLAY via the helpers
+// below. Untranslated monsters fall back to RU.
+const isEnB = (lang: string): boolean => lang.startsWith('en')
+
+const MON_SIZE_EN: Record<string, string> = {
+  'Крошечный': 'Tiny', 'Маленький': 'Small', 'Средний': 'Medium', 'Большой': 'Large', 'Огромный': 'Huge', 'Громадный': 'Gargantuan'
+}
+const MON_TYPE_EN: Record<string, string> = {
+  'Аберрация': 'Aberration', 'Зверь': 'Beast', 'Небожитель': 'Celestial', 'Конструкт': 'Construct', 'Дракон': 'Dragon',
+  'Элементаль': 'Elemental', 'Фея': 'Fey', 'Исчадие': 'Fiend', 'Великан': 'Giant', 'Гуманоид': 'Humanoid',
+  'Чудовище': 'Monstrosity', 'Слизь': 'Ooze', 'Растение': 'Plant', 'Нежить': 'Undead', 'Рой': 'Swarm'
+}
+const MON_SKILL_EN: Record<string, string> = {
+  'Акробатика': 'Acrobatics', 'Уход за животными': 'Animal Handling', 'Магия': 'Arcana', 'Атлетика': 'Athletics',
+  'Обман': 'Deception', 'История': 'History', 'Проницательность': 'Insight', 'Запугивание': 'Intimidation',
+  'Анализ': 'Investigation', 'Медицина': 'Medicine', 'Природа': 'Nature', 'Внимательность': 'Perception',
+  'Выступление': 'Performance', 'Убеждение': 'Persuasion', 'Религия': 'Religion', 'Ловкость рук': 'Sleight of Hand',
+  'Скрытность': 'Stealth', 'Выживание': 'Survival',
+  // curated stat blocks key skills by English slug — map those too:
+  acrobatics: 'Acrobatics', animal_handling: 'Animal Handling', arcana: 'Arcana', athletics: 'Athletics',
+  deception: 'Deception', history: 'History', insight: 'Insight', intimidation: 'Intimidation',
+  investigation: 'Investigation', medicine: 'Medicine', nature: 'Nature', perception: 'Perception',
+  performance: 'Performance', persuasion: 'Persuasion', religion: 'Religion', sleight_of_hand: 'Sleight of Hand',
+  stealth: 'Stealth', survival: 'Survival'
+}
+const MON_ENV_EN: Record<string, string> = {
+  'Лес': 'Forest', 'Леса': 'Forest', 'Степи': 'Grassland', 'Степь': 'Grassland', 'Луга': 'Grassland', 'Равнины': 'Plains',
+  'Холмы': 'Hills', 'Горы': 'Mountains', 'Болото': 'Swamp', 'Болота': 'Swamp', 'Пустыня': 'Desert', 'Пустыни': 'Desert',
+  'Подземелье': 'Dungeon', 'Подземье': 'Underdark', 'Пещеры': 'Caves', 'Пещера': 'Caves', 'Руины': 'Ruins',
+  'Побережье': 'Coast', 'Берег': 'Coast', 'Море': 'Sea', 'Океан': 'Ocean', 'Река': 'River', 'Реки': 'Rivers',
+  'Город': 'Urban', 'Города': 'Urban', 'Арктика': 'Arctic', 'Тундра': 'Tundra', 'Лес умеренный': 'Temperate forest',
+  'Джунгли': 'Jungle', 'Тропики': 'Tropics', 'Преисподняя': 'The Nine Hells', 'Бездна': 'The Abyss',
+  'Внутренние планы': 'Inner Planes', 'Внешние планы': 'Outer Planes', 'Подводный мир': 'Underwater', 'Небо': 'Sky'
+}
+const MON_SPEED_EN: Record<string, string> = { walk: '', fly: 'fly', swim: 'swim', climb: 'climb', burrow: 'burrow', crawl: 'crawl' }
+
+/** Localised size label (RU fallback). */
+export function monSizeLabel(size: string, lang: string): string {
+  return isEnB(lang) ? MON_SIZE_EN[size] ?? size : size
+}
+/** Localised creature-type label (RU fallback). */
+export function monTypeLabel(type: string, lang: string): string {
+  return isEnB(lang) ? MON_TYPE_EN[type] ?? type : type
+}
+/** Localised skill name (RU fallback). */
+export function monSkillLabel(skill: string, lang: string): string {
+  return isEnB(lang) ? MON_SKILL_EN[skill] ?? skill : skill
+}
+/** Localised environment/habitat label (RU fallback). */
+export function monEnvLabel(env: string, lang: string): string {
+  return isEnB(lang) ? MON_ENV_EN[env] ?? env : env
+}
+/** Localised speed-mode word (e.g. "fly"); '' for walking. */
+export function monSpeedMode(mode: string, lang: string): string | undefined {
+  return isEnB(lang) ? MON_SPEED_EN[mode] : undefined
+}
+/** Localised distance unit for speeds. */
+export function monFtLabel(lang: string): string {
+  return isEnB(lang) ? 'ft.' : 'фт.'
+}
+/** Localised alignment (RU fallback) — token-based so all 9 + special forms map. */
+export function monAlignmentLabel(a: string, lang: string): string {
+  if (!isEnB(lang)) return a
+  const s = a.trim().toLowerCase()
+  if (s.includes('без мировоззрен')) return 'unaligned'
+  if (s.startsWith('любо')) return 'any alignment'
+  const word = (p: string): string => {
+    if (p.startsWith('закон')) return 'lawful'
+    if (p.startsWith('хаотич')) return 'chaotic'
+    if (p.startsWith('нейтрал')) return 'neutral'
+    if (p.startsWith('добр')) return 'good'
+    if (p.startsWith('зл')) return 'evil'
+    return p
+  }
+  const parts = s.split(/[\s-]+/).filter(Boolean).map(word)
+  if (parts.length === 1) return parts[0]
+  if (parts[0] === 'neutral' && parts[1] === 'neutral') return 'neutral'
+  return parts.join(' ')
+}
+
+function overlayEntries(src: NamedEntry[], en?: [string, string][]): NamedEntry[] {
+  if (!en) return src
+  return src.map((entry, i) => {
+    const pair = en[i]
+    return pair ? { ...entry, name: pair[0] || entry.name, desc: pair[1] || entry.desc } : entry
+  })
+}
+
+/** Bestiary in the requested language; untranslated monsters fall back to RU. */
+export function monstersFor(lang: string): StatBlock[] {
+  if (!isEnB(lang)) return RU_BESTIARY
+  return RU_BESTIARY.map((m) => {
+    const o = MONSTER_EN[m.name]
+    const enFlavor = o?.flavor || MONSTER_FLAVOR_EN[m.name]
+    if (!o) return enFlavor ? { ...m, flavor: enFlavor } : m
+    return {
+      ...m,
+      name: o.name || m.name,
+      flavor: enFlavor || m.flavor,
+      senses: o.senses || m.senses,
+      languages: o.langs || m.languages,
+      damageResistances: o.resist || m.damageResistances,
+      damageImmunities: o.immune || m.damageImmunities,
+      conditionImmunities: o.condImmune || m.conditionImmunities,
+      traits: overlayEntries(m.traits, o.traits),
+      actions: overlayEntries(m.actions, o.actions),
+      bonusActions: overlayEntries(m.bonusActions, o.bonus),
+      reactions: overlayEntries(m.reactions, o.reactions),
+      legendaryActions: overlayEntries(m.legendaryActions, o.legendary)
+    }
+  })
+}

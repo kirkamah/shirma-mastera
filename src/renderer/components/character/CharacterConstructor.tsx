@@ -1,4 +1,6 @@
 import { useEffect, useState, type JSX, type ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
+import type { TFunction } from 'i18next'
 import {
   RACE_BUILDS,
   CLASS_BUILDS,
@@ -43,6 +45,7 @@ export default function CharacterConstructor({
   onPdf: () => void
   onBack: () => void
 }): JSX.Element {
+  const { t } = useTranslation()
   const [picker, setPicker] = useState<PickerKind>(null)
 
   // Custom race/class/background definitions, loaded once so they're selectable
@@ -84,18 +87,18 @@ export default function CharacterConstructor({
     <div className="flex h-full min-h-0 flex-col">
       <div className="mb-2 flex shrink-0 items-center gap-2">
         <button onClick={onBack} className="rounded border border-ink-brown/30 px-3 py-1 text-sm text-ink-brown/80 hover:border-accent/60">
-          ← Назад
+          ← {t('cc.ctor.back')}
         </button>
-        <h2 className="font-serif text-lg font-bold text-accent">Конструктор персонажа</h2>
+        <h2 className="font-serif text-lg font-bold text-accent">{t('cc.ctor.title')}</h2>
         <div className="ml-auto flex gap-1">
           <button onClick={onSave} className="rounded bg-accent px-3 py-1 text-sm font-semibold text-parchment hover:bg-accent/80">
-            Сохранить
+            {t('cc.ctor.save')}
           </button>
           <button onClick={onPrint} className="rounded border border-accent/40 px-3 py-1 text-sm text-accent hover:bg-accent/10">
-            Печать
+            {t('cc.ctor.print')}
           </button>
           <button onClick={onPdf} className="rounded border border-accent/40 px-3 py-1 text-sm text-accent hover:bg-accent/10">
-            Скачать PDF
+            {t('cc.ctor.downloadPdf')}
           </button>
         </div>
       </div>
@@ -103,15 +106,15 @@ export default function CharacterConstructor({
       <div className="flex min-h-0 flex-1 gap-3">
         {/* steps */}
         <div className="w-[25rem] shrink-0 space-y-2 overflow-y-auto pr-1">
-          <StepCard n={1} title="Раса">
-            <PickButton label={view.raceName || 'Выбрать расу'} onClick={() => setPicker('race')} />
+          <StepCard n={1} title={t('cc.ctor.stepRace')}>
+            <PickButton label={view.raceName || t('cc.ctor.pickRace')} onClick={() => setPicker('race')} />
             {race?.subraces && race.subraces.length > 0 && (
               <select
                 value={sheet.subraceName ?? ''}
                 onChange={(e) => onChange({ subraceName: e.target.value || undefined })}
                 className="mt-1 w-full rounded border border-ink-brown/30 bg-parchment/60 px-2 py-1 text-sm"
               >
-                <option value="">— подраса (необязательно) —</option>
+                <option value="">{t('cc.ctor.subraceOptional')}</option>
                 {race.subraces.map((s) => (
                   <option key={s.name} value={s.name}>
                     {s.name} ({s.asi})
@@ -121,11 +124,11 @@ export default function CharacterConstructor({
             )}
           </StepCard>
 
-          <StepCard n={2} title="Класс">
-            <PickButton label={view.className || 'Выбрать класс'} onClick={() => setPicker('class')} />
+          <StepCard n={2} title={t('cc.ctor.stepClass')}>
+            <PickButton label={view.className || t('cc.ctor.pickClass')} onClick={() => setPicker('class')} />
           </StepCard>
 
-          <StepCard n={3} title="Уровень">
+          <StepCard n={3} title={t('cc.ctor.stepLevel')}>
             <input
               type="number"
               min={1}
@@ -134,37 +137,37 @@ export default function CharacterConstructor({
               onChange={(e) => onChange({ level: Math.max(1, Math.min(20, +e.target.value)) })}
               className="w-20 rounded border border-ink-brown/30 bg-parchment/60 px-2 py-1 text-sm font-bold text-accent"
             />
-            <span className="ml-2 text-xs text-ink-brown/60">бонус мастерства {view.proficiencyBonus >= 0 ? '+' : ''}{view.proficiencyBonus}</span>
+            <span className="ml-2 text-xs text-ink-brown/60">{t('cc.ctor.proficiencyBonus')} {view.proficiencyBonus >= 0 ? '+' : ''}{view.proficiencyBonus}</span>
           </StepCard>
 
           {cls?.subclasses && cls.subclasses.length > 0 && (
-            <StepCard n={4} title="Подкласс">
+            <StepCard n={4} title={t('cc.ctor.stepSubclass')}>
               {sheet.level >= 3 ? (
-                <PickButton label={view.subclassName || 'Выбрать подкласс'} onClick={() => setPicker('subclass')} />
+                <PickButton label={view.subclassName || t('cc.ctor.pickSubclass')} onClick={() => setPicker('subclass')} />
               ) : (
-                <p className="text-xs italic text-ink-brown/50">Доступен с 3 уровня.</p>
+                <p className="text-xs italic text-ink-brown/50">{t('cc.ctor.subclassFrom3')}</p>
               )}
             </StepCard>
           )}
 
-          <StepCard n={5} title="Предыстория">
-            <PickButton label={view.backgroundName || 'Выбрать предысторию'} onClick={() => setPicker('background')} />
-            {bg?.feat && <p className="mt-1 text-xs text-ink-brown/60">Черта: <b>{bg.feat}</b></p>}
+          <StepCard n={5} title={t('cc.ctor.stepBackground')}>
+            <PickButton label={view.backgroundName || t('cc.ctor.pickBackground')} onClick={() => setPicker('background')} />
+            {bg?.feat && <p className="mt-1 text-xs text-ink-brown/60">{t('cc.ctor.featLabel')} <b>{bg.feat}</b></p>}
           </StepCard>
 
-          <StepCard n={6} title="Характеристики">
+          <StepCard n={6} title={t('cc.ctor.stepAbilities')}>
             <AbilityScoreStep sheet={sheet} onChange={onChange} bgTrio={bgTrio} />
           </StepCard>
 
-          <StepCard n={7} title="Навыки">
+          <StepCard n={7} title={t('cc.ctor.stepSkills')}>
             <SkillStep sheet={sheet} onChange={onChange} classSkillsText={cls?.skills} bgSkills={bgSkills} />
           </StepCard>
 
           {expertSlots > 0 && (
-            <StepCard n={8} title="Компетентность">
-              <p className="mb-1 text-[11px] italic text-ink-brown/60">Выберите {expertSlots} {expertSlots === 1 ? 'навык' : 'навыка'}, в которых бонус мастерства удваивается (только среди тех, которыми вы владеете).</p>
+            <StepCard n={8} title={t('cc.ctor.stepExpertise')}>
+              <p className="mb-1 text-[11px] italic text-ink-brown/60">{t('cc.ctor.expertiseHint', { n: expertSlots, skill: expertSlots === 1 ? t('cc.ctor.skillSingular') : t('cc.ctor.skillFew') })}</p>
               {proficientSkills.length === 0 ? (
-                <p className="text-[11px] italic text-accent/70">Сначала отметьте навыки владения в шаге «Навыки».</p>
+                <p className="text-[11px] italic text-accent/70">{t('cc.ctor.expertiseNoProf')}</p>
               ) : (
                 <ChoiceList
                   options={proficientSkills.map((sk) => ({ key: sk, name: sk }))}
@@ -176,21 +179,21 @@ export default function CharacterConstructor({
             </StepCard>
           )}
 
-          <StepCard n={9} title="Хиты">
+          <StepCard n={9} title={t('cc.ctor.stepHp')}>
             <HpStep sheet={sheet} onChange={onChange} hitDie={cls?.hitDie} conMod={view.mods.con} />
           </StepCard>
 
-          <StepCard n={10} title="Снаряжение, оружие и атаки">
-            <p className="mb-1 text-[11px] italic text-ink-brown/60">Купленное оружие автоматически появляется в атаках листа (фехтовальное — по лучшей из Силы/Ловкости).</p>
+          <StepCard n={10} title={t('cc.ctor.stepEquipment')}>
+            <p className="mb-1 text-[11px] italic text-ink-brown/60">{t('cc.ctor.equipmentHint')}</p>
             <InventoryStep sheet={sheet} onChange={onChange} classId={cls?.id} bgEquipment={bg?.equipment} />
           </StepCard>
 
           {choiceFeatures.length > 0 && (
-            <StepCard n={11} title="Выбор классовых умений">
+            <StepCard n={11} title={t('cc.ctor.stepClassChoices')}>
               <div className="space-y-3">
                 {choiceFeatures.map((f) => (
                   <div key={f.name}>
-                    <div className="text-sm font-semibold text-accent">{f.level ? `${f.level} ур. ` : ''}{f.name}</div>
+                    <div className="text-sm font-semibold text-accent">{f.level ? t('cc.ctor.levelPrefix', { n: f.level }) : ''}{f.name}</div>
                     <div className="mt-1 space-y-1">
                       {f.choices!.map((o) => {
                         const active = sheet.featureChoices?.[f.name] === o.name
@@ -206,7 +209,7 @@ export default function CharacterConstructor({
                         )
                       })}
                     </div>
-                    {!sheet.featureChoices?.[f.name] && <p className="mt-0.5 text-[11px] italic text-accent/70">Сделайте выбор.</p>}
+                    {!sheet.featureChoices?.[f.name] && <p className="mt-0.5 text-[11px] italic text-accent/70">{t('cc.ctor.makeChoice')}</p>}
                   </div>
                 ))}
               </div>
@@ -214,7 +217,7 @@ export default function CharacterConstructor({
           )}
 
           {view.featSlots > 0 && (
-            <StepCard n={12} title="Черты">
+            <StepCard n={12} title={t('cc.ctor.stepFeats')}>
               <ChoiceList
                 options={FEAT_BUILDS.map((f) => ({ key: f.id, name: f.name, desc: f.desc, group: featCategory(f) }))}
                 selected={sheet.chosenFeatIds ?? []}
@@ -226,7 +229,7 @@ export default function CharacterConstructor({
           )}
 
           {metamagicCount(sheet.classId, sheet.level) > 0 && (
-            <StepCard n={13} title="Метамагия">
+            <StepCard n={13} title={t('cc.ctor.stepMetamagic')}>
               <ChoiceList
                 options={METAMAGIC.map((m) => ({ key: m.name, name: m.name, desc: m.desc }))}
                 selected={sheet.metamagic ?? []}
@@ -237,7 +240,7 @@ export default function CharacterConstructor({
           )}
 
           {maneuverCount(sheet.subclassName, sheet.level) > 0 && (
-            <StepCard n={14} title="Боевые приёмы">
+            <StepCard n={14} title={t('cc.ctor.stepManeuvers')}>
               <ChoiceList
                 options={MANEUVERS.map((m) => ({ key: m.name, name: m.name, desc: m.desc }))}
                 selected={sheet.maneuvers ?? []}
@@ -256,10 +259,10 @@ export default function CharacterConstructor({
 
       {picker === 'race' && (
         <PickerModal
-          title="Выбор расы"
+          title={t('cc.ctor.modalRace')}
           items={races}
           selectedId={sheet.raceId}
-          renderDetail={raceDetail}
+          renderDetail={(r) => raceDetail(r, t)}
           onPick={(r) => {
             onChange({ raceId: r.id, raceText: r.name, subraceName: undefined, speed: r.speed })
             setPicker(null)
@@ -269,10 +272,10 @@ export default function CharacterConstructor({
       )}
       {picker === 'class' && (
         <PickerModal
-          title="Выбор класса"
+          title={t('cc.ctor.modalClass')}
           items={classes}
           selectedId={sheet.classId}
-          renderDetail={classDetail}
+          renderDetail={(c) => classDetail(c, t)}
           onPick={(c) => {
             onChange({ classId: c.id, classText: c.name, subclassName: undefined, chosenClassSkills: [] })
             setPicker(null)
@@ -282,10 +285,10 @@ export default function CharacterConstructor({
       )}
       {picker === 'subclass' && (
         <PickerModal
-          title="Выбор подкласса"
+          title={t('cc.ctor.modalSubclass')}
           items={subclassItems}
           selectedId={sheet.subclassName}
-          renderDetail={subclassDetail}
+          renderDetail={(s) => subclassDetail(s, t)}
           onPick={(s) => {
             onChange({ subclassName: s.name })
             setPicker(null)
@@ -295,10 +298,10 @@ export default function CharacterConstructor({
       )}
       {picker === 'background' && (
         <PickerModal
-          title="Выбор предыстории"
+          title={t('cc.ctor.modalBackground')}
           items={backgrounds}
           selectedId={sheet.backgroundId}
-          renderDetail={backgroundDetail}
+          renderDetail={(b) => backgroundDetail(b, t)}
           onPick={(b) => {
             onChange({ backgroundId: b.id, backgroundText: b.name, backgroundIncreases: {} })
             setPicker(null)
@@ -340,11 +343,11 @@ function Fmt({ text }: { text?: string }): JSX.Element {
   return <span dangerouslySetInnerHTML={{ __html: markupToHtml(text) }} />
 }
 
-function raceDetail(r: RaceBuild): JSX.Element {
+function raceDetail(r: RaceBuild, t: TFunction): JSX.Element {
   return (
     <div className="text-sm text-ink-brown">
       <p className="italic text-ink-brown/70">{r.asi}</p>
-      <p className="mt-1 text-xs text-ink-brown/60">Размер: {r.size} · Скорость: {r.speed} фт · Языки: {r.langs}</p>
+      <p className="mt-1 text-xs text-ink-brown/60">{t('cc.ctor.size')} {r.size} · {t('cc.ctor.speed')} {r.speed} {t('cc.ctor.feet')} · {t('cc.ctor.languages')} {r.langs}</p>
       <ul className="mt-2 space-y-1">
         {r.traits.map((t) => (
           <li key={t.name}>
@@ -356,7 +359,7 @@ function raceDetail(r: RaceBuild): JSX.Element {
   )
 }
 
-function classDetail(c: ClassBuild): JSX.Element {
+function classDetail(c: ClassBuild, t: TFunction): JSX.Element {
   const prog = CLASS_PROGRESSION[c.id]
   // Resource columns = the progression's declared columns plus any extra keys
   // present in the rows (e.g. casters carry "Макс. ур. ячеек").
@@ -364,21 +367,21 @@ function classDetail(c: ClassBuild): JSX.Element {
   const colKeys = prog ? [...prog.columns, ...extraKeys] : []
   return (
     <div className="text-sm text-ink-brown">
-      <p className="text-xs text-ink-brown/70">Кость хитов 1{c.hitDie} · Спасброски: {c.saves}</p>
-      <p className="mt-0.5 text-xs text-ink-brown/70">Доспехи: {c.armor} · Оружие: {c.weapons}</p>
-      <p className="mt-0.5 text-xs text-ink-brown/70">Навыки: {c.skills}</p>
+      <p className="text-xs text-ink-brown/70">{t('cc.ctor.hitDie')} 1{c.hitDie} · {t('cc.ctor.saves')} {c.saves}</p>
+      <p className="mt-0.5 text-xs text-ink-brown/70">{t('cc.ctor.armor')} {c.armor} · {t('cc.ctor.weapons')} {c.weapons}</p>
+      <p className="mt-0.5 text-xs text-ink-brown/70">{t('cc.ctor.skills')} {c.skills}</p>
 
       {prog && (
         <div className="mt-2 overflow-x-auto rounded border border-ink-brown/15">
           <table className="w-full border-collapse text-[10px] leading-tight">
             <thead>
               <tr className="border-b border-ink-brown/40 bg-parchment-dark/40 text-ink-brown/70">
-                <th className="px-1.5 py-1 text-left">Ур.</th>
-                <th className="px-1 py-1" title="Бонус мастерства">БМ</th>
+                <th className="px-1.5 py-1 text-left">{t('cc.ctor.thLevel')}</th>
+                <th className="px-1 py-1" title={t('cc.ctor.proficiencyBonusFull')}>{t('cc.ctor.thPb')}</th>
                 {colKeys.map((k) => (
                   <th key={k} className="px-1 py-1">{k}</th>
                 ))}
-                <th className="px-1.5 py-1 text-left">Умения</th>
+                <th className="px-1.5 py-1 text-left">{t('cc.ctor.thFeatures')}</th>
               </tr>
             </thead>
             <tbody>
@@ -389,7 +392,7 @@ function classDetail(c: ClassBuild): JSX.Element {
                   {colKeys.map((k) => (
                     <td key={k} className="px-1 py-0.5 text-center">{r.cols?.[k] ?? '—'}</td>
                   ))}
-                  <td className="px-1.5 py-0.5">{r.features === 'ASI' ? 'Развитие характеристики (черта)' : r.features}</td>
+                  <td className="px-1.5 py-0.5">{r.features === 'ASI' ? t('cc.ctor.asiFeat') : r.features}</td>
                 </tr>
               ))}
             </tbody>
@@ -400,7 +403,7 @@ function classDetail(c: ClassBuild): JSX.Element {
       <ul className="mt-2 space-y-1">
         {c.features.map((f) => (
           <li key={`${f.level}-${f.name}`}>
-            <b className="text-accent">{f.level ? `${f.level} ур. ` : ''}{f.name}.</b> <Fmt text={f.desc} />
+            <b className="text-accent">{f.level ? t('cc.ctor.levelPrefix', { n: f.level }) : ''}{f.name}.</b> <Fmt text={f.desc} />
           </li>
         ))}
       </ul>
@@ -408,14 +411,14 @@ function classDetail(c: ClassBuild): JSX.Element {
   )
 }
 
-function subclassDetail(s: SubclassItem): JSX.Element {
+function subclassDetail(s: SubclassItem, t: TFunction): JSX.Element {
   return (
     <div className="text-sm text-ink-brown">
       {s.meta && <p className="italic text-ink-brown/60"><Fmt text={s.meta} /></p>}
       <ul className="mt-1 space-y-1">
         {s.features.map((f) => (
           <li key={f.name}>
-            <b className="text-accent">{f.level ? `${f.level} ур. ` : ''}{f.name}.</b> <Fmt text={f.desc} />
+            <b className="text-accent">{f.level ? t('cc.ctor.levelPrefix', { n: f.level }) : ''}{f.name}.</b> <Fmt text={f.desc} />
           </li>
         ))}
       </ul>
@@ -423,14 +426,14 @@ function subclassDetail(s: SubclassItem): JSX.Element {
   )
 }
 
-function backgroundDetail(b: BackgroundBuild): JSX.Element {
+function backgroundDetail(b: BackgroundBuild, t: TFunction): JSX.Element {
   return (
     <div className="text-sm text-ink-brown">
-      {b.abilities && <p className="text-xs text-ink-brown/70">Характеристики: {b.abilities}</p>}
-      <p className="text-xs text-ink-brown/70">Навыки: {b.skills}</p>
-      {b.tools && <p className="text-xs text-ink-brown/70">Инструменты: {b.tools}</p>}
-      {b.feat && <p className="text-xs text-ink-brown/70">Черта: {b.feat}</p>}
-      <p className="mt-1 text-xs text-ink-brown/70">Снаряжение: {b.equipment}</p>
+      {b.abilities && <p className="text-xs text-ink-brown/70">{t('cc.ctor.abilities')} {b.abilities}</p>}
+      <p className="text-xs text-ink-brown/70">{t('cc.ctor.skills')} {b.skills}</p>
+      {b.tools && <p className="text-xs text-ink-brown/70">{t('cc.ctor.tools')} {b.tools}</p>}
+      {b.feat && <p className="text-xs text-ink-brown/70">{t('cc.ctor.feat')} {b.feat}</p>}
+      <p className="mt-1 text-xs text-ink-brown/70">{t('cc.ctor.equipment')} {b.equipment}</p>
       {b.lore && <p className="mt-2 italic text-ink-brown/80"><Fmt text={b.lore} /></p>}
     </div>
   )

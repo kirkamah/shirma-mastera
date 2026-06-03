@@ -1,7 +1,9 @@
 import { useMemo, type JSX } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { StatBlock } from '@shared/types'
 import type { SortMode } from '../utils/filters'
 import MonsterTile from './MonsterTile'
+import { monTypeLabel } from '../data/bestiary-ru'
 
 interface Props {
   monsters: StatBlock[]
@@ -18,9 +20,9 @@ interface Props {
 
 /** The group a monster falls into for the current sort. The list is already
  *  sorted, so monsters sharing a key are contiguous. */
-function groupOf(m: StatBlock, sort: SortMode): { key: string; label: string } {
-  if (sort === 'type') return { key: m.type || '—', label: m.type || '—' }
-  if (sort === 'cr-asc' || sort === 'cr-desc') return { key: String(m.challengeRating), label: `ПО ${m.crDisplay}` }
+function groupOf(m: StatBlock, sort: SortMode, lang: string, crLabel: string): { key: string; label: string } {
+  if (sort === 'type') return { key: m.type || '—', label: monTypeLabel(m.type || '—', lang) }
+  if (sort === 'cr-asc' || sort === 'cr-desc') return { key: String(m.challengeRating), label: `${crLabel} ${m.crDisplay}` }
   // name (and any default) — group by first letter
   const ch = (m.name.trim()[0] ?? '#').toUpperCase()
   return { key: ch, label: ch }
@@ -30,6 +32,8 @@ function groupOf(m: StatBlock, sort: SortMode): { key: string; label: string } {
  *  rendered by a memoized component so changing one monster's pick state
  *  or selection doesn't force every other tile to repaint. */
 export default function MonsterGrid({ monsters, selectedKey, onSelect, pickedKeys, onPick, sort }: Props): JSX.Element {
+  const { t, i18n } = useTranslation()
+  const lang = i18n.language
   const tile = (m: StatBlock): JSX.Element => (
     <MonsterTile
       key={m.key}
@@ -48,7 +52,7 @@ export default function MonsterGrid({ monsters, selectedKey, onSelect, pickedKey
     if (!sort) return null
     const out: { key: string; label: string; items: StatBlock[] }[] = []
     for (const m of monsters) {
-      const g = groupOf(m, sort)
+      const g = groupOf(m, sort, lang, t('bestiary.cr'))
       const last = out[out.length - 1]
       if (last && last.key === g.key) last.items.push(m)
       else out.push({ key: g.key, label: g.label, items: [m] })

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type JSX } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { IconType } from 'react-icons'
 import {
   GiTrashCan,
@@ -6,12 +7,9 @@ import {
   GiQuillInk,
   GiDiceTwentyFacesTwenty,
   GiSpellBook,
-  GiRun,
   GiCrossedSwords,
   GiCompass,
-  GiNightSleep,
   GiCampCookingPot,
-  GiCampingTent,
   GiRollingDices
 } from 'react-icons/gi'
 import PageFrame from '../components/PageFrame'
@@ -22,7 +20,13 @@ import { useCustom } from '../hooks/useCustom'
 import { useNav } from '../store/nav'
 import { confirmDialog } from '../store/dialog'
 import { uid } from '../utils/monster'
-import { OPTIONAL_RULES, RULE_CATEGORIES, type OptionalRule, type RuleBlock } from '../data/optional-rules'
+import {
+  RULE_CATEGORIES,
+  rulesFor,
+  ruleCategoryLabel,
+  type OptionalRule,
+  type RuleBlock
+} from '../data/optional-rules'
 
 /** Stored shape of a homebrew rule entry. */
 interface CustomRule {
@@ -32,24 +36,15 @@ interface CustomRule {
   desc: string
 }
 
-const RULE_FIELDS: FormField[] = [
-  { key: 'name', label: 'Название правила', placeholder: 'напр. Мини-игра «Готовка»' },
-  { key: 'tag', label: 'Подзаголовок (необязательно)', placeholder: 'категория, тип проверки и т. п.' },
-  { key: 'desc', label: 'Текст правила', type: 'textarea' }
-]
-
 const CUSTOM_CATEGORY = 'Мои правила'
 
-/** Icon shown on each category tab (mirrors the Hazards page layout). */
+/** Icon shown on each category tab (keyed by the RU category label). */
 const CATEGORY_ICONS: Record<string, IconType> = {
-  'Основы': GiDiceTwentyFacesTwenty,
+  'Основы и развитие': GiDiceTwentyFacesTwenty,
+  'Бой и движение': GiCrossedSwords,
   'Магия': GiSpellBook,
-  'Движение и положение': GiRun,
-  'Бой и позиция': GiCrossedSwords,
-  'Окружение и выживание': GiCompass,
-  'Отдых и здоровье': GiNightSleep,
-  'Выживание и ремёсла': GiCampCookingPot,
-  'Лагерь и база': GiCampingTent,
+  'Окружение и отдых': GiCompass,
+  'Ремёсла и лагерь': GiCampCookingPot,
   'Азартные игры': GiRollingDices,
   [CUSTOM_CATEGORY]: GiQuillInk
 }
@@ -58,6 +53,7 @@ const CATEGORY_TABS: string[] = [...RULE_CATEGORIES, CUSTOM_CATEGORY]
 /** A table rendered as a page of a tome, with a clickable header that collapses
  *  the body — handy for very long tables. */
 function TableBlock({ block, label }: { block: Extract<RuleBlock, { type: 'table' }>; label: string }): JSX.Element {
+  const { t } = useTranslation()
   const [open, setOpen] = useState(true)
   // Centre columns whose every cell is short (numbers, СЛ, выплаты); keep prose left-aligned.
   const aligns = block.head.map((_, ci) =>
@@ -75,10 +71,10 @@ function TableBlock({ block, label }: { block: Extract<RuleBlock, { type: 'table
       >
         <span className="flex items-center gap-1.5">
           <span className="text-[10px]">{open ? '▼' : '►'}</span>
-          {block.caption ?? 'Таблица'}
+          {block.caption ?? t('rules.tableFallback')}
         </span>
         <span className="text-[10px] font-normal normal-case tracking-normal text-ink-brown/50">
-          {open ? 'свернуть' : `${block.rows.length} строк`}
+          {open ? t('rules.collapse') : `${block.rows.length} ${t('rules.rowsLabel')}`}
         </span>
       </button>
       {open && (
@@ -118,6 +114,7 @@ function TableBlock({ block, label }: { block: Extract<RuleBlock, { type: 'table
 
 /** Renders one structured block of a built-in rule, styled like a page of a tome. */
 function Block({ block, label, dropCap }: { block: RuleBlock; label: string; dropCap?: boolean }): JSX.Element {
+  const { t } = useTranslation()
   switch (block.type) {
     case 'h':
       return (
@@ -146,7 +143,7 @@ function Block({ block, label, dropCap }: { block: RuleBlock; label: string; dro
       return (
         <div className="rounded-md border border-gold/40 bg-gold/10 px-4 py-3 shadow-sm">
           <div className="mb-1 flex items-center gap-1.5 font-serif text-[11px] font-semibold uppercase tracking-widest text-accent/80">
-            <GiQuillInk className="shrink-0" /> Примечание Мастера
+            <GiQuillInk className="shrink-0" /> {t('rules.gmNote')}
           </div>
           <p className="text-[14px] italic leading-relaxed text-ink-brown/90">
             <DiceText text={block.text} label={label} />
@@ -159,6 +156,7 @@ function Block({ block, label, dropCap }: { block: RuleBlock; label: string; dro
 }
 
 function RuleDetail({ rule }: { rule: OptionalRule }): JSX.Element {
+  const { t } = useTranslation()
   // Only the very first paragraph gets the illuminated drop-cap.
   const firstParaIdx = rule.blocks.findIndex((b) => b.type === 'p')
   return (
@@ -166,12 +164,12 @@ function RuleDetail({ rule }: { rule: OptionalRule }): JSX.Element {
       <header className="text-center">
         {rule.homebrew && (
           <span className="mb-2 inline-block rounded-full border border-gold/50 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-gold">
-            Хоумбрю
+            {t('rules.homebrew')}
           </span>
         )}
         {rule.official && (
           <span className="mb-2 inline-block rounded-full border border-emerald-700/50 bg-emerald-700/10 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-emerald-800">
-            Официально
+            {t('rules.official')}
           </span>
         )}
         <h2 className="font-serif text-4xl font-bold leading-tight text-accent">{rule.name}</h2>
@@ -188,23 +186,32 @@ function RuleDetail({ rule }: { rule: OptionalRule }): JSX.Element {
 }
 
 export default function OptionalRules(): JSX.Element {
+  const { t, i18n } = useTranslation()
+  const lang = i18n.language
   const { items: rules, save, remove } = useCustom<CustomRule>('rule')
   const [editing, setEditing] = useState<{ key: string | null; values: FormValues } | null>(null)
   const [cat, setCat] = useState<string>(RULE_CATEGORIES[0])
-  const [selectedId, setSelectedId] = useState<string>(OPTIONAL_RULES[0]?.id ?? '')
+  const builtins = useMemo(() => rulesFor(lang), [lang])
+  const [selectedId, setSelectedId] = useState<string>(builtins[0]?.id ?? '')
   const pending = useNav((s) => s.pending)
   const clearPending = useNav((s) => s.clear)
+
+  const RULE_FIELDS: FormField[] = [
+    { key: 'name', label: t('rules.fName'), placeholder: t('rules.fNamePh') },
+    { key: 'tag', label: t('rules.fTag'), placeholder: t('rules.fTagPh') },
+    { key: 'desc', label: t('rules.fDesc'), type: 'textarea' }
+  ]
 
   // Selection from global search: jump to the rule's category tab, then select it.
   useEffect(() => {
     if (pending?.section !== 'rules') return
-    const b = OPTIONAL_RULES.find((r) => r.id === pending.key)
+    const b = builtins.find((r) => r.id === pending.key)
     setCat(b ? b.category : CUSTOM_CATEGORY)
     setSelectedId(pending.key)
     clearPending()
-  }, [pending, clearPending])
+  }, [pending, clearPending, builtins])
 
-  const builtin = useMemo(() => OPTIONAL_RULES.find((r) => r.id === selectedId) ?? null, [selectedId])
+  const builtin = useMemo(() => builtins.find((r) => r.id === selectedId) ?? null, [builtins, selectedId])
   const customSelected = useMemo(() => rules.find((r) => r.key === selectedId) ?? null, [rules, selectedId])
 
   // Items shown in the sidebar for the active tab.
@@ -212,13 +219,13 @@ export default function OptionalRules(): JSX.Element {
     () =>
       cat === CUSTOM_CATEGORY
         ? rules.map((r) => ({ id: r.key, name: r.name, tag: r.tag }))
-        : OPTIONAL_RULES.filter((r) => r.category === cat).map((r) => ({ id: r.id, name: r.name, tag: r.tag })),
-    [cat, rules]
+        : builtins.filter((r) => r.category === cat).map((r) => ({ id: r.id, name: r.name, tag: r.tag })),
+    [cat, rules, builtins]
   )
 
   const pickCat = (c: string): void => {
     setCat(c)
-    const first = c === CUSTOM_CATEGORY ? rules[0]?.key : OPTIONAL_RULES.find((r) => r.category === c)?.id
+    const first = c === CUSTOM_CATEGORY ? rules[0]?.key : builtins.find((r) => r.category === c)?.id
     setSelectedId(first ?? '')
   }
 
@@ -226,14 +233,14 @@ export default function OptionalRules(): JSX.Element {
 
   return (
     <PageFrame
-      title="Правила"
-      subtitle="Базовые правила игры, дополнительные своды и ваши домашние правила"
+      title={t('rules.title')}
+      subtitle={t('rules.subtitle')}
       actions={
         <button
           onClick={handleAdd}
           className="rounded bg-accent px-3 py-1.5 text-sm font-semibold text-parchment hover:bg-accent/80"
         >
-          + Правило
+          {t('rules.addBtn')}
         </button>
       }
     >
@@ -248,7 +255,7 @@ export default function OptionalRules(): JSX.Element {
                 cat === c ? 'bg-accent text-parchment' : 'border border-ink-brown/30 text-ink-brown/80 hover:border-accent/60'
               }`}
             >
-              {Icon && <Icon className="text-base" />} {c}
+              {Icon && <Icon className="text-base" />} {ruleCategoryLabel(c, lang)}
             </button>
           )
         })}
@@ -273,7 +280,7 @@ export default function OptionalRules(): JSX.Element {
           </ul>
           {cat === CUSTOM_CATEGORY && rules.length === 0 && (
             <p className="px-3 py-2 text-[11px] italic leading-snug text-ink-brown/40">
-              Нажмите «+ Правило», чтобы добавить своё.
+              {t('rules.customEmpty')}
             </p>
           )}
         </div>
@@ -296,19 +303,19 @@ export default function OptionalRules(): JSX.Element {
                         values: { name: customSelected.name, tag: customSelected.tag ?? '', desc: customSelected.desc }
                       })
                     }
-                    title="Редактировать"
+                    title={t('common.edit')}
                     className="rounded border border-accent/50 px-2 py-1 text-xs text-accent hover:bg-accent/10"
                   >
                     ✎
                   </button>
                   <button
                     onClick={async () => {
-                      if (await confirmDialog({ title: 'Удалить', message: `Удалить «${customSelected.name}»?`, danger: true, confirmText: 'Удалить' })) {
+                      if (await confirmDialog({ title: t('rules.deleteTitle'), message: t('rules.deleteConfirm', { name: customSelected.name }), danger: true, confirmText: t('rules.deleteBtn') })) {
                         remove(customSelected.key)
                         setSelectedId(rules.find((r) => r.key !== customSelected.key)?.key ?? '')
                       }
                     }}
-                    title="Удалить"
+                    title={t('rules.deleteTitle')}
                     className="rounded border border-accent/40 px-2 py-1 text-xs text-accent hover:bg-accent/10"
                   >
                     <GiTrashCan />
@@ -323,7 +330,7 @@ export default function OptionalRules(): JSX.Element {
           ) : (
             <div className="flex h-full flex-col items-center justify-center gap-3 text-center text-ink-brown/50">
               <GiScrollQuill className="text-6xl text-ink-brown/30" />
-              <p className="max-w-md text-sm leading-relaxed">Выберите правило слева или создайте своё.</p>
+              <p className="max-w-md text-sm leading-relaxed">{t('rules.selectPrompt')}</p>
             </div>
           )}
         </div>
@@ -331,14 +338,14 @@ export default function OptionalRules(): JSX.Element {
 
       {editing && (
         <CustomFormDialog
-          title={editing.key === null ? 'Новое правило' : 'Редактировать правило'}
+          title={editing.key === null ? t('rules.newRule') : t('rules.editRule')}
           fields={RULE_FIELDS}
           initial={editing.values}
           allowCopy={editing.key !== null}
           extraContent={<FormatHelp />}
           onSave={(v, mode) => {
-            const base = editing.key
-            const k = mode === 'copy' || base === null ? uid('crule') : base
+            const editKey = editing.key
+            const k = mode === 'copy' || editKey === null ? uid('crule') : editKey
             const name =
               mode === 'copy' && !/\(копия\)/i.test(String(v.name))
                 ? `${v.name} (копия)`

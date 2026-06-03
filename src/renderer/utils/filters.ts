@@ -12,11 +12,19 @@ export interface Filters {
   types: string[]
   habitats: string[]
   alignments: string[]
+  /** Per-movement-mode constraint: 'has' = creature must have that speed,
+   *  'no' = must NOT have it. Modes absent from the map are unconstrained. */
+  speeds: Record<string, 'has' | 'no'>
   /** Show class-based enemy NPCs (Воин/Жрец/Маг… by level) in the bestiary.
    *  When false (default), they're hidden from the general list. */
   showClassEnemies: boolean
   sort: SortMode
 }
+
+/** Movement modes offered by the «способ перемещения» filter. Order = display
+ *  order. `walk` is useful for finding creatures that lack a ground speed
+ *  (e.g. purely flying or swimming creatures). */
+export const MOVE_MODES = ['walk', 'fly', 'swim', 'climb', 'burrow'] as const
 
 export const DEFAULT_FILTERS: Filters = {
   text: '',
@@ -26,6 +34,7 @@ export const DEFAULT_FILTERS: Filters = {
   types: [],
   habitats: [],
   alignments: [],
+  speeds: {},
   showClassEnemies: false,
   sort: 'name'
 }
@@ -72,6 +81,11 @@ export function applyFilters(list: StatBlock[], f: Filters): StatBlock[] {
     if (typeSet.length && !typeSet.includes(m.type.toLowerCase())) return false
     if (f.habitats.length && !f.habitats.some((h) => m.environments.includes(h))) return false
     if (f.alignments.length && !f.alignments.some((a) => m.alignment.toLowerCase().includes(a.toLowerCase()))) return false
+    for (const mode in f.speeds) {
+      const has = (m.speed?.[mode] ?? 0) > 0
+      if (f.speeds[mode] === 'has' && !has) return false
+      if (f.speeds[mode] === 'no' && has) return false
+    }
     if (!f.showClassEnemies && enemyClassOf(m.name)) return false
     return true
   })

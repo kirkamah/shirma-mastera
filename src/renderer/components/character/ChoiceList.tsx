@@ -1,4 +1,5 @@
 import { useMemo, useState, type JSX } from 'react'
+import { useTranslation } from 'react-i18next'
 import { markupToHtml } from '../../utils/markup'
 
 export interface Choice {
@@ -24,6 +25,7 @@ export default function ChoiceList({
   onChange: (next: string[]) => void
   searchable?: boolean
 }): JSX.Element {
+  const { t } = useTranslation()
   const [q, setQ] = useState('')
   const full = selected.length >= max
   const toggle = (key: string): void => {
@@ -66,9 +68,9 @@ export default function ChoiceList({
 
   return (
     <div className="space-y-1 text-sm">
-      <p className="text-xs text-ink-brown/70">Выбрано <b className="text-accent">{selected.length}/{max}</b></p>
+      <p className="text-xs text-ink-brown/70">{t('cc.choice.selected')} <b className="text-accent">{selected.length}/{max}</b></p>
       {searchable && (
-        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Поиск…" className="w-full rounded border border-ink-brown/30 bg-parchment/60 px-2 py-1 text-sm focus:border-accent focus:outline-none" />
+        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('cc.choice.searchPlaceholder')} className="w-full rounded border border-ink-brown/30 bg-parchment/60 px-2 py-1 text-sm focus:border-accent focus:outline-none" />
       )}
       <div className="max-h-56 overflow-y-auto rounded border border-ink-brown/15">
         {grouped

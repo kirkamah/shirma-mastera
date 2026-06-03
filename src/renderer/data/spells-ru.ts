@@ -1,5 +1,6 @@
 import type { Spell } from '@shared/types'
 import { parseSpells } from './compact'
+import { SPELL_EN } from './spells-en'
 
 // Curated, hand-translated Russian spells — the offline primary source for the
 // Spells section. Dice are in "к" notation so Quick Roll works. Extend freely.
@@ -818,4 +819,74 @@ for (const [alias, canonical] of Object.entries(SPELL_ALIASES)) {
 
 export function spellByName(name: string): Spell | undefined {
   return SPELL_INDEX.get(name.trim().toLowerCase())
+}
+
+// ════════════════════════════ English (EN) overlay ════════════════════════════
+// RU stays the source of truth. `spellsFor('en')` overlays the free-text fields
+// (name/desc/higher + casting-time/range/components/duration) from SPELL_EN, keyed
+// by RU name; the `school` field is KEPT in Russian so school visuals/grouping keep
+// working — localise it for display with `spellSchoolLabel`. Untranslated spells
+// fall back to RU. The Open5e tab is already English, so it isn't touched.
+const isEnSp = (lang: string): boolean => lang.startsWith('en')
+
+const SPELL_SCHOOL_EN: Record<string, string> = {
+  'Воплощение': 'Evocation',
+  'Вызов': 'Conjuration',
+  'Преобразование': 'Transmutation',
+  'Прорицание': 'Divination',
+  'Очарование': 'Enchantment',
+  'Иллюзия': 'Illusion',
+  'Некромантия': 'Necromancy',
+  'Ограждение': 'Abjuration'
+}
+
+const SPELL_CLASS_EN: Record<string, string> = {
+  'Волшебник': 'Wizard',
+  'Чародей': 'Sorcerer',
+  'Жрец': 'Cleric',
+  'Друид': 'Druid',
+  'Бард': 'Bard',
+  'Паладин': 'Paladin',
+  'Следопыт': 'Ranger',
+  'Колдун': 'Warlock',
+  'Изобретатель': 'Artificer',
+  'Варвар': 'Barbarian',
+  'Воин': 'Fighter',
+  'Монах': 'Monk',
+  'Плут': 'Rogue'
+}
+
+/** Localised school name (RU fallback). RU value stays the logic/visual key. */
+export function spellSchoolLabel(school: string, lang: string): string {
+  return isEnSp(lang) ? SPELL_SCHOOL_EN[school] ?? school : school
+}
+
+/** Localised class name (RU fallback). */
+export function spellClassLabel(c: string, lang: string): string {
+  return isEnSp(lang) ? SPELL_CLASS_EN[c] ?? c : c
+}
+
+/** Localised level label: "Заговор"/"3 уровень" or "Cantrip"/"Level 3". */
+export function spellLevelLabel(level: number, lang: string): string {
+  if (isEnSp(lang)) return level === 0 ? 'Cantrip' : `Level ${level}`
+  return level === 0 ? 'Заговор' : `${level} уровень`
+}
+
+/** Spell list in the requested language; untranslated spells fall back to RU. */
+export function spellsFor(lang: string): Spell[] {
+  if (!isEnSp(lang)) return RU_SPELLS
+  return RU_SPELLS.map((s) => {
+    const o = SPELL_EN[s.name]
+    if (!o) return s
+    return {
+      ...s,
+      name: o.name || s.name,
+      desc: o.desc || s.desc,
+      higherLevel: o.higher || s.higherLevel,
+      castingTime: o.time || s.castingTime,
+      rangeText: o.range || s.rangeText,
+      components: o.comp || s.components,
+      duration: o.duration || s.duration
+    }
+  })
 }

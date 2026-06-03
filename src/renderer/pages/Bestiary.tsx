@@ -8,7 +8,7 @@ import MonsterGrid from '../components/MonsterGrid'
 import StatBlock from '../components/StatBlock'
 import Modal from '../components/Modal'
 import { applyFilters, collectOptions, DEFAULT_FILTERS, type Filters } from '../utils/filters'
-import { RU_BESTIARY } from '../data/bestiary-ru'
+import { monstersFor } from '../data/bestiary-ru'
 import { useNav } from '../store/nav'
 import { useInitiative } from '../store/initiative'
 import { useUi } from '../store/ui'
@@ -16,7 +16,8 @@ import { rollD20 } from '../utils/roll'
 import type { StatBlock as SB } from '@shared/types'
 
 export default function Bestiary(): JSX.Element {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const lang = i18n.language
   const navigate = useNavigate()
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS)
   const [selected, setSelected] = useState<SB | null>(null)
@@ -37,7 +38,7 @@ export default function Bestiary(): JSX.Element {
       setOverrides(map)
     })
   }, [])
-  const ruBestiary = useMemo(() => RU_BESTIARY.map((mon) => overrides[mon.key] ?? mon), [overrides])
+  const ruBestiary = useMemo(() => monstersFor(lang).map((mon) => overrides[mon.key] ?? mon), [overrides, lang])
 
   const pickedKeys = useMemo(() => new Set(Object.keys(picked)), [picked])
   const pickedCount = Object.keys(picked).length
@@ -80,28 +81,28 @@ export default function Bestiary(): JSX.Element {
   }
 
   return (
-    <PageFrame title={t('bestiary.title')} subtitle={`${ruBestiary.length} существ · оффлайн`}>
+    <PageFrame title={t('bestiary.title')} subtitle={t('bestiary.countOffline', { n: ruBestiary.length })}>
       <SearchPanel filters={filters} onChange={setFilters} habitatOptions={options.habitats} alignmentOptions={options.alignments} classEnemyToggle />
 
       <div className="mt-2 flex items-center gap-3 text-xs text-ink-brown/60">
         <span>{filtered.length}</span>
-        {pickedCount === 0 && <span className="italic">ПКМ по существу — выбрать несколько для боя</span>}
+        {pickedCount === 0 && <span className="italic">{t('bestiary.multiHint')}</span>}
       </div>
 
       {pickedCount > 0 && (
         <div className="mt-1 flex items-center gap-2 rounded-md border border-accent/40 bg-accent/10 px-3 py-1.5 text-sm">
-          <span className="font-semibold text-accent">Выбрано существ: {pickedCount}</span>
+          <span className="font-semibold text-accent">{t('bestiary.picked', { n: pickedCount })}</span>
           <button
             onClick={addPickedToCombat}
             className="inline-flex items-center gap-1.5 rounded border border-accent bg-accent px-3 py-1 text-xs font-bold text-parchment hover:bg-accent/80"
           >
-            <GiCrossedSwords /> Всех в инициативу
+            <GiCrossedSwords /> {t('bestiary.allToInit')}
           </button>
           <button
             onClick={() => setPicked({})}
             className="rounded border border-ink-brown/30 px-3 py-1 text-xs text-ink-brown/80 hover:bg-black/5"
           >
-            Снять выделение
+            {t('bestiary.clearSel')}
           </button>
         </div>
       )}

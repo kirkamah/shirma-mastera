@@ -5,6 +5,7 @@ import type { NamedEntry, StatBlock as SB } from '@shared/types'
 import DiceText from './DiceText'
 import SpellcastingBlock from './SpellcastingBlock'
 import Portrait, { emblemForMonster } from './Portrait'
+import { monSizeLabel, monTypeLabel, monAlignmentLabel, monSkillLabel, monEnvLabel, monSpeedMode, monFtLabel } from '../data/bestiary-ru'
 import { useInitiative } from '../store/initiative'
 import { useUi } from '../store/ui'
 import { rollD20 } from '../utils/roll'
@@ -94,7 +95,8 @@ interface Props {
 }
 
 export default function StatBlock({ monster: m, header }: Props): JSX.Element {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const lang = i18n.language
   const addCombatant = useInitiative((s) => s.addCombatant)
   const setNotebookTab = useUi((s) => s.setNotebookTab)
 
@@ -105,8 +107,12 @@ export default function StatBlock({ monster: m, header }: Props): JSX.Element {
     setNotebookTab('initiative')
   }
 
+  const ft = monFtLabel(lang)
   const speed = Object.entries(m.speed)
-    .map(([mode, v]) => (SPEED_RU[mode] ? `${SPEED_RU[mode]} ${v} фт.` : `${v} фт.`).trim())
+    .map(([mode, v]) => {
+      const word = lang.startsWith('en') ? monSpeedMode(mode, lang) ?? '' : SPEED_RU[mode] ?? ''
+      return (word ? `${word} ${v} ${ft}` : `${v} ${ft}`).trim()
+    })
     .join(', ')
 
   const saves = ABIL_ORDER.filter((a) => m.savingThrows[a] != null)
@@ -114,7 +120,7 @@ export default function StatBlock({ monster: m, header }: Props): JSX.Element {
     .join(', ')
 
   const skills = Object.entries(m.skills)
-    .map(([slug, b]) => `${SKILL_RU[slug] ?? slug} ${signed(b)}`)
+    .map(([slug, b]) => `${lang.startsWith('en') ? monSkillLabel(slug, lang) : SKILL_RU[slug] ?? slug} ${signed(b)}`)
     .join(', ')
 
   return (
@@ -125,8 +131,8 @@ export default function StatBlock({ monster: m, header }: Props): JSX.Element {
           <div>
             <h2 className="font-serif text-3xl font-bold text-accent">{m.name}</h2>
             <p className="text-sm italic text-ink-brown/70">
-              {m.size}, {m.type}
-              {m.subtype ? ` (${m.subtype})` : ''}, {m.alignment}
+              {monSizeLabel(m.size, lang)}, {monTypeLabel(m.type, lang)}
+              {m.subtype ? ` (${m.subtype})` : ''}, {monAlignmentLabel(m.alignment, lang)}
             </p>
           </div>
         </div>
@@ -198,7 +204,7 @@ export default function StatBlock({ monster: m, header }: Props): JSX.Element {
         <div className="mt-2 flex flex-wrap gap-1">
           {m.environments.map((env) => (
             <span key={env} className="rounded-full bg-accent/15 px-2 py-0.5 text-xs text-accent">
-              {env}
+              {monEnvLabel(env, lang)}
             </span>
           ))}
         </div>

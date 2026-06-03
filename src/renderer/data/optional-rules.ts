@@ -27,30 +27,29 @@ export interface OptionalRule {
   blocks: RuleBlock[]
 }
 
-/** Category order for the sidebar. Core official rules come first, then the
- *  homebrew/optional sets. */
+/** Sidebar category order. Six broad groups (merged from the original ten) so the
+ *  «Правила» tab bar stays compact. The paired constants below collapse onto the
+ *  same label, so every rule keeps its existing `category` value. */
 export const RULE_CATEGORIES = [
-  'Основы',
-  'Развитие персонажа',
-  'Движение и положение',
-  'Бой и позиция',
+  'Основы и развитие',
+  'Бой и движение',
   'Магия',
-  'Окружение и выживание',
-  'Отдых и здоровье',
-  'Выживание и ремёсла',
-  'Лагерь и база',
+  'Окружение и отдых',
+  'Ремёсла и лагерь',
   'Азартные игры'
 ] as const
 
-const BASICS = 'Основы'
-const ADVANCE = 'Развитие персонажа'
-const MOVE = 'Движение и положение'
-const COMBAT = 'Бой и позиция'
+// Two source constants may share one label — that is how the merge works:
+// e.g. former «Основы» + «Развитие персонажа» both land in «Основы и развитие».
+const BASICS = 'Основы и развитие'
+const ADVANCE = 'Основы и развитие'
+const MOVE = 'Бой и движение'
+const COMBAT = 'Бой и движение'
 const MAGIC = 'Магия'
-const ENV = 'Окружение и выживание'
-const REST = 'Отдых и здоровье'
-const SURVIVAL = 'Выживание и ремёсла'
-const CAMP = 'Лагерь и база'
+const ENV = 'Окружение и отдых'
+const REST = 'Окружение и отдых'
+const SURVIVAL = 'Ремёсла и лагерь'
+const CAMP = 'Ремёсла и лагерь'
 const GAMBLING = 'Азартные игры'
 
 export const OPTIONAL_RULES: OptionalRule[] = [
@@ -1613,6 +1612,85 @@ export const OPTIONAL_RULES: OptionalRule[] = [
     ]
   },
 
+  // ─────────────────────────────────────────────────── Поломка снаряжения ──
+  {
+    id: 'equipment-breakage',
+    name: 'Поломка снаряжения',
+    category: SURVIVAL,
+    tag: 'Износ оружия, доспехов и инструментов; почему ценен кузнец',
+    homebrew: true,
+    blocks: [
+      {
+        type: 'p',
+        text: 'Свод для тех, кому хочется «суровее»: снаряжение не вечно. Клинок щербится о латы, тетива лопается, доспех проминается под критическим ударом, а кислота разъедает металл. Правило **необязательное** и заметно повышает напряжение — обсудите его с игроками **до** игры. Взамен оно делает осмысленными запасное оружие, дорогую сталь и услуги кузнеца: снаряжение становится ресурсом, а не данностью.'
+      },
+      { type: 'h', text: 'Когда снаряжение под угрозой' },
+      {
+        type: 'p',
+        text: 'Износ проверяют **только** в момент, когда сработал один из спусковых крючков ниже, — а не каждый удар. В остальное время предметы работают как обычно.'
+      },
+      {
+        type: 'list',
+        items: [
+          '**Оружие** — на броске атаки выпала натуральная **1** (клинок встретил латы, щит или камень).',
+          '**Доспех или щит** — по носителю прошёл **критический удар** (натуральная 20 по нему).',
+          '**Любой предмет** — провален спасбросок против эффекта, который **прямо** портит снаряжение: кислота, сильный жар, удар ржавления (атака ржавого монстра), магия вроде «Жара металла».',
+          '**Инструмент или фокусировка** — натуральная **1** на проверке, где предмет испытывается на прочность (выломать дверь ломом, удержать вес).'
+        ]
+      },
+      { type: 'h', text: 'Проверка прочности' },
+      {
+        type: 'p',
+        text: 'Когда крючок сработал, владелец делает за предмет **проверку прочности**: брось **1к20** и прибавь модификатор качества (см. таблицу) против **СЛ 12**. Успех — предмет выдержал, ничего не происходит. Провал — предмет получает **одну ступень повреждения** (исправен → Повреждён → Сломан).'
+      },
+      {
+        type: 'table',
+        head: ['Качество предмета', 'Модификатор'],
+        rows: [
+          ['Импровизированное, ветхое, трофейный хлам', '−2'],
+          ['Обычное снаряжение из лавки', '+0'],
+          ['Серебряное или из особого сплава', '+2'],
+          ['Мастерской работы (дорогое, именное)', '+4']
+        ],
+        caption: 'Чем лучше вещь, тем легче переживает удар'
+      },
+      { type: 'note', text: '**Героическое вдохновение** или классовая переброска позволяют перебросить и проверку прочности — иногда стоит спасти любимый клинок именно так.' },
+      { type: 'h', text: 'Две ступени: Повреждён и Сломан' },
+      {
+        type: 'list',
+        items: [
+          '**Повреждён** (первая ступень) — предмет ещё служит, но хуже: оружие даёт **−1** к броскам атаки и урона; доспех или щит — **−1** к КД; инструмент или фокусировка — **помеха** на проверки с его участием.',
+          '**Сломан** (вторая ступень) — предмет бесполезен, пока его не починят: сломанное оружие считается импровизированным, сломанный доспех не даёт своей КД (носитель считается без доспеха), сломанный инструмент не работает.',
+          '**Уничтожен** — если *Сломанный* хрупкий предмет (склянка, стеклянная фокусировка, лёгкий лук) проваливает проверку ещё раз, он разлетается безвозвратно. Прочные металлические вещи дальше «Сломан» не деградируют — их всегда можно перековать.'
+        ]
+      },
+      { type: 'h', text: 'Что ломается, а что нет' },
+      {
+        type: 'list',
+        items: [
+          '**Подвержены износу:** оружие, доспехи, щиты, инструменты ремесла и магические фокусировки.',
+          '**Боеприпасы** ступеней не имеют: на натуральной 1 стрела или болт просто **ломается и теряется** (как и при обычном правиле сбора половины боеприпасов).',
+          '**Расходники** (зелья, склянки, свитки) рискуют только от прямого эффекта — огонь, кислота, падение: спасбросок **Ловкости СЛ 10**, иначе содержимое погибло.',
+          '**Не ломаются:** природное оружие и безоружные удары, **магические предметы** и **адамантиновое** снаряжение (они изнашиваются лишь от эффектов, прямо названных в их описании или в источнике урона).',
+          'Сопротивление или иммунитет существа к типу урона (кислота, огонь) **защищает и его снаряжение** от этого источника — проверку прочности делать не нужно.'
+        ]
+      },
+      { type: 'h', text: 'Починка' },
+      {
+        type: 'list',
+        items: [
+          '**Повреждён → исправен:** владея нужным инструментом, потрать **Короткий отдых** и сырьё ценой около **5% стоимости** предмета (минимум 1 зм). Без подходящего инструмента — проверка соответствующих инструментов **СЛ 15**, и только полевая «времянка»: штраф снимается на 1 час.',
+          '**Сломан → исправен:** работа как в правиле «Изготовление предметов и инструментов», но цена сырья и время — **четверть** от создания такого предмета с нуля. Нужен тот же инструмент и владение им.',
+          '**Заговор «Починка» (Mending)** мгновенно устраняет ступень *Повреждён* у небольшого предмета и чинит мелкие трещины, но не возвращает к жизни *Сломанное* боевое снаряжение — для него нужна полноценная кузница или мастер.'
+        ]
+      },
+      {
+        type: 'note',
+        text: 'Дозируйте суровость. Самый мягкий вариант — применять поломку **только на натуральной 1** в бою и **только к оружию**; самый жёсткий — все четыре крючка сразу. Хороший компромисс: износ работает и на врагах (их клинки тоже щербятся), а игрокам всегда доступен запасной комплект и кузнец в ближайшем городе. Не превращайте правило в налог на удачу — оно должно создавать драму «меч сломался в решающий миг», а не отнимать ход за ходом.'
+      }
+    ]
+  },
+
   // ──────────────────────────────────────────────────────────── Рыбалка ──
   {
     id: 'fishing',
@@ -2321,3 +2399,2199 @@ export const OPTIONAL_RULES: OptionalRule[] = [
     ]
   }
 ]
+
+// ════════════════════════════ English (EN) overlay ════════════════════════════
+// RU above stays the source of truth. EN entries are keyed by rule `id` and mirror
+// the RU blocks one-for-one; rules absent here fall back to RU (graceful per-rule).
+// Dice are written `NdN` and DCs `DC N` (both stay interactive — see diceParser).
+// Translated so far: «Основы и развитие» (core) + «Магия». The large homebrew
+// systems (crafts, camp, gambling) still render in RU until translated.
+const isEnRules = (lang: string): boolean => lang.startsWith('en')
+
+const RULE_CATEGORY_EN: Record<string, string> = {
+  'Основы и развитие': 'Fundamentals & Advancement',
+  'Бой и движение': 'Combat & Movement',
+  'Магия': 'Magic',
+  'Окружение и отдых': 'Environment & Rest',
+  'Ремёсла и лагерь': 'Crafts & Camp',
+  'Азартные игры': 'Gambling',
+  'Мои правила': 'My rules'
+}
+
+/** Localised rule-category label (RU fallback). */
+export function ruleCategoryLabel(cat: string, lang: string): string {
+  return isEnRules(lang) ? RULE_CATEGORY_EN[cat] ?? cat : cat
+}
+
+type RuleEn = { name: string; tag?: string; blocks: RuleBlock[] }
+
+const OPTIONAL_RULES_EN: Record<string, RuleEn> = {
+  // ─────────────────────────── Основы и развитие ───────────────────────────
+  'd20-test': {
+    name: 'd20 Test: Advantage and Disadvantage',
+    tag: 'The core roll, proficiency, rounding',
+    blocks: [
+      {
+        type: 'p',
+        text: 'The d20 Test is the single mechanic for ability checks, attack rolls, and saving throws: roll a **d20**, add the relevant ability modifier and, if proficient, your **proficiency bonus**, and compare with the **DC**. Success — the total is **equal to or higher** than the DC.'
+      },
+      { type: 'h', text: 'Advantage and disadvantage' },
+      {
+        type: 'list',
+        items: [
+          '**Advantage** — roll **2d20** and take the higher result.',
+          '**Disadvantage** — roll 2d20 and take the lower.',
+          "Multiple sources of advantage (or disadvantage) **don't stack** — you either have it or you don't.",
+          'If you have both advantage and disadvantage at once, they **cancel out** and you roll a single d20.'
+        ]
+      },
+      { type: 'h', text: 'Natural 20s and 1s' },
+      {
+        type: 'list',
+        items: [
+          'On an **attack roll**: a natural **20** is an automatic hit and a critical hit; a natural **1** is an automatic miss.',
+          'On checks and saving throws, natural 20s and 1s by themselves do **not** grant auto-success or auto-failure.'
+        ]
+      },
+      {
+        type: 'table',
+        head: ['Level', 'Proficiency bonus'],
+        rows: [
+          ['1–4', '+2'],
+          ['5–8', '+3'],
+          ['9–12', '+4'],
+          ['13–16', '+5'],
+          ['17–20', '+6']
+        ],
+        caption: 'Proficiency bonus by level'
+      },
+      { type: 'note', text: '**Rounding** is always **down**, unless a rule explicitly says otherwise.' }
+    ]
+  },
+  'action-economy': {
+    name: 'Action Economy',
+    tag: 'What you can do in a single turn',
+    blocks: [
+      {
+        type: 'p',
+        text: 'On its turn a creature can usually **move**, take **one action**, and — if a feature grants it — **one bonus action**. Movement can be split: part before the action, part after.'
+      },
+      {
+        type: 'list',
+        items: [
+          '**Movement** — up to your Speed; can be broken up.',
+          '**Action** — one per turn (the full list with descriptions is below).',
+          '**Bonus action** — only if granted by a feature, spell, or weapon property.',
+          '**Free** — a brief utterance and one simple interaction with **one** object (draw a weapon, open a door).',
+          '**Reaction** — one per round outside your turn (e.g. an «Opportunity Attack»).'
+        ]
+      },
+      { type: 'h', text: 'Available actions (2024 edition)' },
+      {
+        type: 'list',
+        items: [
+          '**Attack** — one attack with a weapon or an unarmed strike (some features grant several attacks per action).',
+          '**Magic** — cast a spell with a casting time of «action», or activate a magic item or ability.',
+          '**Dash** — gain extra movement equal to your Speed this turn.',
+          "**Disengage** — your movement this turn doesn't provoke opportunity attacks.",
+          '**Dodge** — until the start of your next turn, attacks against you have disadvantage and your Dexterity saves have advantage (lost if you are incapacitated or your speed is 0).',
+          '**Help** — grant an ally advantage: either on an ability check (one you are proficient in) or on its next attack against an enemy within 5 feet of you.',
+          '**Hide** — a **Dexterity (Stealth) DC 15** check to hide (details under the «Stealth» rule).',
+          '**Influence** — social pressure: persuade, deceive, or intimidate a creature; a Charisma (rarely Wisdom) check against its attitude toward you.',
+          '**Ready** — set a trigger in advance and prepare one action or movement; when the trigger occurs you spend your **reaction**. A readied spell requires concentration.',
+          '**Search** — look deliberately: a check of Perception (sight/hearing), Insight (intentions), Investigation (clues), or Survival (tracks).',
+          '**Study** — recall or analyse knowledge: an Intelligence check (Arcana, History, Nature, Religion, Investigation).',
+          '**Utilize** — use a non-weapon object (drink a potion, pull a lever), or make a **second** object interaction on your turn.'
+        ]
+      },
+      {
+        type: 'note',
+        text: "**Improvised action.** If what you want isn't on the list, describe your intent and the GM decides whether it's possible and which roll (if any) applies."
+      }
+    ]
+  },
+  'passive-checks': {
+    name: 'Passive Checks',
+    tag: 'A result without a roll, Passive Perception',
+    blocks: [
+      {
+        type: 'p',
+        text: 'A passive check is a fixed result **with no die roll**: the roll is, in effect, «frozen» at its average value. It is used where a constant roll would be inappropriate or would break the tension of a scene.'
+      },
+      {
+        type: 'p',
+        text: '**Passive result = 10 + all modifiers** that would apply to a normal check with that skill. For **Passive Perception**: 10 + Wisdom modifier (+ proficiency bonus if proficient in Perception) + any other permanent bonuses. If the check would have **advantage**, add **+5**; if **disadvantage**, subtract **−5**.'
+      },
+      { type: 'h', text: 'Why they are useful' },
+      {
+        type: 'list',
+        items: [
+          '**Not tipping off the scene with a roll.** The moment you say «roll Perception», the player already knows something is nearby. A passive value lets the GM quietly decide whether the character noticed, without giving the situation away.',
+          '**Background, constant checks** — what a character notices «automatically», without actively looking (walking down a corridor and catching sight of a trap).',
+          "**A difficulty threshold for an enemy's stealth** — a pre-computed number the GM can check against instantly."
+        ]
+      },
+      { type: 'h', text: 'Examples of use' },
+      {
+        type: 'list',
+        items: [
+          "**An enemy's stealth.** The hider rolls Dexterity (Stealth); any observer whose Passive Perception it **fails to beat** spots it without a roll.",
+          '**A hidden trap or secret door.** The GM compares the detection DC with the Passive Perception of those passing by: whoever «reaches» it notices.',
+          "**A lie in conversation (Passive Insight).** You can quietly check it against an interlocutor's deception without asking the player to roll — and so without hinting that they are being misled.",
+          '**Passive Investigation** — spotting an inconsistency in a document or puzzle «in the background».'
+        ]
+      },
+      {
+        type: 'note',
+        text: 'It is handy to keep Passive Perception (and, if you like, other passive values) computed in advance — the GM checks against a number without interrupting the scene.'
+      }
+    ]
+  },
+  'heroic-inspiration': {
+    name: 'Heroic Inspiration',
+    tag: 'Reroll a die after rolling',
+    blocks: [
+      {
+        type: 'p',
+        text: 'With **Heroic Inspiration**, a character can spend it to **reroll a die immediately after rolling**, and must use the **new** result — even if it is worse.'
+      },
+      {
+        type: 'list',
+        items: [
+          'You reroll **one** die — usually a d20 (check, attack, save), but it can be another (e.g. a poor Hit Die or a single damage die).',
+          'This is **not advantage**: you see the result and then decide to reroll (advantage must be decided before the roll).',
+          'You can hold only **one** inspiration at a time. Gaining a second, you lose it — **unless** you pass it to another player who has none.'
+        ]
+      },
+      {
+        type: 'note',
+        text: '**Where it comes from:** the general rule — you rolled a natural **1** on a d20 Test; a reward from the GM for roleplay and heroics; certain species, backgrounds, and class features (e.g. humans gain one after a Long Rest).'
+      }
+    ]
+  },
+
+  // ──────────────────────────────── Магия ────────────────────────────────
+  'spellcasting-limits': {
+    name: 'Casting Spells: Limits and Components',
+    tag: 'One slot per turn, components, rituals',
+    blocks: [
+      { type: 'h', text: 'One slot per turn' },
+      {
+        type: 'p',
+        text: "The key turn rule: on a single turn you can spend **only one** spell slot. You can't cast a slot-spending spell with your action **and** a second slot-spending spell with your bonus action on the same turn."
+      },
+      {
+        type: 'p',
+        text: 'In practice two spells in a turn are possible only if the **second spends no slot** — a cantrip, a spell from a «no-slot» feature, or an effect with a casting time of «bonus action». The usual economy still applies: one action plus one bonus action.'
+      },
+      {
+        type: 'list',
+        items: [
+          "**Cantrips** spend no slots and don't fall under the «one slot» limit, but they still take an action.",
+          '**Casting at a higher level** — if a spell has a higher-slot section, the effect is enhanced.',
+          "**Ritual** — a spell with the «Ritual» tag can be cast **without spending a slot** by adding **+10 minutes** to the casting time (but it can't be boosted with a higher slot this way)."
+        ]
+      },
+      { type: 'h', text: 'Long casting times («long casts»)' },
+      {
+        type: 'p',
+        text: "For **some** spells the casting time isn't «action» but **1 minute, 10 minutes, an hour, or longer**. This is fixed in the spell itself; the player doesn't choose it. Importantly, such a spell **still spends a slot** as usual — «long» doesn't mean «free»."
+      },
+      {
+        type: 'list',
+        items: [
+          'To cast it you must **continuously** spend the **Magic action every turn** for the entire casting time.',
+          'All that time you maintain **concentration**. If concentration breaks or you miss even a single turn, the spell **fails** and the slot is **wasted**.',
+          "So a «long cast» is not a loophole around slots but a **limitation**: powerful ritual spells can't be thrown out in combat in a single turn."
+        ]
+      },
+      { type: 'h', text: 'Components' },
+      {
+        type: 'list',
+        items: [
+          '**V (verbal)** — you must speak clearly.',
+          '**S (somatic)** — you need a free hand for gestures.',
+          '**M (material)** — a component with no listed cost is replaced by a focus or a component pouch; a component **with a cost** must be physically on hand.'
+        ]
+      },
+      { type: 'note', text: 'Maintaining the effect of many spells requires Concentration — see the separate rule.' }
+    ]
+  },
+  'areas-of-effect': {
+    name: 'Spell Areas of Effect',
+    tag: 'Six shapes, point of origin',
+    blocks: [
+      {
+        type: 'p',
+        text: 'Each area has a **point of origin** from which the effect emanates. Total cover blocks the spread into points behind it.'
+      },
+      {
+        type: 'table',
+        head: ['Shape', 'Defined by', 'Point of origin'],
+        rows: [
+          ['Cone', 'length; width at the far edge equals the length', 'not included'],
+          ['Cube', 'edge length', 'on any face; not included'],
+          ['Cylinder', 'radius and height', 'centre of the top/bottom circle; included'],
+          ['Emanation', 'a distance from the source in all directions', "source isn't included; moves with it"],
+          ['Line', 'length and width', 'not included'],
+          ['Sphere', 'radius', 'included']
+        ]
+      },
+      {
+        type: 'list',
+        items: [
+          '**Emanation** — new in 2024: an aura that radiates from a creature or object and moves **with** it.',
+          '**Sphere** — example: «Fireball», 20-foot radius.',
+          'A «15-foot» **cone** is 15 feet wide at its far edge.'
+        ]
+      },
+      {
+        type: 'note',
+        text: 'On a grid, a square is affected if the effect covers **at least half** of its area.'
+      }
+    ]
+  },
+  attunement: {
+    name: 'Attunement to Magic Items',
+    tag: 'Maximum 3, a Short Rest',
+    blocks: [
+      { type: 'p', text: 'Some magic items require **attunement** to use their magical properties.' },
+      {
+        type: 'list',
+        items: [
+          'At once — a maximum of **3** items requiring attunement.',
+          'Attunement takes a **Short Rest** (about an hour) devoted entirely to the item, which you keep on your person.',
+          'An item can be attuned to only **one** creature at a time.',
+          'Without attunement only the item\'s **nonmagical** properties are available (armour and weapons work, but without their magical bonuses).'
+        ]
+      },
+      {
+        type: 'note',
+        text: '**Attunement ends** if: the creature spends more than a day 30+ feet from the item, another creature attunes to it, the item is destroyed, you die, or you voluntarily end it (another Short Rest).'
+      }
+    ]
+  },
+  concentration: {
+    name: 'Concentration',
+    tag: 'Maintaining and ending spells',
+    blocks: [
+      {
+        type: 'p',
+        text: "Some spells' effects last only while the caster maintains **concentration** (the duration reads «Concentration, up to …»). You can concentrate on only **one** spell at a time."
+      },
+      { type: 'h', text: 'Ending it voluntarily' },
+      {
+        type: 'p',
+        text: 'You can end your concentration **at any time** at will — it **requires no action** and costs nothing. The spell simply ends.'
+      },
+      { type: 'h', text: 'Ending it against your will' },
+      { type: 'p', text: "Concentration is broken **against** the caster's will if:" },
+      {
+        type: 'list',
+        items: [
+          "**You cast another concentration spell** — the old one ends instantly (you can't hold two at once).",
+          '**You take damage** — make a **Constitution** save, DC = **10 or half the damage taken** (whichever is higher; max 30). On a failure, concentration is lost. Damage from several sources at once — a separate save for each.',
+          '**You become Incapacitated or die** — concentration ends immediately and automatically.'
+        ]
+      },
+      {
+        type: 'note',
+        text: 'Reminder: as long as a single hit is no more than 21, the DC is 10 (half would be less). **Temporary hit points** are not real hit points — losing them does **not** trigger a concentration save. Violent jostling (a storm, a pitching deck) may force a **DC 10** save at the GM\'s discretion.'
+      }
+    ]
+  },
+
+  // ────────────────────────────── Бой и движение ──────────────────────────────
+  'carrying-capacity': {
+    name: 'Carrying Capacity',
+    tag: 'How much you can carry, drag, and lift',
+    blocks: [
+      {
+        type: 'p',
+        text: "A creature's carrying capacity equals its **Strength score times 15** (in pounds). As long as gear weight doesn't exceed this limit, speed is unaffected."
+      },
+      {
+        type: 'p',
+        text: '**Push, drag, and lift.** A creature can push, drag, or lift up to **Strength × 30 pounds** — twice its carrying capacity. While moving a load above its normal carrying capacity, its speed drops to 5 feet.'
+      },
+      { type: 'h', text: 'Creature size' },
+      { type: 'p', text: 'Carrying capacity and the push limit are multiplied by size:' },
+      {
+        type: 'table',
+        head: ['Size', 'Multiplier'],
+        rows: [
+          ['Tiny', '×½'],
+          ['Small / Medium', '×1'],
+          ['Large', '×2'],
+          ['Huge', '×4'],
+          ['Gargantuan', '×8']
+        ]
+      },
+      {
+        type: 'note',
+        text: '**Optional encumbrance.** If you use this variant: weight above **Strength × 5** — the creature is encumbered (−10 feet of speed); above **Strength × 10** — heavily encumbered (−20 feet of speed, disadvantage on attack rolls, checks, and saves of Strength, Dexterity, and Constitution).'
+      }
+    ]
+  },
+  jumping: {
+    name: 'Jumping',
+    tag: 'Long and high jumps',
+    blocks: [
+      {
+        type: 'p',
+        text: 'A jump is part of your movement and is paid for foot by foot from your speed. Distance depends on Strength.'
+      },
+      { type: 'h', text: 'Long jump' },
+      {
+        type: 'p',
+        text: 'With a **running start of at least 10 feet**, a creature long-jumps a number of feet equal to its **Strength score**. Without a running start — half that.'
+      },
+      { type: 'h', text: 'High jump' },
+      {
+        type: 'p',
+        text: 'With a running start of at least 10 feet, a creature high-jumps **3 + its Strength modifier** feet. Without a running start — half that. While jumping you can reach up an extra half your height.'
+      },
+      {
+        type: 'note',
+        text: 'If an obstacle or gap is wider than your normal jump, the GM may allow a **Strength (Athletics) DC 10** check to clear it, or rule the jump impossible.'
+      }
+    ]
+  },
+  'climb-swim': {
+    name: 'Climbing, Swimming, and Crawling',
+    tag: 'Difficult movement',
+    blocks: [
+      {
+        type: 'p',
+        text: 'Moving by climbing, swimming, or crawling costs **1 extra foot per foot** (2 feet in difficult terrain).'
+      },
+      {
+        type: 'p',
+        text: "At the GM's discretion, a slick wall, a smooth surface, or rough water requires a **Strength (Athletics)** or **Dexterity (Acrobatics)** check — otherwise no movement happens."
+      },
+      {
+        type: 'note',
+        text: 'A creature with a climbing or swimming speed uses it without the extra cost and without checks.'
+      }
+    ]
+  },
+  falling: {
+    name: 'Falling',
+    tag: 'Falling damage',
+    blocks: [
+      {
+        type: 'p',
+        text: 'On a fall a creature takes **1d6 bludgeoning damage per 10 feet** fallen, to a maximum of **20d6**. On landing the creature is knocked prone (unless it avoided all the damage).'
+      },
+      {
+        type: 'p',
+        text: "A fall into water, a snowdrift, or other cushioning material may reduce or entirely negate the damage at the GM's discretion."
+      }
+    ]
+  },
+  'difficult-terrain': {
+    name: 'Difficult Terrain',
+    tag: 'The cost of movement',
+    blocks: [
+      {
+        type: 'p',
+        text: 'In **difficult terrain** (rubble, dense forest, debris, deep snow, stairs, shallow water) each foot of movement costs an **extra +1 foot**.'
+      },
+      {
+        type: 'note',
+        text: "Difficult terrain **doesn't stack**: even if a square is difficult for several reasons at once, the cost stays +1 foot per foot. Climbing and swimming are paid for separately — see «Climbing, Swimming, and Crawling»."
+      }
+    ]
+  },
+  'creature-size': {
+    name: 'Size, Space, and Reach',
+    tag: 'Grid space and how far you reach',
+    blocks: [
+      {
+        type: 'table',
+        head: ['Size', 'Space on the grid (5-foot squares)'],
+        rows: [
+          ['Tiny', '2.5 × 2.5 feet (up to 4 in one square)'],
+          ['Small', '5 × 5 feet (1 square)'],
+          ['Medium', '5 × 5 feet (1 square)'],
+          ['Large', '10 × 10 feet (2×2)'],
+          ['Huge', '15 × 15 feet (3×3)'],
+          ['Gargantuan', '20 × 20 feet or more (4×4+)']
+        ]
+      },
+      { type: 'h', text: 'Reach' },
+      {
+        type: 'p',
+        text: 'Most creatures reach **5 feet** (the adjacent square). Large creatures and weapons with the **Reach** property usually strike at **10 feet** (the exact value is in the stat block or on the weapon).'
+      },
+      {
+        type: 'list',
+        items: [
+          "You can **move through** a creature's space if it's friendly or differs in size by **2+ categories**; you can't stop in its square (it's difficult terrain).",
+          "**Squeezing** into a space one size smaller than yours: movement there costs double, and the creature's attacks and attacks against it have disadvantage/advantage (it's effectively constrained by the tight space).",
+          'You generally can\'t **grapple** a target more than **2 categories** larger than you.'
+        ]
+      }
+    ]
+  },
+  cover: {
+    name: 'Cover',
+    tag: 'Half, three-quarters, total',
+    blocks: [
+      {
+        type: 'p',
+        text: "Walls, trees, furniture, and even other creatures grant cover. Only the **most favourable** cover counts — bonuses don't stack."
+      },
+      {
+        type: 'table',
+        head: ['Cover', 'Bonus', 'Effect'],
+        rows: [
+          ['Half (½)', '+2', '+2 to AC and Dexterity saves'],
+          ['Three-quarters (¾)', '+5', '+5 to AC and Dexterity saves'],
+          ['Total', '—', "Can't be targeted directly by an attack or spell"]
+        ]
+      },
+      {
+        type: 'list',
+        items: [
+          '**Half** — the target is about half-covered (a low wall, furniture, another creature).',
+          '**Three-quarters** — largely covered (an arrow slit, a thick trunk, a corner of a wall).',
+          "**Total** — fully hidden; can't be hit directly, but can be caught by an area effect."
+        ]
+      }
+    ]
+  },
+  'vision-light': {
+    name: 'Vision and Light',
+    tag: 'Bright light, dim light, darkness',
+    blocks: [
+      { type: 'p', text: 'Illumination determines how well creatures see an area.' },
+      {
+        type: 'list',
+        items: [
+          'A **brightly lit** area — normal vision.',
+          '**Dimly lit** (dim light) — lightly obscured; sight-based **Wisdom (Perception)** checks are made with disadvantage.',
+          '**Darkness** — heavily obscured; a creature trying to see anything is effectively blinded.'
+        ]
+      },
+      { type: 'h', text: 'Obscurement' },
+      {
+        type: 'list',
+        items: [
+          '**Lightly obscured** (dim light, mist, foliage) — disadvantage on sight-based Perception checks.',
+          '**Heavily obscured** (darkness, thick smoke) — sight is fully blocked; a creature in such an area is treated as blinded when trying to see anything.'
+        ]
+      },
+      {
+        type: 'note',
+        text: '**Darkvision** within its range turns darkness into dim light and dim light into bright light, but everything is seen in shades of grey.'
+      }
+    ]
+  },
+  'two-weapon': {
+    name: 'Two-Weapon Fighting',
+    tag: 'Paired attacks',
+    blocks: [
+      {
+        type: 'p',
+        text: 'When you take the **Attack** action with a **Light** weapon in one hand, you can use a **bonus action** to attack with a different Light weapon in your other hand.'
+      },
+      {
+        type: 'p',
+        text: "The damage of this extra attack **doesn't add your ability modifier** if it's positive. Both attacks use the same modifier for the attack roll."
+      },
+      {
+        type: 'note',
+        text: 'If the weapon has the **Thrown** property, in this pairing you can throw it instead of striking in melee.'
+      }
+    ]
+  },
+  'initiative-surprise': {
+    name: 'Initiative and Surprise',
+    tag: 'Turn order, caught off guard',
+    blocks: [
+      {
+        type: 'p',
+        text: 'At the start of combat everyone rolls **initiative**: **d20 + Dexterity modifier**. Turns go in descending order of the result; on a tie the GM decides the order.'
+      },
+      {
+        type: 'note',
+        text: '**Surprise (2024).** A creature caught off guard no longer loses its turn as before — it rolls initiative **with disadvantage**.'
+      }
+    ]
+  },
+  'attack-roll': {
+    name: 'Attack Roll and Critical Hit',
+    tag: 'Hitting, crits, point-blank fire',
+    blocks: [
+      {
+        type: 'p',
+        text: "**Attack roll:** d20 + ability modifier + **proficiency bonus** (if proficient with the weapon) against the target's **AC**. A total equal to or higher than the AC is a hit."
+      },
+      {
+        type: 'list',
+        items: [
+          "**Critical hit** — on a natural **20**: the damage **dice** are doubled (modifiers aren't doubled).",
+          '**Natural 1** — an automatic miss regardless of bonuses.',
+          '**Firing in melee** — a ranged attack made while a hostile creature is within **5 feet** of you is made **with disadvantage**.'
+        ]
+      }
+    ]
+  },
+  'opportunity-attack': {
+    name: 'Opportunity Attack',
+    tag: 'A reaction to a fleeing enemy',
+    blocks: [
+      {
+        type: 'p',
+        text: 'When a visible enemy leaves your reach **of its own will**, you can use your **reaction** to make **one** melee attack against it — this is an **opportunity attack**.'
+      },
+      {
+        type: 'note',
+        text: "The **Disengage** action makes your movement this turn not provoke such attacks. Teleportation and forced movement (a shove, not of one's own will) also don't provoke them."
+      }
+    ]
+  },
+  'grapple-shove': {
+    name: 'Grapple, Shove, and Unarmed Strike',
+    tag: 'Unarmed strike options',
+    blocks: [
+      {
+        type: 'p',
+        text: 'On a hit with an **unarmed strike**, the attacker chooses to deal **damage** (1 + Strength modifier, bludgeoning), or to apply a **Grapple**, or a **Shove**.'
+      },
+      { type: 'h', text: 'Grapple' },
+      {
+        type: 'p',
+        text: "The target makes a **Strength or Dexterity** save (target's choice) against a **DC = 8 + the attacker's Strength modifier + proficiency bonus**. On a failure the target is **Grappled** (its speed becomes 0)."
+      },
+      { type: 'h', text: 'Shove' },
+      {
+        type: 'p',
+        text: "The same DC = 8 + Strength modifier + proficiency bonus. On a failure the target, at the attacker's choice, is either **pushed 5 feet** or **knocked prone**."
+      }
+    ]
+  },
+  'hide-action': {
+    name: 'Stealth (the Hide action)',
+    tag: 'How to hide and what it grants',
+    blocks: [
+      {
+        type: 'p',
+        text: "With the **Hide** action a creature tries to hide: it must be in a **heavily obscured** area or behind cover and **out of any enemy's line of sight**. Make a **Dexterity (Stealth) DC 15** check."
+      },
+      {
+        type: 'list',
+        items: [
+          'On a success the creature gains the **Invisible** condition (i.e. it counts as hidden).',
+          'Stealth is **lost** if: you make noise, an enemy finds you with a check, or you attack or cast a spell with a **verbal** component.'
+        ]
+      }
+    ]
+  },
+  'special-senses': {
+    name: 'Special Senses',
+    tag: 'Blindsight, truesight, tremorsense',
+    blocks: [
+      {
+        type: 'p',
+        text: 'Each sense has a **range** (given in the ability or stat block). A creature can have several senses at once, each with its own range.'
+      },
+      {
+        type: 'list',
+        items: [
+          "**Blindsight** — perceiving the surroundings within range **without relying on sight**; works while blinded and in total darkness. It senses location but not details (colour, text). Beyond the range it doesn't work.",
+          '**Truesight** — within range the creature sees in normal and magical darkness, sees **Invisible** creatures, discerns visual illusions, perceives the true form of shapechangers and the transformed, and sees into the Ethereal Plane. Usually granted at a short range.',
+          "**Tremorsense** — detects and pinpoints anything **touching the same surface** (the ground) or in the same liquid, by vibration. It doesn't work on flying creatures or those not in contact with the surface."
+        ]
+      },
+      {
+        type: 'note',
+        text: '**Darkvision** (see «Vision and Light») within range turns darkness into dim light and dim into bright, but without distinguishing colours.'
+      }
+    ]
+  },
+  'object-interaction': {
+    name: 'Interacting with Objects and Object Durability',
+    tag: 'Objects, object AC and HP, improvised damage',
+    blocks: [
+      { type: 'h', text: 'Interacting with objects' },
+      {
+        type: 'p',
+        text: 'On your turn you can **freely** interact with **one** object alongside your movement or action: draw or stow a weapon, open an unlocked door, pick up a lying object, pull a lever. A **second** interaction on your turn requires a separate action (in 2024, the **Utilize** action).'
+      },
+      { type: 'h', text: 'Breaking objects' },
+      {
+        type: 'p',
+        text: "To break something, the object is given an **AC** and **hit points** (or a Strength check is allowed). Inanimate objects **automatically fail** Strength and Dexterity saves and are immune to poison and psychic damage. At **0 hit points** the object is destroyed (the breaking threshold is at the GM's discretion)."
+      },
+      {
+        type: 'table',
+        head: ['Material', 'AC (guideline)'],
+        rows: [
+          ['Cloth / paper / rope', '11'],
+          ['Crystal / glass / ice', '13'],
+          ['Wood / bone', '15'],
+          ['Stone', '17'],
+          ['Iron / steel', '19'],
+          ['Mithral', '21'],
+          ['Adamantine', '23']
+        ]
+      },
+      {
+        type: 'table',
+        head: ['Object', 'Fragile (HP)', 'Resilient (HP)'],
+        rows: [
+          ['Tiny', '~2', '~3'],
+          ['Small', '~3', '~7'],
+          ['Medium', '~7', '~10'],
+          ['Large', '~10', '~18']
+        ],
+        caption: 'Very large objects are usually split into parts with their own hit points.'
+      },
+      { type: 'h', text: 'Improvised damage' },
+      {
+        type: 'p',
+        text: 'Sometimes something harms a character but the rules give no ready damage figure: a shelf collapses on them, they fall into a campfire, a wave of flame from a trap engulfs them. Then the GM **assigns the damage**, judging how serious the threat is, taking a value from the scale below. It is an «eyeball» tool for non-standard hazards.'
+      },
+      {
+        type: 'table',
+        head: ['How dangerous', 'Damage', 'Example'],
+        rows: [
+          ['Slightly', '1d10', 'Burning coals, falling furniture'],
+          ['Seriously', '2d10–3d10', 'A spiked pit, a lightning strike'],
+          ['Very dangerous', '4d10', 'A rockfall in a tunnel'],
+          ['Deadly', '10d10+', 'A wave of fire through a cavern, crushing walls'],
+          ['Catastrophic', '24d10', 'A plunge into a lava flow']
+        ]
+      },
+      {
+        type: 'note',
+        text: 'The figures are only a **guideline**: the same threat is set lower for 1st-level heroes than for 15th. As the situation warrants, the GM may allow a save (Dexterity to dodge, Constitution to endure) for half damage.'
+      }
+    ]
+  },
+
+  // ───────────────────────────── Окружение и отдых ─────────────────────────────
+  suffocation: {
+    name: 'Suffocation and Holding Your Breath',
+    tag: 'How long you can go without breathing',
+    blocks: [
+      {
+        type: 'p',
+        text: 'There are two **different** time spans here — easy to confuse. First a creature **holds its breath**, and only when the air runs out does **suffocation** proper begin.'
+      },
+      { type: 'h', text: '1. Holding your breath (in minutes)' },
+      {
+        type: 'p',
+        text: 'A creature can hold its breath for a number of **minutes** equal to **1 + its Constitution modifier** (but no less than **30 seconds** if the modifier is negative). This is the calm «took a breath and stopped breathing».'
+      },
+      { type: 'h', text: '2. Suffocation — the air has run out (in rounds)' },
+      {
+        type: 'p',
+        text: "When the held breath is spent (or the creature is suddenly deprived of air — a chokehold, drowning), it holds on for a further number of **rounds** equal to its **Constitution modifier** (but no fewer than **1 round** = 6 seconds). At the start of its next turn after that it drops to **0 hit points** and starts dying — and can't regain hit points or be stabilised until it can breathe again."
+      },
+      {
+        type: 'note',
+        text: 'The two numbers summed up: «at least **30 seconds**» is about **holding your breath** (phase 1); «at least **1 round**» is about how much longer you last **after** the air runs out (phase 2). These are different things; there is no contradiction.'
+      }
+    ]
+  },
+  'food-water': {
+    name: 'Hunger and Thirst',
+    tag: 'Exhaustion without food and water',
+    blocks: [
+      { type: 'p', text: 'Per day a character needs about **1 pound of food** and **1 gallon of water** (2 gallons in heat).' },
+      { type: 'h', text: 'Without water' },
+      {
+        type: 'p',
+        text: 'A creature lasts **3 + its Constitution modifier days** (minimum 1) without water. After that each day without water brings 1 level of exhaustion. A day with less than half the ration counts as a day without water.'
+      },
+      { type: 'h', text: 'Without food' },
+      {
+        type: 'p',
+        text: 'A creature goes without food for **3 + its Constitution modifier days** (minimum 1), then gains 1 level of exhaustion for each further day. Half a ration (½ pound) a day doubles the time before exhaustion begins.'
+      },
+      {
+        type: 'note',
+        text: "Exhaustion from hunger and thirst can't be removed until the creature has eaten and drunk its fill."
+      }
+    ]
+  },
+  'extreme-weather': {
+    name: 'Extreme Heat and Cold',
+    tag: 'Dangerous weather',
+    blocks: [
+      {
+        type: 'p',
+        text: '**Extreme heat.** A creature that spends an hour or more in scorching heat without enough water makes, at the end of each hour, a **Constitution** save (DC 5, +1 per previous save) or gains 1 level of exhaustion. In medium or heavy armour, or in heavy clothing, the save is made with disadvantage.'
+      },
+      {
+        type: 'p',
+        text: '**Extreme cold.** A creature that spends an hour or more in freezing cold without warm clothing or other protection makes, at the end of each hour, a **Constitution DC 10** save or gains 1 level of exhaustion. Resistance or immunity to cold damage grants automatic success.'
+      }
+    ]
+  },
+  'travel-pace': {
+    name: 'Travel Pace',
+    tag: 'Travel speed and forced march',
+    blocks: [
+      { type: 'p', text: 'On the road a party moves at one of three paces:' },
+      {
+        type: 'table',
+        head: ['Pace', 'Per hour', 'Per day', 'Effect'],
+        rows: [
+          ['Fast', '4 miles', '30 miles', '−5 to passive Perception'],
+          ['Normal', '3 miles', '24 miles', '—'],
+          ['Slow', '2 miles', '18 miles', 'Can sneak (Stealth)']
+        ]
+      },
+      {
+        type: 'p',
+        text: 'A travel day counts as **8 hours**. Each hour beyond eight is a forced march: at the end of such an hour a creature makes a **Constitution** save (DC 10, +1 per previous hour) or gains 1 level of exhaustion.'
+      }
+    ]
+  },
+  resting: {
+    name: 'Short and Long Rests',
+    tag: 'Recovering strength',
+    blocks: [
+      { type: 'h', text: 'Short rest' },
+      {
+        type: 'p',
+        text: 'A short rest lasts **at least 1 hour** of light activity. During it a creature can spend **Hit Dice**: for each, roll the die and add your Constitution modifier, regaining that many hit points (minimum 0 per die).'
+      },
+      { type: 'h', text: 'Long rest' },
+      {
+        type: 'p',
+        text: 'A long rest is **at least 8 hours**; up to 2 of them can be light activity (keeping watch, reading, talking), the rest is sleep or rest. On completion a creature regains **all hit points** and **half its Hit Dice** (minimum 1 die).'
+      },
+      {
+        type: 'note',
+        text: 'An hour or more of strenuous activity (walking, combat, casting spells, taking damage) interrupts a long rest. You can benefit from a long rest no more than once per day.'
+      }
+    ]
+  },
+  'death-saves': {
+    name: 'Death Saving Throws',
+    tag: 'On the brink of death',
+    blocks: [
+      {
+        type: 'p',
+        text: 'Dropping to **0 hit points**, a creature falls unconscious. At the start of each of its turns it makes a **death saving throw** — a d20 roll with no modifiers.'
+      },
+      {
+        type: 'list',
+        items: [
+          '**10 or higher** — a success; **9 or lower** — a failure.',
+          '**Three successes** — the creature is stabilised (but stays unconscious).',
+          '**Three failures** — death.',
+          '**Natural 20** — the creature regains consciousness with 1 hit point.',
+          '**Natural 1** — counts as **two failures**.'
+        ]
+      },
+      {
+        type: 'p',
+        text: 'Taking damage at 0 hit points is an automatic failure (and a hit from within 5 feet or a critical is two failures). Damage equal to or greater than your hit point maximum means instant death.'
+      },
+      {
+        type: 'note',
+        text: "An ally can use an action to stabilise a dying creature with a **Wisdom (Medicine) DC 10** check or by using a healer's kit (automatically)."
+      }
+    ]
+  },
+  'temporary-hp': {
+    name: 'Temporary Hit Points',
+    tag: 'A buffer over your HP: not healed, not stacked',
+    blocks: [
+      {
+        type: 'p',
+        text: 'Temporary hit points are a separate **buffer** on top of your normal hit points, not a restoration of them. Damage comes off the temporary hit points first, and only the remainder hits your normal ones.'
+      },
+      {
+        type: 'list',
+        items: [
+          "**Don't stack** — gaining a new batch while you still have some, you pick **one** value (usually the larger), not the sum.",
+          "**Aren't healed** — hit-point recovery effects don't restore them; you can only gain them again from a source that grants them.",
+          "**Not «real» hit points** — losing them doesn't trigger a Concentration save and doesn't raise your hit point maximum. But while they absorb damage, you don't drop to 0 normal hit points."
+        ]
+      },
+      {
+        type: 'note',
+        text: 'They last until damage «eats» them, or until the end of a **Long Rest** if the effect gives no duration of its own (the rest clears them).'
+      }
+    ]
+  },
+  'rest-light-activity': {
+    name: 'Light Activity During a Rest',
+    tag: "What you can do without interrupting a rest",
+    blocks: [
+      {
+        type: 'p',
+        text: "A long rest is at least **8 hours**: at least **6 hours of sleep**, with up to **2 hours** of **light activity** that doesn't interrupt the rest. The key is that the activity must not be strenuous."
+      },
+      { type: 'h', text: 'Counts as light activity' },
+      {
+        type: 'list',
+        items: [
+          'Standing guard, keeping watch in camp.',
+          'Talking quietly, discussing plans.',
+          'Reading, studying a map, a book, or notes.',
+          'Eating, drinking, cooking by the fire.',
+          'Mending, sharpening, and cleaning gear, tending to your kit.',
+          'Praying or meditating.'
+        ]
+      },
+      { type: 'h', text: 'Interrupts the rest (NOT light activity)' },
+      {
+        type: 'list',
+        items: [
+          'Combat or taking damage.',
+          "Casting spells (rituals at the GM's discretion).",
+          'Long walking or a forced march.',
+          'Any heavy physical exertion.'
+        ]
+      },
+      {
+        type: 'note',
+        text: 'If the rest is interrupted by **an hour or more** of strenuous activity, it must be started over. You can benefit from a long rest no more than once per day.'
+      }
+    ]
+  },
+
+  // ─────────────────────── Основы и развитие (multiclassing) ───────────────────────
+  multiclassing: {
+    name: 'Multiclassing',
+    tag: 'Requirements, proficiencies, spell slots',
+    blocks: [
+      {
+        type: 'p',
+        text: 'Multiclassing lets you, on a level-up, take a level in a **new class** instead of your main one. Your **character level** (the sum of all class levels) sets your proficiency bonus, while your levels in each class determine which features of that class you gain.'
+      },
+      { type: 'h', text: 'Ability requirements' },
+      {
+        type: 'p',
+        text: 'To take a level in a new class (and to leave your current one), you need **13** in the listed ability of both classes. Fall short, and multiclassing is unavailable.'
+      },
+      {
+        type: 'table',
+        head: ['Class', 'Need 13 in'],
+        rows: [
+          ['Barbarian', 'Strength'],
+          ['Bard', 'Charisma'],
+          ['Cleric', 'Wisdom'],
+          ['Druid', 'Wisdom'],
+          ['Fighter', 'Strength or Dexterity'],
+          ['Monk', 'Dexterity and Wisdom'],
+          ['Paladin', 'Strength and Charisma'],
+          ['Ranger', 'Dexterity and Wisdom'],
+          ['Rogue', 'Dexterity'],
+          ['Sorcerer', 'Charisma'],
+          ['Warlock', 'Charisma'],
+          ['Wizard', 'Intelligence']
+        ]
+      },
+      { type: 'h', text: "What you get and what you don't" },
+      {
+        type: 'list',
+        items: [
+          "**Hit points:** for each class level — that class's Hit Die + your Constitution modifier. Hit Dice of different classes go into one shared pool for short rests.",
+          '**Proficiency bonus** is set strictly by **character level** (the sum of levels), not by your level in a single class.',
+          "**Class features** you gain for your levels in each class, BUT key features like *Extra Attack*, *Spellcasting*, and *Unarmored Defense* don't stack or duplicate.",
+          '**An ability score improvement / feat** is granted for levels in a specific class (at 4, 8, 12, 16, 19), not for character level.'
+        ]
+      },
+      { type: 'h', text: 'Proficiencies when multiclassing' },
+      {
+        type: 'p',
+        text: 'Taking your first level in a new class, you gain **only some** of its proficiencies (not all the starting ones):'
+      },
+      {
+        type: 'table',
+        head: ['Class', 'Proficiencies the multiclass grants'],
+        rows: [
+          ['Barbarian', 'Shields, simple and martial weapons'],
+          ['Bard', 'Light armour, one skill of your choice, one musical instrument'],
+          ['Cleric', 'Light and medium armour, shields'],
+          ['Druid', 'Light and medium armour, shields (no metal)'],
+          ['Fighter', 'Light and medium armour, shields, simple and martial weapons'],
+          ['Monk', 'Simple weapons, shortswords'],
+          ['Paladin', 'Light and medium armour, shields, simple and martial weapons'],
+          ['Ranger', 'Light and medium armour, shields, simple and martial weapons, one skill'],
+          ['Rogue', "Light armour, thieves' tools, one skill"],
+          ['Sorcerer', '—'],
+          ['Warlock', 'Light armour, simple weapons'],
+          ['Wizard', '—']
+        ]
+      },
+      { type: 'h', text: 'Spells and slots' },
+      {
+        type: 'list',
+        items: [
+          '**Spells known/prepared** — separately per class, by its table and its spellcasting ability (e.g. wizard cantrips use Intelligence, cleric cantrips use Wisdom).',
+          '**Spell slots** are shared, computed from the table below using your **total caster level**, not per class.',
+          'Any slot can be spent on any known/prepared spell of a suitable level — regardless of which class it came from.'
+        ]
+      },
+      {
+        type: 'p',
+        text: '**Total caster level** = all levels of full casters (Bard, Cleric, Druid, Sorcerer, Wizard) + **half (rounded down)** the levels of half-casters (Paladin, Ranger) + **a third (rounded down)** of the levels of caster subclasses (Eldritch Knight, Arcane Trickster). Use this number to read slots from the table.'
+      },
+      {
+        type: 'table',
+        caption: 'Multiclass spell slots (by total caster level)',
+        head: ['Lvl', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
+        rows: [
+          ['1', '2', '—', '—', '—', '—', '—', '—', '—', '—'],
+          ['2', '3', '—', '—', '—', '—', '—', '—', '—', '—'],
+          ['3', '4', '2', '—', '—', '—', '—', '—', '—', '—'],
+          ['4', '4', '3', '—', '—', '—', '—', '—', '—', '—'],
+          ['5', '4', '3', '2', '—', '—', '—', '—', '—', '—'],
+          ['6', '4', '3', '3', '—', '—', '—', '—', '—', '—'],
+          ['7', '4', '3', '3', '1', '—', '—', '—', '—', '—'],
+          ['8', '4', '3', '3', '2', '—', '—', '—', '—', '—'],
+          ['9', '4', '3', '3', '3', '1', '—', '—', '—', '—'],
+          ['10', '4', '3', '3', '3', '2', '—', '—', '—', '—'],
+          ['11', '4', '3', '3', '3', '2', '1', '—', '—', '—'],
+          ['12', '4', '3', '3', '3', '2', '1', '—', '—', '—'],
+          ['13', '4', '3', '3', '3', '2', '1', '1', '—', '—'],
+          ['14', '4', '3', '3', '3', '2', '1', '1', '—', '—'],
+          ['15', '4', '3', '3', '3', '2', '1', '1', '1', '—'],
+          ['16', '4', '3', '3', '3', '2', '1', '1', '1', '—'],
+          ['17', '4', '3', '3', '3', '2', '1', '1', '1', '1'],
+          ['18', '4', '3', '3', '3', '3', '1', '1', '1', '1'],
+          ['19', '4', '3', '3', '3', '3', '2', '1', '1', '1'],
+          ['20', '4', '3', '3', '3', '3', '2', '2', '1', '1']
+        ]
+      },
+      {
+        type: 'note',
+        text: "The warlock stands apart: its **Pact Magic** slots don't mix with this table and are tracked separately by warlock level. But the warlock can cast spells known from other classes using Pact Magic slots, and vice versa."
+      },
+      {
+        type: 'note',
+        text: "The character builder currently supports a single class. Track multiclassing manually: build your main class, then add the second class's levels and features in the sheet's fields (features, slots on the spells page). Full multiclass building will arrive in a future update."
+      }
+    ]
+  },
+
+  // ────────────────────────────── Азартные игры ──────────────────────────────
+  'gambling-general': {
+    name: 'Gambling: General Rules',
+    tag: 'Bets, kits, cheating',
+    blocks: [
+      {
+        type: 'p',
+        text: 'Gambling is a great way to liven up a tavern, strike up an acquaintance, or lose your purse. Before any game the players make a **bet** (an ante) into a common pot. Proficiency with a «gaming set» (dice or cards) grants your proficiency bonus on rolls where it applies.'
+      },
+      { type: 'h', text: 'Cheating (one rule for all games)' },
+      {
+        type: 'p',
+        text: "A would-be cheat makes a *Sleight of Hand* check opposed by opponents' passive Perception or Insight (usually 10 + their modifier). *Success* lets you swap a die, peek at a card, or palm — give the cheat advantage or a chance to reroll. *Failure* = caught; the consequences (ejection from the establishment, a brawl, lost reputation) are up to the GM. Social skills (Deception, Intimidation) fit games with bluffing."
+      },
+      { type: 'p', text: 'Below are five self-contained games, from purely social to purely random.' }
+    ]
+  },
+  'gambling-liar': {
+    name: 'Gambling Game: «Liar»',
+    tag: 'Bluffing with dice · 2–6 players',
+    blocks: [
+      {
+        type: 'p',
+        text: "Each player secretly rolls 5d6 under a cup and peeks at the result. Going around, players make bids about **how many** dice on the table (everyone's combined) show a particular value — e.g. «five sixes»."
+      },
+      {
+        type: 'p',
+        text: 'Each new bid must beat the last (a higher count or a higher value). At any time, instead of raising, a player can cry «Liar!» — then everyone reveals their dice and counts. If the bid holds up, the doubter loses; if not, the bidder loses. The loser forfeits one die (and part of the stake). The last player with dice left wins.'
+      },
+      {
+        type: 'p',
+        text: '*Tactics and checks:* ones can count as «wild» (any value). Deception vs Insight helps push a bold bid through or see through a bluff.'
+      },
+      {
+        type: 'note',
+        text: 'Perfect for intrigue — the stakes can be a favour or a secret rather than money.'
+      }
+    ]
+  },
+  'gambling-highroll': {
+    name: 'Gambling Game: «High Roll»',
+    tag: 'A quick duel · 2+ players',
+    blocks: [
+      {
+        type: 'p',
+        text: 'Everyone puts in an equal stake. Each player in turn rolls 2d6; the highest total takes the whole pot. On a tie the contenders reroll among themselves. By agreement you can play «best of three».'
+      },
+      {
+        type: 'p',
+        text: '*Variants:* instead of 2d6 you can roll a gaming set (then proficiency grants your bonus on the roll — this rewards «professional» gamblers). You can add an «all-in» rule: once per game a player may reroll their dice by doubling the stake.'
+      },
+      {
+        type: 'p',
+        text: '*Cheating:* swapping in a loaded die — Sleight of Hand vs Perception.'
+      },
+      {
+        type: 'note',
+        text: 'The fastest game in this set, good as a one-off luck check («roll the dice, let\'s see if you got lucky at the bar»).'
+      }
+    ]
+  },
+  'gambling-three-dragons': {
+    name: 'Gambling Game: «Three Dragons»',
+    tag: 'Combinations on 3d6 · banker + 1–5',
+    blocks: [
+      { type: 'p', text: 'Each player bets against the banker and rolls 3d6, forming a combination:' },
+      {
+        type: 'table',
+        head: ['Combination', 'Payout'],
+        rows: [
+          ['«Three Dragons» (three of a kind)', '×5'],
+          ['«Straight» (three in a row, e.g. 3-4-5)', '×3'],
+          ['«Pair»', '×2'],
+          ['Otherwise — high total; the banker rolls their own 3d6, the higher takes the stake', '—']
+        ]
+      },
+      {
+        type: 'p',
+        text: '*«Bribing fate» (push-your-luck):* once per roll a player may reroll one die by paying half the stake extra into the pot.'
+      },
+      {
+        type: 'p',
+        text: "*Cheating:* a «mirror» roll or a covered die — Sleight of Hand vs the banker's passive Perception (bankers are usually watchful, +2 to the DC)."
+      },
+      {
+        type: 'note',
+        text: 'It is convenient to make the banker an NPC croupier; the difference in expected value creates the «house edge» and explains why the houses are always rich.'
+      }
+    ]
+  },
+  'gambling-wheel': {
+    name: 'Gambling Game: «Wheel of Fortune»',
+    tag: 'Betting on a number · pure chance',
+    blocks: [
+      { type: 'p', text: 'Before the spin, players place bets:' },
+      {
+        type: 'table',
+        head: ['Bet', 'Payout'],
+        rows: [
+          ['On a specific number (1–12)', '×10'],
+          ['On «odd/even» or «high/low»', '×2']
+        ]
+      },
+      {
+        type: 'p',
+        text: "The croupier spins the wheel — roll a d12 (or d20 for a big wheel). Matching the number or category pays out; otherwise the bet goes to the house. The house is always slightly ahead thanks to rounded payouts — that's the «cut»."
+      },
+      {
+        type: 'p',
+        text: '*Atmosphere:* good for fairs, festivals, and casinos. Unlike dice, there is no skill here — only luck, so the game levels the mighty warrior and the puny scribe.'
+      },
+      {
+        type: 'note',
+        text: "Only the croupier can rig the wheel (Sleight of Hand vs the Perception of the soberest guests). A player can hardly cheat — it's a game «against the house»."
+      }
+    ]
+  },
+  'gambling-blackjack': {
+    name: 'Gambling Game: «Twenty-One»',
+    tag: 'Cards against the banker · scoring points',
+    blocks: [
+      {
+        type: 'p',
+        text: 'The goal is to score as close to 21 as possible without going over. Use a deck of cards (ace = 1 or 11, your choice; face cards = 10; others at face value). If you have no cards, roll a d10 for each «card» (value 1–10).'
+      },
+      {
+        type: 'p',
+        text: '*Play:* each player draws cards one at a time, deciding after each one «hit» or «stand». Going over 21 is an instant loss of the stake. When everyone has stopped, the banker reveals their cards and draws until reaching 17 or more. Whoever is closest to 21 (without busting) wins; a tie returns the stake.'
+      },
+      {
+        type: 'p',
+        text: '*«Doubling down»:* after the first two cards a player may double the stake, but must take exactly one card and then stand.'
+      },
+      {
+        type: 'p',
+        text: "*Cheating:* hiding or swapping a card — Sleight of Hand vs the banker's passive Perception. Cards give a cheat more room than dice, so the punishment for getting caught is usually harsher."
+      },
+      {
+        type: 'note',
+        text: 'Make the gambling matter: play not only for gold but for information, favours, relics, or debts. A series of hands maps well onto a «skill challenge» framework — several rounds of opposed checks (Deception / Insight / Intimidation / Perception) with the game as set dressing settle the outcome of a «tavern evening» in one block.'
+      }
+    ]
+  },
+
+  // ────────────────────────────── Ремёсла и лагерь ──────────────────────────────
+  hunting: {
+    name: 'Hunting',
+    tag: 'Taking meat, hides, and materials',
+    blocks: [
+      {
+        type: 'p',
+        text: 'Hunting is the deliberate taking of game for meat, hides, bones, and sinew. Unlike herb-gathering, hunting is loud, risky, and almost always draws attention: it is an active pursuit, not a background activity. A good hunter feeds the whole party on the road, supplies the tanner with material, and the cook with fresh meat (see «Cooking»). The system slots neatly into travel and downtime days.'
+      },
+      { type: 'h', text: 'When you can hunt' },
+      {
+        type: 'p',
+        text: 'You can hunt while travelling at a slow or normal pace (a fast pace scares off game), and as a downtime activity. One hunting attempt takes at least 1 hour of tracking plus time to butcher (about 30 minutes for a medium-sized carcass). No more than 1–2 hunting attempts per half-day of travel is recommended, or the party barely advances.'
+      },
+      { type: 'h', text: 'Equipment' },
+      {
+        type: 'p',
+        text: "Active hunting needs a ranged or thrown weapon (bow, crossbow, sling, spear, darts) or a hunting trap (a steel trap, 5 gp). Proficiency with a trapper's kit grants no bonus to hunting, but proficiency in the *Survival* skill always does. You can hunt in melee too, but that gives disadvantage on the kill roll (the beast gets a chance to bolt)."
+      },
+      { type: 'h', text: 'Step 1: Tracking' },
+      {
+        type: 'p',
+        text: 'Make a **Wisdom (Survival)** check. The DC depends on how rich the area is in game:'
+      },
+      {
+        type: 'table',
+        head: ['Abundance of game', 'Tracking DC'],
+        rows: [
+          ['Abundant (forest, meadows)', '10'],
+          ['Moderate', '15'],
+          ['Sparse (mountains, tundra)', '20'],
+          ['Barren (desert)', '25']
+        ]
+      },
+      {
+        type: 'p',
+        text: '*Failure:* no game found this hour. *Success:* you pick up a trail — the GM rolls a d6 to set the size of the spotted beast (1 tiny, 2–3 small, 4–5 medium, 6 large; in dangerous lands, a d8 with a chance of a huge predator).'
+      },
+      { type: 'h', text: 'Step 2: Bringing down the beast' },
+      { type: 'p', text: 'Having found the beast, choose an approach:' },
+      {
+        type: 'list',
+        items: [
+          "**Ambush (a shot):** an attack roll against the game's Defence DC — tiny/small 11, medium 12, large 13, huge 14. A hit = a kill.",
+          "**Stalking:** a *Dexterity (Stealth)* check against the beast's passive Perception (usually 12). Success grants advantage on the attack roll or guarantees a small beast taken without a fight."
+        ]
+      },
+      {
+        type: 'p',
+        text: 'Advantage goes to characters with natural hunting features (e.g. a ranger\'s terrain abilities like «Natural Explorer») and with magical help («Speak with Animals», «Locate Animals or Plants», and the like).'
+      },
+      { type: 'h', text: 'How much meat and material you get' },
+      {
+        type: 'table',
+        head: ['Game size', 'Meat (pounds)', 'Extra material'],
+        rows: [
+          ['Tiny', '1d4', 'small feathers/bones'],
+          ['Small', '1d6', '1 pelt (2 gp)'],
+          ['Medium', '2d6', '1 hide (5 gp), sinew'],
+          ['Large', '4d6', '1–2 hides (10 gp), antler/bone'],
+          ["Huge", '8d6', "a trophy + materials (GM's call)"]
+        ]
+      },
+      {
+        type: 'p',
+        text: '*Converting to provisions:* 1 pound of cooked or smoked meat = a day\'s ration for 1 creature. Raw meat spoils in 1 day unless cooked, smoked, or salted. Hides and bone are materials for crafting items and for sale.'
+      },
+      { type: 'h', text: 'Traps and passive hunting' },
+      {
+        type: 'p',
+        text: 'A trap lets you «hunt while busy with something else». Setting a trap takes a *Wisdom (Survival)* DC 10 check and a few minutes. Every 8 hours roll a d6: on 5–6 a small animal is caught (1d6 pounds), on a 1 the trap is sprung or empty. One creature can tend up to three traps. Fishing works by the same rules, replacing the attack roll with a Survival check.'
+      },
+      { type: 'h', text: 'Dangers and GM notes' },
+      {
+        type: 'note',
+        text: "The noise of shots and the smell of blood raise the chance of a random encounter: after each successful hunt the GM may roll for an encounter. Wounded large or huge game, on a failed kill, turns and attacks. Don't turn hunting into a routine: give it weight when the party is low on supplies, when a rare material is needed, or when a lucky shot can become a vivid moment of the scene."
+      }
+    ]
+  },
+  herbalism: {
+    name: 'Herbalism (Gathering Herbs)',
+    tag: 'Foraging for plants and ingredients',
+    blocks: [
+      {
+        type: 'p',
+        text: '*Mechanics source:* adapted from the «Herbalism and Alchemy» article (dnd.su). Below is a condensed account of the gathering rules; for the full ingredient and alchemy tables, see the original.'
+      },
+      { type: 'h', text: 'What it is and when it applies' },
+      {
+        type: 'p',
+        text: 'Herbalism is the search for and gathering of plants, fungi, corals, bark, and rare magical substances (such as elemental water), from which potions and poisons are later brewed. You can gather while travelling through the wild, during a rest break, or as a downtime activity between sessions. How much and what you gather is largely set by the GM, guided by the terrain.'
+      },
+      { type: 'h', text: 'Herbalism modifier and the check' },
+      {
+        type: 'note',
+        text: '**Herbalism modifier** = (Wisdom or Intelligence, whichever is higher) + proficiency bonus if proficient with a herbalism kit'
+      },
+      {
+        type: 'p',
+        text: 'To find something, a character makes a Herbalism check against DC 15. A high-Wisdom druid and a rogue who has built a «survival system» are equally valid — there is no single right path. Gathering is not strenuous activity and doesn\'t interrupt a rest that allows movement.'
+      },
+      { type: 'h', text: 'Gathering in play, on a rest, and in downtime' },
+      {
+        type: 'p',
+        text: "On a successful check the GM rolls 1d4 — that many handfuls of ingredients are gathered in this area (by the ecosystem table). A sensible limit is 2–3 gatherings per session or 1–2 attempts per rest, so the party doesn't pile up an endless stockpile. In downtime the GM can roll for the player: one or two rolls per day on the road or per 6 hours in one place. Plant/animal detection spells reveal in advance what grows where and grant advantage on gathering those species."
+      },
+      { type: 'h', text: 'Identification and rare finds' },
+      {
+        type: 'p',
+        text: "If the GM requires identifying an ingredient, the player makes a Herbalism check against DC 10 + the plant's difficulty. *Failure* — the character doesn't understand the find's purpose and can't retry until new information is gained. *Success* gives a general understanding; beating the DC by +5 gives full knowledge of its use. Rare ingredients (e.g. Primordial Balm) are harder to identify: +3 to their DC, and full knowledge requires beating the threshold by +10."
+      },
+      { type: 'h', text: 'Selling herbs and ingredients' },
+      {
+        type: 'p',
+        text: "Common herbs sell in towns and villages almost always; rare ones, with great difficulty. To find a buyer the player makes an *Intelligence* check against DC 20 (a companion can help and grant advantage). On a failure a new attempt is possible only after a long rest. The price depends heavily on rarity and the region's current economy."
+      },
+      {
+        type: 'list',
+        items: ['Common — up to 15 gp', 'Uncommon — 16–40 gp', 'Rare — 41–100 gp', 'Very rare — 100+ gp']
+      },
+      { type: 'h', text: 'Where things grow (ecosystems)' },
+      {
+        type: 'p',
+        text: 'Where and what to look for is set by the terrain. On a successful gathering roll **2d6** on the relevant ecosystem table. In most regions a 6–8 yields a *ubiquitous* ingredient — then roll on the «Everywhere» table. What each ingredient does — see «Alchemy».'
+      },
+      {
+        type: 'table',
+        caption: 'Everywhere (ubiquitous)',
+        head: ['2d6', 'Ingredient'],
+        rows: [
+          ['2', 'Mandrake Root'],
+          ['3', 'Quicksilver Lichen'],
+          ['4', 'Quicksilver Lichen'],
+          ['5', 'Wild Sage Root'],
+          ['6', 'Wild Sage Root'],
+          ['7', 'Bloodgrass'],
+          ['8', 'Snakemouth Petals'],
+          ['9', 'Snakemouth Petals'],
+          ['10', 'Milkweed Seeds'],
+          ['11', 'Milkweed Seeds'],
+          ['12', 'Mandrake Root']
+        ]
+      },
+      {
+        type: 'table',
+        caption: 'Arctic and tundra',
+        head: ['2d6', 'Ingredient'],
+        rows: [
+          ['2', 'Silver Hibiscus'],
+          ['3', 'Seaflesh Powder'],
+          ['4', 'Ironwood Heart'],
+          ['5', 'Frozen Saplings'],
+          ['6', 'Ubiquitous ingredient'],
+          ['7', 'Ubiquitous ingredient'],
+          ['8', 'Ubiquitous ingredient'],
+          ['9', 'Arctic Ivy'],
+          ['10', 'Fennel Silk'],
+          ["11", "Devil's Ivy"],
+          ['12', 'Void Root']
+        ]
+      },
+      {
+        type: 'table',
+        caption: 'Coast and underwater',
+        head: ['2d6', 'Ingredient'],
+        rows: [
+          ['2', 'Waterbane'],
+          ['3', 'Toadstool Cap'],
+          ['4', 'Hyacinth Nectar'],
+          ['5', 'Chromatic Ooze'],
+          ['6', 'Ubiquitous ingredient'],
+          ['7', 'Ubiquitous ingredient'],
+          ['8', 'Ubiquitous ingredient'],
+          ['9', 'Sprig of Lavender'],
+          ['10', 'Blue Crookfrog'],
+          ['11', 'Fetid Bulb'],
+          ['12', 'Ko-Glond']
+        ]
+      },
+      {
+        type: 'table',
+        caption: 'Desert',
+        head: ['2d6', 'Ingredient'],
+        rows: [
+          ['2', 'Ko-Glond'],
+          ['3', 'Arrowroot'],
+          ['4', 'Dried Ephedra'],
+          ['5', 'Cactus Sap'],
+          ['6', 'Ubiquitous ingredient'],
+          ['7', 'Ubiquitous ingredient'],
+          ['8', 'Ubiquitous ingredient'],
+          ['9', 'Dracus Flowers'],
+          ['10', 'Scilla Beans'],
+          ['11', 'Thornbloom Berries'],
+          ['12', 'Void Root']
+        ]
+      },
+      {
+        type: 'table',
+        caption: 'Forest',
+        head: ['2d6', 'Ingredient'],
+        rows: [
+          ['2', 'Harada Leaves'],
+          ['3', 'Nightshade Berries'],
+          ['4', 'Gallwax'],
+          ['5', 'Verdine Nettle'],
+          ['6', 'Ubiquitous ingredient'],
+          ['7', 'Ubiquitous ingredient'],
+          ['8', 'Ubiquitous ingredient'],
+          ['9', 'Arrowroot'],
+          ['10', 'Ironwood Heart'],
+          ['11', 'Blue Crookfrog'],
+          ['12', 'Hypholoma Stalks']
+        ]
+      },
+      {
+        type: 'table',
+        caption: 'Meadows and plains',
+        head: ['2d6', 'Ingredient'],
+        rows: [
+          ['2', 'Harada Leaves'],
+          ['3', 'Dracus Flowers'],
+          ['4', 'Sprig of Lavender'],
+          ['5', 'Arrowroot'],
+          ['6', 'Ubiquitous ingredient'],
+          ['7', 'Ubiquitous ingredient'],
+          ['8', 'Ubiquitous ingredient'],
+          ['9', 'Scilla Beans'],
+          ['10', 'Cactus Sap'],
+          ['11', 'Leaftail'],
+          ['12', 'Hyacinth Nectar']
+        ]
+      },
+      {
+        type: 'table',
+        caption: 'Hills',
+        head: ['2d6', 'Ingredient'],
+        rows: [
+          ["2", "Devil's Bloodleaf"],
+          ['3', 'Nightshade Berries'],
+          ['4', 'Leaftail'],
+          ['5', 'Sprig of Lavender'],
+          ['6', 'Ubiquitous ingredient'],
+          ['7', 'Ubiquitous ingredient'],
+          ['8', 'Ubiquitous ingredient'],
+          ['9', 'Ironwood Heart'],
+          ['10', 'Gengkou Cluster'],
+          ['11', 'Stone Bindweed'],
+          ['12', 'Harada Leaves']
+        ]
+      },
+      {
+        type: 'table',
+        caption: 'Mountains',
+        head: ['2d6', 'Ingredient'],
+        rows: [
+          ["2", "Basilisk's Breath"],
+          ['3', 'Frozen Saplings'],
+          ['4', 'Arctic Ivy'],
+          ['5', 'Dried Ephedra'],
+          ['6', 'Ubiquitous ingredient'],
+          ['7', 'Ubiquitous ingredient'],
+          ['8', 'Ubiquitous ingredient'],
+          ['9', 'Dracus Flowers'],
+          ['10', 'Netspore Cap'],
+          ['11', 'Stone Bindweed'],
+          ['12', 'Primordial Balm']
+        ]
+      },
+      {
+        type: 'table',
+        caption: 'Swamp',
+        head: ['2d6', 'Ingredient'],
+        rows: [
+          ["2", "Devil's Bloodleaf"],
+          ['3', 'Thornbloom Berries'],
+          ['4', 'Gallwax'],
+          ['5', 'Toadstool Cap'],
+          ['6', 'Ubiquitous ingredient'],
+          ['7', 'Ubiquitous ingredient'],
+          ['8', 'Ubiquitous ingredient'],
+          ['9', 'Blue Crookfrog'],
+          ['10', 'Fetid Bulb'],
+          ['11', 'Waterbane'],
+          ['12', 'Primordial Balm']
+        ]
+      },
+      {
+        type: 'table',
+        caption: 'The Underdark',
+        head: ['2d6', 'Ingredient'],
+        rows: [
+          ['2', 'Primordial Balm'],
+          ['3', 'Silver Hibiscus'],
+          ["4", "Devil's Bloodleaf"],
+          ['5', 'Chromatic Ooze'],
+          ['6', 'Seaflesh Powder'],
+          ['7', 'Fennel Silk'],
+          ["8", "Devil's Ivy"],
+          ['9', 'Gengkou Cluster'],
+          ['10', 'Netspore Cap'],
+          ['11', 'Shining Syntoflower'],
+          ['12', 'Hypholoma Stalks']
+        ]
+      },
+      {
+        type: 'note',
+        text: 'What each ingredient does in a potion or poison, its rarity and difficulty — in the «Alchemy» section. Gathering gives raw material; alchemy unlocks its potential.'
+      }
+    ]
+  },
+  alchemy: {
+    name: 'Alchemy',
+    tag: 'Brewing potions and poisons from gathered herbs',
+    blocks: [
+      {
+        type: 'p',
+        text: 'Herbalism gives ingredients; alchemy draws out their potential and turns them into potions and poisons. It is the second half of one system — without it, gathered herbs are dead weight. For the full ingredient, modifier, and magical-component tables see the original; below is a working summary of the brewing rules.'
+      },
+      { type: 'h', text: 'What it is and when it applies' },
+      {
+        type: 'p',
+        text: 'Alchemy can be done during a session or in downtime — the mechanic is the same. A character declares that they are mixing ingredients and runs a «brew». Alchemy lets you make healing and other useful potions, potions with spell effects, and poisons of various delivery. The base stock of ingredients is obtained through «Herbalism», bought, or taken as loot.'
+      },
+      { type: 'h', text: 'Alchemy modifier and tools' },
+      {
+        type: 'note',
+        text: "**Alchemy modifier** = (Intelligence or Wisdom, whichever is higher) + proficiency bonus if proficient with alchemist's supplies or a herbalism kit"
+      },
+      {
+        type: 'p',
+        text: '*Important (balance):* use the ability **modifier** (e.g. +4), not its score (18) — otherwise potions and poisons break the game. If even that is too much, the GM may cap the contribution (e.g. half the modifier + proficiency bonus).'
+      },
+      {
+        type: 'p',
+        text: "*Tools:* potions and brews are made with «alchemist's supplies» or a «herbalism kit»; poisons, with a «poisoner's kit». Proficiency with the tool isn't required to brew, but it adds your proficiency bonus to the roll."
+      },
+      { type: 'h', text: 'The brewing process (the «alchemical experiment»)' },
+      {
+        type: 'p',
+        text: 'A brew is like a ritual: it takes 10 minutes and yields one vial of paste, powder, or liquid. The mixture consists of:'
+      },
+      {
+        type: 'list',
+        items: [
+          'Exactly **one base** ingredient (marked «Effect»).',
+          'Up to **three** modifier ingredients («Potion mod.», «Toxin mod.», or «Special»).',
+          '**Magical potions** are a special case: the base is elemental water, to which one magical ingredient is added; modifiers do *not* apply to magical potions.'
+        ]
+      },
+      {
+        type: 'note',
+        text: '**Alchemical-experiment DC** = 10 + the sum of the difficulty modifiers of all ingredients used'
+      },
+      {
+        type: 'p',
+        text: '*Success* — you get the intended vial. *Failure* — the contents look wrong; whether the character knows the brew is spoiled is up to the GM.'
+      },
+      { type: 'h', text: 'Potions: effect-based and magical' },
+      {
+        type: 'list',
+        items: [
+          'Effect potions are simple substances (healing, warming, weakening poison). They can be enhanced and altered with «Potion mod.» modifiers.',
+          "**Magical** potions reproduce a spell effect («Invisibility», «Gaseous Form», «Fly», etc.). They *can't* be modified: only elemental water + one magical ingredient. Trying to add a modifier risks spoilage or a wild-magic surge."
+        ]
+      },
+      { type: 'h', text: 'Potion ingredients' },
+      {
+        type: 'p',
+        text: 'The DC is the ingredient\'s contribution to the total brewing difficulty (10 + the sum of all contributions). «Effect» is the base ingredient, «Potion mod.» alters it, «Special» is a special property.'
+      },
+      {
+        type: 'table',
+        head: ['Ingredient', 'Rarity', 'DC', 'Effect', 'Type'],
+        rows: [
+          ['Wild Sage Root', 'Common', '—', 'Heals 2d4 + Alchemy modifier', 'Effect'],
+          ['Mandrake Root', 'Common', '—', 'Halves any disease or poison for 2d12 hours', 'Effect'],
+          ["Hyacinth Nectar", 'Common', '+1', "Removes 1d6 rounds of a poison's effect (not fully)", 'Effect'],
+          ['Fennel Silk', 'Common', '+2', 'Endure cold or damp for 1 hour', 'Effect'],
+          ['Bloodgrass', 'Common', '—', 'With any effect ingredient, makes the potion count as food for 1 day', 'Special'],
+          ['Sprig of Lavender', 'Common', '−2', 'Makes the potion or toxin more stable and safer', 'Special'],
+          ["Gallwax", 'Common', '+1', "Delays the ingredients' effect by 1d6 rounds", 'Special'],
+          ['Milkweed Seeds', 'Common', '+2', 'Doubles the healing dice but removes the Alchemy modifier', 'Potion mod.'],
+          ['Gengkou Cluster', 'Uncommon', '+2', 'Doubles the healing dice, halves the total, spreads it over 2 rounds', 'Potion mod.'],
+          ['Dried Ephedra', 'Uncommon', '+2', 'Increases the healing die type by 1', 'Potion mod.'],
+          ['Quicksilver Lichen', 'Uncommon', '+3', 'Doubles the effect dice but halves the duration', 'Potion mod.'],
+          ['Chromatic Ooze', 'Rare', '+4', 'The final effect becomes its opposite', 'Special']
+        ]
+      },
+      { type: 'h', text: 'Magical ingredients' },
+      {
+        type: 'p',
+        text: "A magical potion is **elemental water** plus one such ingredient. Modifiers aren't added to them."
+      },
+      {
+        type: 'table',
+        head: ['Ingredient', 'Rarity', 'Reproduces'],
+        rows: [
+          ['Elemental Water', 'Rare', 'Base for all magical potions'],
+          ['Arrowroot', 'Uncommon', 'Potion of accuracy: +1 to weapon attacks'],
+          ['Scilla Beans', 'Common', 'Potion of Climbing'],
+          ['Waterbane', 'Uncommon', 'Potion of Water Breathing'],
+          ['Ironwood Heart', 'Uncommon', 'Potion of Growth'],
+          ['Verdine Nettle', 'Uncommon', 'Potion of Animal Friendship'],
+          ['Nightshade Berries', 'Uncommon', 'Oil of Slipperiness'],
+          ['Blue Crookfrog', 'Rare', 'Potion of Gaseous Form'],
+          ['Ko-Glond', 'Rare', 'Potion of Clairvoyance'],
+          ["Devil's Ivy", 'Rare', 'Potion of Mind Reading'],
+          ['Netspore Cap', 'Rare', 'Potion of Heroism'],
+          ['Primordial Balm', 'Rare', 'Potion of Giant Strength'],
+          ['Stone Bindweed', 'Rare', 'Potion of Invulnerability'],
+          ['Fetid Bulb', 'Rare', 'Potion of Diminution'],
+          ['Silver Hibiscus', 'Rare', 'Random elemental breath (3 times)'],
+          ["Devil's Bloodleaf", 'Very rare', 'Potion of Vitality'],
+          ['Seaflesh Powder', 'Very rare', 'Potion of Longevity'],
+          ['Leaftail', 'Very rare', 'Potion of Speed'],
+          ['Void Root', 'Very rare', 'Potion of Flying'],
+          ['Hypholoma Stalks', 'Very rare', 'Potion of Invisibility']
+        ]
+      },
+      { type: 'h', text: 'Poisons' },
+      {
+        type: 'p',
+        text: 'The base ingredient of almost all poisons is «snakemouth petals»; their effect is altered by «Toxin mod.» ingredients (change the damage type, stun, delay the effect, etc.). The alchemist decides the delivery in advance: injury, contact, ingestion, or inhalation.'
+      },
+      {
+        type: 'note',
+        text: "**Poisoning DC** (the victim's save) = 8 + Alchemy modifier"
+      },
+      {
+        type: 'p',
+        text: 'The victim is poisoned on a failed Constitution save. One vial of poison is good for about 3 applications.'
+      },
+      { type: 'h', text: 'Poison ingredients and modifiers' },
+      {
+        type: 'table',
+        head: ['Ingredient', 'Rarity', 'DC', 'Effect', 'Type'],
+        rows: [
+          ['Snakemouth Petals', 'Common', '—', '1d4 + Alchemy modifier poison damage per round; the target is poisoned for 1 minute', 'Base'],
+          ['Toadstool Cap', 'Common', '+1', 'Makes the poison non-lethal: the target falls unconscious', 'Toxin mod.'],
+          ['Harada Leaves', 'Common', '+1', 'The poisoned target has disadvantage on checks', 'Toxin mod.'],
+          ['Arctic Ivy', 'Common', '+2', 'Changes the poison damage to cold or necrotic; the target is poisoned for 1 minute', 'Toxin mod.'],
+          ["Cactus Sap", 'Common', '+2', "The target doesn't notice the poison damage until 5 rounds have passed", 'Toxin mod.'],
+          ['Dracus Flowers', 'Common', '+2', 'Changes the poison damage to fire or acid; the target stays poisoned', 'Toxin mod.'],
+          ["Gallwax", 'Common', '+2', "Delays the ingredients' effect by 1d6 rounds", 'Special'],
+          ['Sprig of Lavender', 'Common', '−2', 'Makes the mixture more stable and safer to create', 'Special'],
+          ['Quicksilver Lichen', 'Uncommon', '+3', 'Doubles the toxin dice but halves the duration', 'Toxin mod.'],
+          ['Thornbloom Berries', 'Uncommon', '+3', 'Increases the poison die type by 1', 'Toxin mod.'],
+          ['Shining Syntoflower', 'Rare', '+2', 'Changes the poison damage to radiant', 'Toxin mod.'],
+          ["Frozen Saplings", 'Rare', '+4', "Reduces the target's speed by 10 feet for 1 minute", 'Toxin mod.'],
+          ['Chromatic Ooze', 'Rare', '+4', 'The final effect becomes its opposite', 'Special'],
+          ["Basilisk's Breath", 'Very rare', '+5', 'Slowly paralyses the foe with escalating saves', 'Base']
+        ]
+      },
+      { type: 'h', text: 'Sample recipes' },
+      {
+        type: 'table',
+        head: ['Recipe', 'Ingredients', 'DC', 'Effect'],
+        rows: [
+          ['Potion of Delayed Strong Healing', 'Wild Sage Root + Milkweed Seeds + Gengkou Cluster', '14', 'Healing 8d4, split over two turns'],
+          ["Death's Bite (injury)", 'Snakemouth Petals + Arctic Ivy + Thornbloom Berries + Quicksilver Lichen', '18', 'Target poisoned for 30 sec; 2d6 + Alchemy modifier necrotic damage per round'],
+          ["Widow's Poison (contact)", 'Snakemouth Petals + Toadstool Cap + Cactus Sap + Thornbloom Berries', '17', "Target poisoned for 1 min; 1d6 + Alchemy modifier poison damage per round; effect unnoticed for 30 sec; doesn't kill — drops unconscious"]
+        ]
+      },
+      { type: 'h', text: 'Selling potions and poisons' },
+      {
+        type: 'p',
+        text: 'A finished product interests buyers more than raw material. The base price of a potion or poison = the total cost of the ingredients used. To find a buyer the player makes an *Intelligence (Investigation)* DC 15 check (a companion can help and grant advantage). The more ingredients in the mix, the harder it is to sell and the more the price «swings». Powerful healing and combat brews find fewer buyers, but more of those are «shady» ones ready to pay over the odds, no questions asked.'
+      },
+      { type: 'h', text: 'Additional rules (optional)' },
+      {
+        type: 'list',
+        items: [
+          "*Shelf life.* Common ingredients keep their properties for about a week of game time, rare and very rare ones for about a month. An «ingredient pouch» (25 gp, 1 pound) doubles the storage time. Ingredients already used in a brew aren't subject to spoilage.",
+          '*Overdose.* If in a short time a character drinks potions totalling more than 8 ingredients, the GM may introduce consequences — sickness, a headache, a level of exhaustion, or a wild-magic surge.',
+          '*Underdark treasures.* Products made from Underdark ingredients glow with a dark radiance, sell for five times as much, and may carry a random extra effect.'
+        ]
+      },
+      { type: 'h', text: 'GM notes' },
+      {
+        type: 'note',
+        text: "Alchemy easily skews balance through the Alchemy modifier — keep it in check. Limit the number of brews (as with gatherings): 1–2 per rest or a few per downtime day. Magical potions are deliberately «expensive» in ingredient rarity and can't be modified — that's the guard against combos. Alchemy works great as a reward for good «Herbalism» and as a downtime or Bastion activity (the «Laboratory» and «Garden» rooms)."
+      }
+    ]
+  },
+  cooking: {
+    name: 'Cooking',
+    tag: 'Campfire dishes and their effects',
+    blocks: [
+      {
+        type: 'p',
+        text: 'Cooking turns raw provisions — meat taken on a hunt, gathered herbs, bought supplies — into something more than mere sustenance. A good meal by the fire lifts morale, speeds recovery, and binds the party together. The system deliberately keeps the bonuses modest so as not to replace healing spells and potions, and rests on the same framework as the «Chef» feat.'
+      },
+      { type: 'h', text: 'What you need to cook' },
+      {
+        type: 'p',
+        text: "Cooking requires: «cook's utensils» (1 gp), a heat source (a campfire, hearth, portable brazier), water, and ingredients. The amount of ingredients sets the number of servings: about 1 pound of food per serving. Cooking fits within a short or long rest and needs no separate time if a fire is already burning; in open country, lighting a fire takes about 10 minutes."
+      },
+      { type: 'h', text: "The check and the dish's quality" },
+      {
+        type: 'p',
+        text: "The cook makes a check with cook's utensils: an ability of the GM's choice (usually Wisdom or Constitution) + proficiency bonus if proficient with the kit. The roll result sets the dish's quality. A character without proficiency can cook too — they simply roll without the proficiency bonus and can't reach the higher dish tiers. One cook serves the whole party with a single cooking."
+      },
+      { type: 'h', text: 'Dish tiers and their effects' },
+      {
+        type: 'table',
+        head: ['Check result', 'Dish and effect'],
+        rows: [
+          ['Failure (<10)', 'Burnt. The food sustains (replaces a ration) but gives no bonus; half the ingredients are wasted.'],
+          ['DC 10 — Hearty', 'A hearty meal. Up to (proficiency bonus × 2) creatures who eat during a short rest regain an extra 1d8 hit points.'],
+          ["DC 15 — Feast", "A festive feast (once per long rest). Servings = the cook's proficiency bonus; each diner gains temporary hit points = the proficiency bonus and advantage on saves against fear for 1 hour."],
+          ['DC 20 — Masterpiece', 'All of the above plus: one diner removes 1 level of exhaustion per long rest.']
+        ]
+      },
+      {
+        type: 'p',
+        text: 'The effects of different tiers from one meal do *not* stack — the highest achieved is used. A creature benefits from no more than one «improved» meal per day.'
+      },
+      { type: 'h', text: 'Seasonings from herbs and game' },
+      {
+        type: 'p',
+        text: "Fresh herbs and quality meat grant +1 to the cooking check per special ingredient, but no more than +2 total. Some herbs, at the GM's discretion, may add a tiny thematic effect to the dish for 1 hour (e.g. a warming broth grants resistance to the discomfort of cold) — but not the magical effects of potions: those need alchemy, not the kitchen."
+      },
+      { type: 'h', text: 'Notes and balance' },
+      {
+        type: 'note',
+        text: "So the system doesn't break the rest economy: the bonus hit points of a «hearty meal» don't stack with the identical «Chef» feat (pick one); temporary hit points don't stack with each other; a masterpiece feast requires rare or especially fine ingredients at the GM's discretion. Cooking is first and foremost a tool of atmosphere and a reward for good gathering and hunting."
+      }
+    ]
+  },
+  crafting: {
+    name: 'Crafting Items and Tools',
+    tag: 'Crafting gear by the 2024 rules',
+    blocks: [
+      {
+        type: 'p',
+        text: "Crafting lets a character build gear with their own hands, given the right tool, raw materials, and time. This section takes the official Player's Handbook 2024 system and *simplifies* its timing: the cost and tool requirements are kept, but the crafting time is shortened so crafting is useful even in campaigns with little downtime."
+      },
+      { type: 'h', text: 'The base 2024 rule (for reference)' },
+      { type: 'p', text: 'By the official rules, to craft a nonmagical item you must:' },
+      {
+        type: 'list',
+        items: [
+          "be proficient with the right tool (e.g. smith's tools for plate);",
+          "have raw materials worth half the item's price (rounded down);",
+          'spend time at the rate of «price ÷ 10 = number of days» (8 hours a day, rounded up).'
+        ]
+      },
+      {
+        type: 'p',
+        text: '*Example:* a heavy crossbow (50 gp) → 25 gp of materials and 5 days. Plate (1500 gp) → 750 gp of materials and 150 days. Several crafters split the time among themselves.'
+      },
+      { type: 'h', text: "This compendium's simplified pace" },
+      {
+        type: 'list',
+        items: [
+          "Materials are still = half the item's price (rounded down).",
+          'Proficiency with the right tool is still **required** — without it crafting is impossible, no exceptions.',
+          'Progress is faster: per day of work you advance 25 gp of price (instead of 10). In other words, *days = price ÷ 25* (rounded up).',
+          'Fast crafting of small items: any item priced up to 25 gp takes a few hours and can be finished within a short rest.',
+          'Helpers: up to two extra crafters proficient with the same tool split the total time evenly (the GM may allow more).'
+        ]
+      },
+      { type: 'h', text: 'Timing table and examples' },
+      {
+        type: 'table',
+        head: ['Item (price)', 'Materials', 'Before (÷10)', 'Now (÷25)'],
+        rows: [
+          ['Dagger (2 gp)', '1 gp', '1 day', 'a couple of hours'],
+          ['Light crossbow (25 gp)', '12 gp', '3 days', 'a couple of hours'],
+          ['Heavy crossbow (50 gp)', '25 gp', '5 days', '2 days'],
+          ['Chain shirt (75 gp)', '37 gp', '8 days', '3 days'],
+          ['Half plate (750 gp)', '375 gp', '75 days', '30 days'],
+          ['Plate (1500 gp)', '750 gp', '150 days', '60 days']
+        ]
+      },
+      { type: 'p', text: "The days needn't be consecutive. With two helpers, 60 days become 20." },
+      { type: 'h', text: 'Potions, scrolls, and selling' },
+      {
+        type: 'list',
+        items: [
+          '*Potion of healing:* with a herbalism kit, a character spends 25 gp of materials and 1 day (8 hours). This compendium allows finishing it within a long rest.',
+          "*Spell scrolls:* made by a separate table from the PHB 2024 (time and cost rise with spell level); you need the spell prepared and proficiency in Arcana or with calligrapher's supplies.",
+          '*Selling:* a freshly crafted item can be sold for its **full** price (whereas ordinary used gear sells for half).'
+        ]
+      },
+      { type: 'h', text: 'Notes' },
+      {
+        type: 'note',
+        text: 'The simplification cuts «time», not «money»: a character still invests half the cost and must be proficient with the tool, so crafting stays an investment, not a free replacement for the shop. If the GM likes, they can allow «gathering materials» instead of coin (hunting yields leather, a mine yields metal), partly reducing the cash cost in exchange for adventuring effort.'
+      }
+    ]
+  },
+  'equipment-breakage': {
+    name: 'Equipment Breakage',
+    tag: 'Wear on weapons, armour, and tools; why a smith matters',
+    blocks: [
+      {
+        type: 'p',
+        text: "A ruleset for those who want it «grittier»: gear isn't eternal. A blade chips on plate, a bowstring snaps, armour buckles under a critical hit, and acid eats away metal. The rule is **optional** and noticeably raises the tension — discuss it with your players **before** play. In return it makes a spare weapon, costly steel, and a smith's services meaningful: gear becomes a resource, not a given."
+      },
+      { type: 'h', text: 'When gear is at risk' },
+      {
+        type: 'p',
+        text: 'Wear is checked **only** when one of the triggers below fires — not on every blow. The rest of the time items work as usual.'
+      },
+      {
+        type: 'list',
+        items: [
+          '**A weapon** — a natural **1** on an attack roll (the blade meets plate, a shield, or stone).',
+          '**Armour or a shield** — the wearer is struck by a **critical hit** (a natural 20 against them).',
+          '**Any item** — a failed save against an effect that **directly** damages gear: acid, intense heat, a rusting strike (a rust monster\'s attack), magic like «Heat Metal».',
+          '**A tool or focus** — a natural **1** on a check where the item is tested for strength (prying a door with a crowbar, bearing weight).'
+        ]
+      },
+      { type: 'h', text: 'Durability check' },
+      {
+        type: 'p',
+        text: 'When a trigger fires, the owner makes a **durability check** for the item: roll **1d20** and add the quality modifier (see the table) against **DC 12**. Success — the item held, nothing happens. Failure — the item takes **one step of damage** (intact → Damaged → Broken).'
+      },
+      {
+        type: 'table',
+        head: ['Item quality', 'Modifier'],
+        rows: [
+          ['Improvised, decrepit, trophy junk', '−2'],
+          ['Ordinary shop gear', '+0'],
+          ['Silvered or special-alloy', '+2'],
+          ['Masterwork (costly, named)', '+4']
+        ],
+        caption: 'The finer the item, the better it weathers a blow'
+      },
+      { type: 'note', text: '**Heroic Inspiration** or a class reroll lets you reroll a durability check too — sometimes it is worth saving a beloved blade just so.' },
+      { type: 'h', text: 'Two steps: Damaged and Broken' },
+      {
+        type: 'list',
+        items: [
+          '**Damaged** (the first step) — the item still works, but worse: a weapon gives **−1** to attack and damage rolls; armour or a shield, **−1** to AC; a tool or focus, **disadvantage** on checks involving it.',
+          "**Broken** (the second step) — the item is useless until repaired: a broken weapon counts as improvised, broken armour gives no AC (the wearer counts as unarmoured), a broken tool doesn't work.",
+          '**Destroyed** — if a *Broken* fragile item (a flask, a glass focus, a light bow) fails a check again, it shatters beyond repair. Sturdy metal items don\'t degrade past «Broken» — they can always be reforged.'
+        ]
+      },
+      { type: 'h', text: "What breaks and what doesn't" },
+      {
+        type: 'list',
+        items: [
+          "**Subject to wear:** weapons, armour, shields, artisan's tools, and magical foci.",
+          '**Ammunition** has no steps: on a natural 1 an arrow or bolt simply **breaks and is lost** (as with the usual rule of recovering half your ammunition).',
+          '**Consumables** (potions, flasks, scrolls) are only at risk from a direct effect — fire, acid, a fall: a **Dexterity DC 10** save, or the contents are lost.',
+          "**Don't break:** natural weapons and unarmed strikes, **magic items**, and **adamantine** gear (they wear only from effects explicitly named in their description or in the damage source).",
+          "A creature's resistance or immunity to a damage type (acid, fire) **protects its gear too** from that source — no durability check is needed."
+        ]
+      },
+      { type: 'h', text: 'Repair' },
+      {
+        type: 'list',
+        items: [
+          "**Damaged → intact:** with the right tool, spend a **Short Rest** and materials worth about **5% of the item's value** (minimum 1 gp). Without a suitable tool — a **DC 15** check with the relevant tools, and only a field «stopgap»: the penalty is removed for 1 hour.",
+          '**Broken → intact:** the work is as in «Crafting Items and Tools», but the materials cost and time are **a quarter** of crafting such an item from scratch. You need the same tool and proficiency with it.',
+          "The **«Mending» cantrip** instantly clears the *Damaged* step on a small item and fixes minor cracks, but doesn't revive *Broken* battle gear — that needs a full smithy or a craftsman."
+        ]
+      },
+      {
+        type: 'note',
+        text: "Dose the severity. The mildest variant — apply breakage **only on a natural 1** in combat and **only to weapons**; the harshest — all four triggers at once. A good compromise: wear applies to enemies too (their blades chip as well), while players always have a spare set and a smith in the nearest town. Don't turn the rule into a tax on luck — it should create the drama of «the sword broke at the decisive moment», not chip away turn after turn."
+      }
+    ]
+  },
+  fishing: {
+    name: 'Fishing',
+    tag: 'A quiet catch: fish, pearls, and surprises',
+    blocks: [
+      {
+        type: 'p',
+        text: "Fishing is the quiet, patient brother of hunting. It is almost silent, doesn't scare off game, and rarely draws predators, but it's tightly bound to water and weather. A good catch feeds the party on the road, supplies the cook with fresh produce, and sometimes turns up a pearl, an exotic fish to sell — or the hook snags something best left alone."
+      },
+      { type: 'h', text: 'Equipment and ways to fish' },
+      {
+        type: 'p',
+        text: "For fishing you can use: a rod and tackle (about 1 gp), a fish spear or spear, a fishing net, a fish trap/weir (a woven trap), and on open water — a boat. You can fish improvised too (a line of sinew, a bent nail) — then rolls have disadvantage. Proficiency with a special tool isn't required, but proficiency in *Survival* always helps, and druids, rangers, and coastal folk get advantage in their native element at the GM's discretion."
+      },
+      { type: 'h', text: 'Active fishing (rod, spear)' },
+      {
+        type: 'p',
+        text: 'Once an hour make a **Wisdom (Survival)** check. The DC depends on how rich the water is:'
+      },
+      {
+        type: 'table',
+        head: ['Richness of the water', 'DC'],
+        rows: [
+          ['Rich (river, lake, reef)', '10'],
+          ['Ordinary', '15'],
+          ['Poor (mountain lake, murk)', '20'],
+          ['Barren (under ice, rot)', '25']
+        ]
+      },
+      {
+        type: 'p',
+        text: '*Failure:* nothing bit this hour. *Success:* roll 1d6 + your WIS modifier — that many pounds of fish you land. Beating the DC by 5 or more gives a big fish: another 1d6 pounds on top. A spear or harpoon fishes the shallows — the same way, but the GM may call for DEX instead of WIS.'
+      },
+      { type: 'h', text: 'Passive fishing (net, weir)' },
+      {
+        type: 'p',
+        text: "A net and a weir work like a hunting trap: they «catch while you're busy with something else». Setting one takes a few minutes and a *Wisdom (Survival)* DC 10 check. Then every 4 hours roll a d6: on 4–6 a fish is caught (1d6 pounds), on a 1 the gear is torn or empty. A net cast from a boat on rich water doubles the catch but ties up an oarsman's two hands. One creature tends up to three weirs at once."
+      },
+      { type: 'h', text: 'How much fish and what else may turn up' },
+      {
+        type: 'p',
+        text: "*Converting to provisions:* 1 pound of cooked or smoked fish = a day's ration for 1 creature; raw fish spoils in a day. On an especially good or bad roll the GM may consult the «unusual catch» table (d20):"
+      },
+      {
+        type: 'table',
+        head: ['d20', 'On the hook'],
+        rows: [
+          ['1', 'Snag: the gear is torn or the spear is lost'],
+          ['2–3', 'An old boot, a snag, debris (but sometimes a coin inside)'],
+          ['4–14', 'Ordinary fish (the standard catch)'],
+          ['15–17', 'A fat catch: double the pounds'],
+          ['18', 'A shell with a pearl or valuable bone (10–50 gp)'],
+          ['19', 'A rare or exotic fish — a delicacy or trade goods'],
+          ['20', 'You hooked something other than a fish: a water predator, a drowned corpse, a relic — a hook for a scene or an encounter']
+        ]
+      },
+      { type: 'h', text: 'Sea, ice, and special conditions' },
+      {
+        type: 'list',
+        items: [
+          '*Sea fishing from a boat* adds 1 to each pounds roll, but a «20» on the table is more dangerous (a large sea predator). In a storm fishing is impossible.',
+          '*Ice fishing:* first cut a hole (a few minutes), then fish at the «barren water» DC (25); a character in the cold is subject to the extreme-cold rules (risk of exhaustion) if not dressed or by a fire.',
+          "*Poisoned or defiled water:* there is either no catch, or it's inedible without purification («Purify Food and Drink», boiling at the GM's discretion).",
+          '*Magic changes everything:* «Create Food and Water» removes the need to fish; «Control Water» and «Shape Water» grant advantage or an auto-catch at the GM\'s discretion.'
+        ]
+      },
+      { type: 'h', text: 'GM notes' },
+      {
+        type: 'note',
+        text: "Don't stretch fishing across dozens of rolls — it's background, not a mini-game. Give it weight when the party is low on supplies, when a special ingredient for a feast is needed, or when a «20» on the hook turns a quiet evening by the river into the start of an adventure. Fishing works great as a calm scene between fights: while one angles, the others mend gear, cook, or keep watch."
+      }
+    ]
+  },
+  taming: {
+    name: 'Taming Creatures',
+    tag: 'From a dog to a worg: companions and bargains',
+    blocks: [
+      {
+        type: 'p',
+        text: "Catching a rabbit for dinner is hunting. Getting a wolf to follow you of its own will is taming. The system below covers the whole spectrum: from a house dog to a wild bear, from a herbivore deer to a monster like a worg, and separately explains why fiends, undead, and aberrations can't be «tamed» — they can only be bound or bargained with, and that's always a risk."
+      },
+      { type: 'h', text: 'Three different processes' },
+      { type: 'p', text: "Don't confuse them — each has its own skill and meaning:" },
+      {
+        type: 'list',
+        items: [
+          '**Taming** — winning over a low-Intelligence wild animal so it stays with you. Skill: *Wisdom (Animal Handling)*.',
+          '**Training** — teaching an already loyal creature commands and tricks.',
+          "**Negotiation / pact** — intelligent, evil, or otherworldly creatures aren't «tamed»: you bargain with them or bind them with magic. Skill: *Charisma (Persuasion, Intimidation)* or rituals. This is an ally or a servant, not a pet."
+        ]
+      },
+      { type: 'h', text: 'What can be tamed at all' },
+      { type: 'p', text: 'A suitable candidate for taming usually meets these conditions:' },
+      {
+        type: 'list',
+        items: [
+          "**Type: beast.** Some monsters with Intelligence 6 or lower — at the GM's discretion (worg, griffon, hippogriff, giant eagle — «beast-like»).",
+          "**Intelligence 6 or lower:** the creature lives by instinct and can be habituated. At Intelligence 7+ it's too clever — move to negotiation.",
+          '**Alignment** good or neutral (or «unaligned»). Evil creatures resist: add to their DC, and the bond is unreliable.',
+          "**Size** usually Large or smaller for a full companion. Huge, legendary, and magical beings (dragons, giants, elementals) are tamed only by a special path — raised from infancy, by a quest, or by powerful magic. That's always the GM's call."
+        ]
+      },
+      { type: 'p', text: 'Fiends, undead, aberrations, and fey are *not* part of this scheme — see «Special categories».' },
+      { type: 'h', text: "The creature's attitude (where to start)" },
+      {
+        type: 'p',
+        text: "Every creature starts with one of three attitudes: **hostile**, **indifferent**, or **friendly**. You can only tame a creature that is *not* hostile to you. A hostile one must first be «shifted»: don't attack, withdraw, feed it, heal it, show calm — that's an Animal Handling check (or Persuasion for the intelligent), plus spells like «Calm Emotions» or «Animal Friendship». A wounded creature you spared or healed will more readily turn anger into interest."
+      },
+      { type: 'h', text: 'The base check and modifiers' },
+      {
+        type: 'list',
+        items: [
+          "**Beasts and beast-like monsters:** *Wisdom (Animal Handling)*. Advantage if you're proficient in Nature.",
+          '**Intelligent creatures (negotiation):** *Charisma (Persuasion / Intimidation)*.'
+        ]
+      },
+      {
+        type: 'p',
+        text: "Base difficulty: **DC = 10 + the creature's Challenge Rating (CR)** (fractions rounded down; a creature of CR 1/8–1/2 counts as 0). DC modifiers:"
+      },
+      {
+        type: 'table',
+        head: ['Factor', 'DC change'],
+        rows: [
+          ['Raised from infancy / a cub', '−5 (or advantage)'],
+          ['Offered food matching its diet', '−2'],
+          ['The creature was saved / healed by you', '−2'],
+          ["You're proficient in Nature", 'advantage on the roll'],
+          ['The creature is wounded and cornered', 'raise by 2'],
+          ['A predator is hungry and territorial', 'raise by 2–5'],
+          ['Evil alignment', 'raise by 5'],
+          ['Intelligence 7+', 'taming impossible']
+        ]
+      },
+      { type: 'h', text: 'Diet and temperament' },
+      { type: 'p', text: 'What you feed it is half the battle. Food links taming to the other sections of this compendium:' },
+      {
+        type: 'list',
+        items: [
+          '**Herbivores** (deer, horse, ox, rabbit): peaceful, skittish. Bait — grain, fruit, herbs, and roots from «Herbalism». They give −2 to the DC and bolt less often. Easier to tame, but worse as combat companions.',
+          '**Predators / carnivores** (wolf, bear, big cat, crocodile): dangerous, strong in a fight. Bait — fresh meat from «Hunting». Feeding lowers hostility, but on a failed first check a hungry predator may take you for prey — the GM may call for a save or an attack roll from the beast.',
+          '**Omnivores** (boar, many monsters): a middle ground — they take both meat and plant food, with an unpredictable temper.'
+        ]
+      },
+      { type: 'p', text: "Matching food to diet always beats a generic ration: you won't offer a deer a ham, or a wolf a tuft of grass." },
+      { type: 'h', text: 'The process over time (the «taming track»)' },
+      {
+        type: 'p',
+        text: "Taming is *not* instant — it's a string of successes over several periods, not one roll. The creature climbs an attitude track:"
+      },
+      { type: 'note', text: '**Wary → Tolerant → Friendly → Devoted (companion)**' },
+      { type: 'p', text: 'How many successes are needed to become devoted (depends on size and power):' },
+      {
+        type: 'table',
+        head: ['Creature category', 'Successes needed'],
+        rows: [
+          ['Small herbivore', '3'],
+          ['Medium animal', '5'],
+          ['Large beast / predator', '8'],
+          ['Beast-like monster', '10']
+        ]
+      },
+      {
+        type: 'p',
+        text: "One period = one check. In downtime a period is conveniently a work week; in travel, each day of close contact and feeding. Three failures (consecutive or total — the GM's choice) mean the creature has turned hostile and can *no longer* be tamed by this character. All that time the creature must be fed and watered (cost by size — a small one almost free, a large one noticeably dearer)."
+      },
+      { type: 'h', text: 'A companion: commands, combat, a mount' },
+      { type: 'p', text: "A devoted creature becomes a companion. So it doesn't break combat balance, a «command economy» applies:" },
+      {
+        type: 'list',
+        items: [
+          "The creature moves on its own, but in combat it truly acts (Attack, etc.) only if you spend a **bonus action** on a command. Without a command it uses only Dodge, Dash, Disengage, or Hide — that is, it defends but doesn't attack «for free» every round.",
+          "*As a mount:* you use the creature's speed; control follows the rider rules (a controlled or an independent mount).",
+          "*Scaling option* [Homebrew]: so the companion keeps up, the GM may raise its hit points and proficiency bonus to the owner's level. Without this option the beast stays «by the stat block» and quickly becomes fragile at high levels."
+        ]
+      },
+      { type: 'h', text: 'Care, loyalty, and loss' },
+      {
+        type: 'p',
+        text: 'Loyalty must be maintained. Without attention, feeding, and care a creature loses its regard: after a few days of neglect (a guideline — 3 days of minimal contact) it leaves. Cruelty, hunger, or being thrown into deadly danger provokes rebellion or flight — especially in predators and monsters.'
+      },
+      {
+        type: 'note',
+        text: "*A caution:* a weak pet in the thick of battle dies to the first area attack. Don't throw a squirrel under a «Fireball» «because it's cute» — losing a companion should be a dramatic choice, not a random trifle. The death of a devoted creature is a hook for roleplay, not a «well, get a new one»."
+      },
+      { type: 'h', text: 'Training: tricks and commands' },
+      {
+        type: 'p',
+        text: 'An already loyal creature can be taught commands (fetch, guard, attack on a gesture, freeze, track by scent). Teaching one command is a *Wisdom (Animal Handling)* DC 10 check (DC 15 for a complex or unnatural trick) per period. The number of commands is limited by Intelligence: a dull one (Int 1–2) holds 1–2 commands, a clever animal (Int 3–6) up to 4–6. Intelligent creatures need no commands — you simply tell them what to do.'
+      },
+      { type: 'h', text: 'Special categories — a quick reference' },
+      {
+        type: 'table',
+        head: ['Category', 'How to interact'],
+        rows: [
+          ['Domestic / tamed (not wild)', 'Horse, mule, dog, falcon — already friendly. No taming needed, only training or buying. The simplest case.'],
+          ['Wild herbivores', 'Animal Handling, food — grain and herbs, low DC, skittish. Good as mounts and pack animals.'],
+          ['Wild predators', 'Animal Handling, food — meat, high DC, risk of a bite on a failure. Strong combat companions.'],
+          ['Flying monsters', 'Griffon, hippogriff, eagle — beast-like monsters (Int ≤ 6). Very hard, but prized for flight. Best of all — raising from a chick.'],
+          ['Monsters (Int ≤ 6)', "Worg, riding lizard, etc. — only at the GM's discretion, maximum DC, special food."],
+          ["Intelligent monsters and humanoids (Int 7+)", "Can't be tamed. Negotiation (Persuasion), hiring, alliance, an oath — this is a companion who is a person, not a pet."],
+          ['Fiends / undead / aberrations', "Can't be tamed with Animal Handling. Only binding by magic (summoning/binding rituals, pacts). The control is temporary and unreliable: the creature looks for a loophole in the deal's terms and betrays you at the first chance. High risk."],
+          ['Fey / spirits', 'Not tamed but bargained with and promised. Capricious, they avenge a broken word and split hairs.']
+        ]
+      },
+      { type: 'h', text: 'Helpful spells and feats' },
+      {
+        type: 'p',
+        text: "They greatly ease and speed the process: «Animal Friendship», «Speak with Animals» (learn the beast's wishes), «Calm Emotions» (remove hostility), «Charm Person», «Locate Animals or Plants», «Dominate Beast», «Find Familiar» (for spirit companions). A ranger's abilities (Beast Master), a druid's (Circle of the Moon or Shepherd), and suitable animal-handling feats grant advantage, lower the DC, or replace the long process with an instant bond outright — which is exactly why they're taken."
+      },
+      { type: 'h', text: 'GM notes and balance' },
+      {
+        type: 'note',
+        text: 'The three pillars of a healthy taming system: **time** (not one roll but weeks of care), **food and care** (matching diet, constantly), and **the cost of failure** (the beast may leave, rebel, or die). Keep companion power in proportion to the party: one powerful pet per character is the ceiling, or combat turns into a zoo. Encourage roleplay: a name, a personality, little habits make a companion part of the story. A tamed creature should feel like an earned reward for effort, not a free extra «sword».'
+      }
+    ]
+  },
+  camp: {
+    name: 'Setting Up Camp',
+    tag: 'A travelling mini-base and a peaceful night',
+    blocks: [
+      {
+        type: 'p',
+        text: "A camp is a «travelling mini-base». How it's set up decides how peaceful the night will be: whether the party recovers fully, doesn't freeze, isn't slaughtered in its sleep. Here «Hunting», «Fishing», and «Cooking» (supplies and a fireside supper) meet the rest rules."
+      },
+      { type: 'h', text: 'Choosing a site' },
+      { type: 'p', text: 'Before settling in for the night, someone makes a **Wisdom (Survival)** check:' },
+      {
+        type: 'table',
+        head: ['Terrain', 'DC'],
+        rows: [
+          ['Settled, easy lands', '10'],
+          ['Wilderness', '15'],
+          ['Hostile (bog, crags, frost)', '20']
+        ]
+      },
+      {
+        type: 'p',
+        text: '*Success* — a good spot is found: sheltered from wind and prying eyes, near water and firewood. This grants the watch advantage on Perception and partly softens the weather. *Failure* — a so-so spot: the camp is exposed, damp, the wood is wet (a fire is harder to light).'
+      },
+      { type: 'h', text: 'Pitching camp and dividing the tasks' },
+      {
+        type: 'p',
+        text: 'Pitching takes about 30–60 minutes and splits into tasks the characters do in parallel: light a fire and cook supper («Cooking»), gather wood and water, take fresh food («Hunting», «Fishing»), put up shelter, set defences, and schedule the watches. The more hands, the less falls on each — a small party must sacrifice something (e.g. supper for defences).'
+      },
+      { type: 'h', text: 'Fire and warmth' },
+      {
+        type: 'p',
+        text: "A fire warms, cooks, and lifts the spirits, but it's seen and smelled from afar — a trade-off between comfort and stealth. In extreme cold a night without a heat source and shelter risks a Constitution save against exhaustion. A skilled ranger (Survival DC 15) can build a «smokeless» fire in a pit, lowering its visibility. A magical flame, a hooded lantern, or a brazier give warmth without a bright glow."
+      },
+      { type: 'h', text: 'Shelter (levels of protection)' },
+      {
+        type: 'table',
+        head: ['Type of camp', 'What it gives'],
+        rows: [
+          ['Out in the open', 'No protection. Rain, wind, and cold hit at full force; risk of exhaustion in bad weather.'],
+          ['Lean-to / tent', 'Protection from precipitation and wind, warmth holds. A normal long rest passes peacefully.'],
+          ['Fortified camp', 'All of the above + watch bonuses: an enemy finds it harder to approach unnoticed.']
+        ]
+      },
+      {
+        type: 'p',
+        text: 'Gear (a tent, a bedroll, warm clothing) is what separates a fresh party in the morning from a chilled one with a level of exhaustion.'
+      },
+      { type: 'h', text: 'Watches' },
+      {
+        type: 'p',
+        text: "The night (about 8 hours) is split into watches. Whoever is awake watches with passive Perception; whoever sleeps doesn't. The more people in the party, the shorter each watch and the fewer «blind» hours. *Important:* sleeping in medium or heavy armour hampers full rest — the character gains no benefit from a long rest (or gains it with disadvantage, at the GM's discretion). Spellcasters recover slots only after uninterrupted rest, so an even watch schedule matters."
+      },
+      { type: 'h', text: 'Defences and alarms' },
+      {
+        type: 'p',
+        text: "Simple measures sharply raise safety: a strung cord with hung pots and bells, a ditch or rampart, sharpened stakes, traps. An alarm grants the watch advantage to spot an approach and/or imposes disadvantage on a sneaking enemy's Stealth. Setting up takes time (minutes for a cord, longer for a rampart) and may require a Survival check or suitable tools."
+      },
+      { type: 'h', text: 'Interrupting a long rest' },
+      {
+        type: 'p',
+        text: 'By the 2024 rules, a long rest is interrupted if at least 1 hour of strenuous activity occurs during it — combat, an exhausting march, casting spells, and so on. Light activities (watch, talk, food, cooking) do *not* interrupt it. An interrupted rest must be started over — another argument for a calm, well-guarded camp.'
+      },
+      { type: 'h', text: 'Night encounters' },
+      {
+        type: 'p',
+        text: "If something comes in the night, the watch decides the outcome. Compare the awake characters' passive Perception with the Stealth check of the approaching creatures: if the watch didn't spot the enemy, the attackers gain surprise and a head start while the party wakes and arms (recall sleeping in armour). A good site and alarms often turn such a scene in the party's favour."
+      },
+      { type: 'h', text: 'A safe camp (option)' },
+      {
+        type: 'note',
+        text: "If you want to reward good preparation: a camp where a good site, shelter, a fire, and a hearty supper all came together counts as «secure». It grants the watch advantage on Perception all night and removes weather penalties. Don't pile new bonuses on top of that — let the calm rest itself be the reward."
+      },
+      { type: 'h', text: 'GM notes' },
+      {
+        type: 'note',
+        text: "Don't turn every night's stay into a checklist — bring in the camp rules when the stakes are high: deep in enemy lands, in a blizzard, during a chase. In a safe town a night passes «off-screen». A camp is good as a scene of quiet roleplay between fights: talk by the fire, sharing supplies, uneasy sounds in the dark."
+      }
+    ]
+  },
+  bastion: {
+    name: 'Building a Base (Bastion)',
+    tag: 'The official Bastion system (DMG 2024)',
+    blocks: [
+      {
+        type: 'p',
+        text: "A Bastion is the party's personal base from the Dungeon Master's Guide 2024: a fortress, a workshop, a sanctuary, a tavern, or anything else that produces something on its own between adventures. It's the «capstone» of the whole compendium: here Herbalism, Alchemy, Crafting, Cooking, Gambling, and Taming get a permanent home."
+      },
+      { type: 'h', text: 'What a Bastion is and how to get one' },
+      {
+        type: 'p',
+        text: "A character gains a Bastion at 5th level. Several players can combine their bastions into one physical place (a shared base) or keep them separate. A Bastion isn't carried around: it stays put, and the party returns to it between forays."
+      },
+      { type: 'h', text: 'Rooms: basic and special' },
+      {
+        type: 'list',
+        items: [
+          "**Basic** rooms (bedrooms, a kitchen, a pantry, a dining hall, a cellar) give no mechanical benefit — they're atmosphere and comfort, and you can have as many as you like.",
+          "**Special** rooms give a real benefit: you give them orders, hirelings staff them, some provide defenders. It's the special rooms that are limited in number."
+        ]
+      },
+      {
+        type: 'p',
+        text: 'Each special room has one of three sizes — **cramped**, **roomy**, or **vast** (in 5×5-foot squares); the size can be expanded for gold.'
+      },
+      { type: 'h', text: 'Base growth by level' },
+      {
+        type: 'table',
+        head: ['Character level', 'Special rooms available'],
+        rows: [
+          ['5', '2'],
+          ['9', '4'],
+          ['13', '5'],
+          ['17', '6']
+        ]
+      },
+      {
+        type: 'p',
+        text: 'In all the DMG offers about 29 special rooms to choose from — each with its own minimum level, size, set of hirelings, and available orders.'
+      },
+      { type: 'h', text: 'The Bastion turn' },
+      {
+        type: 'p',
+        text: "About once every 7 game days (the interval is flexible, at the GM's discretion) a «Bastion turn» occurs. On this turn the owner issues orders to each special room. If no orders are given, the rooms default to «Maintain», and the GM rolls for a Bastion event. Orders are usually given while at the base; at a distance it's possible only with a magical link (e.g. the «Sending» spell)."
+      },
+      { type: 'h', text: 'Orders to rooms' },
+      { type: 'p', text: 'The seven main orders:' },
+      {
+        type: 'list',
+        items: [
+          '**Craft** — hirelings create an item the room is suited to (gear, potions, scrolls, etc.).',
+          '**Trade** — the room brings income or buys goods.',
+          "**Recruit** — hire defenders for the base's defence.",
+          '**Harvest** — gather a resource (herbs from the garden, potions, other produce).',
+          '**Research** — obtain knowledge, rumours, clues.',
+          "**Empower** — the room's special effect (a blessing, temporary hit points after resting there).",
+          '**Maintain** — routine; the default order if none other is given.'
+        ]
+      },
+      { type: 'p', text: 'The specific result and its magnitude are spelled out for each room in the DMG.' },
+      { type: 'h', text: 'Hirelings and defenders' },
+      {
+        type: 'p',
+        text: "Special rooms come with **hirelings** — NPCs who run things (a smith in the forge, a gardener in the garden, a librarian in the library). They can't be taken adventuring, but they're handy for roleplaying the base's life. **Defenders** are fighters you can recruit to defend the Bastion during an attack. The Bastion's economy is mostly separate from the characters' personal money."
+      },
+      { type: 'h', text: 'Bastion events' },
+      {
+        type: 'p',
+        text: 'Between turns (especially when the party is away and gives no orders) the GM rolls for a random event: it can be good (an unexpected profit, a valuable guest, a lucky find) or bad (an attack, a theft, a missing hireling, an accident). On an attack the defenders come into play; the outcome and losses are set by the defence rules.'
+      },
+      { type: 'h', text: 'Special rooms and the link to the whole compendium' },
+      { type: 'p', text: 'Here is where the Bastion «glues together» the whole reference (names given by sense):' },
+      {
+        type: 'table',
+        head: ['Room', 'What it does / what it links to'],
+        rows: [
+          ['Garden / Greenhouse', 'Grows and gathers herbs → «Herbalism», «Alchemy»'],
+          ['Laboratory / Arcane study', 'Brews potions, makes scrolls and magic items → «Alchemy», «Crafting»'],
+          ['Workshop / Forge', 'Crafting gear → «Crafting Items»'],
+          ['Stable / Menagerie', 'Houses mounts and tamed creatures → «Taming Creatures»'],
+          ['Kitchen / Pub', 'Feasts and income → «Cooking»'],
+          ['Gaming hall', 'Gambling and entertainment → «Gambling»'],
+          ['Storehouse', 'Storing supplies and ingredients (shelf life)'],
+          ['Library', 'Research → knowledge, recipes, rumours'],
+          ['Barracks / Armoury', 'Defenders and base defence'],
+          ['Sanctuary / Chapel', 'Healing, blessings, «resurrection at home»']
+        ]
+      },
+      {
+        type: 'p',
+        text: 'So a well-built base feeds all the compendium\'s systems on its own: the garden feeds the alchemist, the forge the warrior, the menagerie the beast master.'
+      },
+      { type: 'h', text: 'A simplified «base-lite» (option)' },
+      {
+        type: 'note',
+        text: "*Homebrew variant.* If you don't need the full subsystem bookkeeping, use the light version: the party owns a home base, and once per downtime week it automatically advances one task — crafting, harvesting herbs, or recruiting a helper — with no rolls or accounting. This keeps the spirit of «a home that works for you» without taking up the table. Expand to the full DMG system when you want depth."
+      },
+      { type: 'h', text: 'GM notes' },
+      {
+        type: 'note',
+        text: "The Bastion is deliberately set apart from adventures: hirelings can't be taken into battle, the base's economy is its own, and orders usually require presence. This keeps the base from becoming a «second game» mid-session — allot 10–15 minutes to the Bastion turn at the start of a meeting. Give the base character: let hirelings, guests, and events create plot hooks, not just numbers. A base should be an anchor and a reward, not a chore."
+      }
+    ]
+  }
+}
+
+/** Optional rules in the requested language; untranslated rules fall back to RU. */
+export function rulesFor(lang: string): OptionalRule[] {
+  if (!isEnRules(lang)) return OPTIONAL_RULES
+  return OPTIONAL_RULES.map((r) => {
+    const o = OPTIONAL_RULES_EN[r.id]
+    return o ? { ...r, name: o.name, tag: o.tag, blocks: o.blocks } : r
+  })
+}

@@ -31,7 +31,9 @@ export function entryForRoll(table: RandomTable, roll: number): RandomTableEntry
 const one = (n: number, result: string): RandomTableEntry => ({ min: n, max: n, result })
 const range = (min: number, max: number, result: string): RandomTableEntry => ({ min, max, result })
 
-export const BUILTIN_RANDOM_TABLES: RandomTable[] = [
+import { EXTRA_RANDOM_TABLES } from './random-tables-extra'
+
+const CORE_RANDOM_TABLES: RandomTable[] = [
   {
     id: 'trinkets-d20',
     name: 'Безделушки',
@@ -98,3 +100,6 @@ export const BUILTIN_RANDOM_TABLES: RandomTable[] = [
     ]
   }
 ]
+
+/** Встроенные таблицы: основной набор + дополнительные пользовательские своды. */
+export const BUILTIN_RANDOM_TABLES: RandomTable[] = [...CORE_RANDOM_TABLES, ...EXTRA_RANDOM_TABLES]
