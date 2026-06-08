@@ -23,6 +23,12 @@ import flavor3 from './flavor3'
 import newA from './newA'
 import newB from './newB'
 import newC from './newC'
+import newD from './newD'
+import newE from './newE'
+import newF from './newF'
+import newG from './newG'
+import newH from './newH'
+import newI from './newI'
 
 /** English flavor blurbs keyed by RU monster name (overlay for MONSTER_FLAVOR). */
 export const MONSTER_FLAVOR_EN: Record<string, string> = { ...flavor1, ...flavor2, ...flavor3 }
@@ -60,5 +66,11 @@ export const MONSTER_EN: Record<string, MonsterEn> = {
   ...p15,
   ...newA,
   ...newB,
-  ...newC
+  ...newC,
+  ...newD,
+  ...newE,
+  ...newF,
+  ...newG,
+  ...newH,
+  ...newI
 }

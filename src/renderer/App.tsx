@@ -27,6 +27,11 @@ const RandomTables = lazy(() => import('./pages/RandomTables'))
 const Spells = lazy(() => import('./pages/Spells'))
 const Codex = lazy(() => import('./pages/Codex'))
 const CharacterBuild = lazy(() => import('./pages/CharacterBuild'))
+const Curses = lazy(() => import('./pages/Curses'))
+const Mutations = lazy(() => import('./pages/Mutations'))
+const NpcGenerator = lazy(() => import('./pages/NpcGenerator'))
+const Rooms = lazy(() => import('./pages/Rooms'))
+const Region = lazy(() => import('./pages/Region'))
 import { GiResize, GiHorizontalFlip } from 'react-icons/gi'
 import { useSettings } from './store/settings'
 import { useUi, type SplitRoute } from './store/ui'
@@ -333,6 +338,12 @@ export default function App(): JSX.Element {
                     </ErrorBoundary>
                   }
                 />
+                {/* Worldbuilding toolkit (раздел «Лор и мир»). */}
+                <Route path="/curses" element={<ErrorBoundary name="Curses"><Curses /></ErrorBoundary>} />
+                <Route path="/mutations" element={<ErrorBoundary name="Mutations"><Mutations /></ErrorBoundary>} />
+                <Route path="/npc-generator" element={<ErrorBoundary name="NpcGenerator"><NpcGenerator /></ErrorBoundary>} />
+                <Route path="/rooms" element={<ErrorBoundary name="Rooms"><Rooms /></ErrorBoundary>} />
+                <Route path="/region" element={<ErrorBoundary name="Region"><Region /></ErrorBoundary>} />
                 <Route
                   path="/editor"
                   element={

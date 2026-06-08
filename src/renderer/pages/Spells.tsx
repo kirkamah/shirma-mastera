@@ -1,9 +1,8 @@
-import { useEffect, useMemo, useState, type JSX } from 'react'
+import { useMemo, useState, type JSX } from 'react'
 import { useTranslation } from 'react-i18next'
 import { GiTrashCan, GiMagnifyingGlass } from 'react-icons/gi'
 import PageFrame from '../components/PageFrame'
 import CustomFormDialog, { type FormField, type FormValues } from '../components/CustomFormDialog'
-import { useSettings } from '../store/settings'
 import { useSpellPopup } from '../store/spellPopup'
 import { useCustom } from '../hooks/useCustom'
 import { uid } from '../utils/monster'
@@ -12,7 +11,7 @@ import { RU_SPELLS, spellsFor, spellSchoolLabel, spellLevelLabel } from '../data
 import { schoolVisual } from '../data/school-visuals'
 import type { Spell } from '@shared/types'
 
-type Source = 'ru' | 'open5e'
+type Source = 'ru' | 'mine'
 type SortMode = 'level' | 'school' | 'name'
 const LEVELS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
@@ -43,13 +42,9 @@ function valuesToSpell(v: FormValues, key: string): Spell {
 export default function Spells(): JSX.Element {
   const { t, i18n } = useTranslation()
   const lang = i18n.language
-  const edition = useSettings((s) => s.edition)
   const openSpell = useSpellPopup((s) => s.open)
   const { items: customSpells, save, remove } = useCustom<Spell>('spell')
   const [source, setSource] = useState<Source>('ru')
-  const [fetched, setFetched] = useState<Spell[]>([])
-  const [loading, setLoading] = useState(false)
-  const [offline, setOffline] = useState(false)
   const [query, setQuery] = useState('')
   const [level, setLevel] = useState<number | 'all'>('all')
   const [school, setSchool] = useState<string>('all')
@@ -92,29 +87,13 @@ export default function Spells(): JSX.Element {
   const builtinSpellIds = useMemo(() => new Set(RU_SPELLS.map((s) => s.key)), [])
   const customByKey = useMemo(() => new Map(customSpells.map((c) => [c.key, c])), [customSpells])
 
-  useEffect(() => {
-    if (source !== 'open5e') return
-    let mounted = true
-    setLoading(true)
-    window.api.open5e
-      .searchSpells({ edition, limit: 400 })
-      .then((res) => {
-        if (!mounted) return
-        setFetched(res.results)
-        setOffline(res.offline)
-      })
-      .finally(() => mounted && setLoading(false))
-    return () => {
-      mounted = false
-    }
-  }, [source, edition])
-
-  // For the RU set, overlay user overrides over built-in spells, then append fully custom ones.
+  // «Мои» shows only user-created spells; the RU set overlays user overrides on the built-ins, then appends fully custom ones.
   const pool =
-    source === 'ru'
-      ? [...ruSpells.map((s) => customByKey.get(s.key) ?? s), ...customSpells.filter((c) => !builtinSpellIds.has(c.key))]
-      : fetched
-  const schools = useMemo(() => [...new Set(pool.map((s) => s.school))].filter(Boolean).sort(), [pool])
+    source === 'mine'
+      ? customSpells
+      : [...ruSpells.map((s) => customByKey.get(s.key) ?? s), ...customSpells.filter((c) => !builtinSpellIds.has(c.key))]
+  // Fixed canonical school list (same order in every tab), independent of which spells the current pool happens to contain.
+  const schools = useMemo(() => Object.values(SCHOOL_RU).slice().sort((a, b) => a.localeCompare(b, 'ru')), [])
   const byName = (a: Spell, b: Spell): number => a.name.localeCompare(b.name, 'ru')
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -156,11 +135,11 @@ export default function Spells(): JSX.Element {
   return (
     <PageFrame
       title={t('spells.title')}
-      subtitle={source === 'ru' ? t('spells.countSpells', { n: RU_SPELLS.length + customSpells.length }) : offline ? t('spells.srcOffline') : t('spells.srcOpen5e')}
+      subtitle={source === 'mine' ? t('spells.countMine', { n: customSpells.length }) : t('spells.countSpells', { n: RU_SPELLS.length + customSpells.length })}
       actions={
         <div className="flex items-center gap-1">
           {srcBtn('ru', t('spells.srcRu'))}
-          {srcBtn('open5e', 'Open5e')}
+          {srcBtn('mine', t('spells.srcMine'))}
           <button
             onClick={() => setEditing({ key: null, values: { level: 1, school: 'Воплощение', castingTime: '1 действие', components: 'В, С', duration: 'Мгновенная', concentration: false, ritual: false } })}
             className="ml-1 rounded bg-accent px-2 py-1 text-xs font-semibold text-parchment hover:bg-accent/80"
@@ -212,7 +191,7 @@ export default function Spells(): JSX.Element {
             ))}
           </div>
           <span className="rounded-full bg-accent/10 px-2 py-0.5 text-xs font-semibold text-accent">
-            {loading ? t('common.loading') : t('spells.countShort', { n: filtered.length })}
+            {t('spells.countShort', { n: filtered.length })}
           </span>
           {hasFilters && (
             <button onClick={resetFilters} className="text-xs text-ink-brown/55 underline decoration-dotted underline-offset-2 hover:text-accent">
@@ -263,7 +242,7 @@ export default function Spells(): JSX.Element {
                   const { Icon, color } = schoolVisual(s.school)
                   return (
                     <div key={s.key} className="relative">
-                      {source === 'ru' && isCustom && (
+                      {isCustom && (
                         <div className="absolute right-1 top-1 z-10 flex gap-1">
                           <button onClick={() => remove(s.key)} title={builtinSpellIds.has(s.key) ? t('equip.resetOriginal') : t('common.delete')} className="rounded bg-sidebar/80 px-1 text-xs text-accent hover:text-red-400">
                             {builtinSpellIds.has(s.key) ? '↺' : <GiTrashCan />}
@@ -271,7 +250,7 @@ export default function Spells(): JSX.Element {
                         </div>
                       )}
                       <button
-                        onClick={() => openSpell(s, source === 'ru' ? (sp) => setEditing({ key: sp.key, values: spellToValues(sp) }) : undefined)}
+                        onClick={() => openSpell(s, (sp) => setEditing({ key: sp.key, values: spellToValues(sp) }))}
                         className="flex h-full w-full flex-col gap-1.5 rounded-lg border border-ink-brown/20 bg-parchment-dark/40 p-3 text-left transition-all hover:-translate-y-0.5 hover:border-accent/60 hover:bg-parchment/70 hover:shadow-panel"
                       >
                         <div className="flex items-center gap-2 self-stretch">
@@ -299,7 +278,7 @@ export default function Spells(): JSX.Element {
             </section>
           )
         })}
-        {filtered.length === 0 && !loading && <div className="p-6 text-center text-ink-brown/50">{t('common.empty')}</div>}
+        {filtered.length === 0 && <div className="p-6 text-center text-ink-brown/50">{t('common.empty')}</div>}
       </div>
 
       {editing && (

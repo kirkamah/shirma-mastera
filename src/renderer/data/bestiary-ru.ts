@@ -4,6 +4,12 @@ import { MONSTER_EN, MONSTER_FLAVOR_EN } from './bestiary-en'
 import ADD_A from './bestiary-add/ruA'
 import ADD_B from './bestiary-add/ruB'
 import ADD_C from './bestiary-add/ruC'
+import ADD_D from './bestiary-add/ruD'
+import ADD_E from './bestiary-add/ruE'
+import ADD_F from './bestiary-add/ruF'
+import ADD_G from './bestiary-add/ruG'
+import ADD_H from './bestiary-add/ruH'
+import ADD_I from './bestiary-add/ruI'
 
 // Curated, hand-translated Russian SRD bestiary used as the offline primary
 // source. Dice are written in Russian "к" notation so Quick Roll works and
@@ -6806,7 +6812,7 @@ a|Дубина|+9, досягаемость 10 фт. Попадание: 19 (3к
 a|Камень|+9, досягаемость 30/120 фт. Попадание: 28 (4к10+6) дробящего.
 `
 
-export const RU_BESTIARY: StatBlock[] = [
+const FULL_BESTIARY: StatBlock[] = [
   ...CURATED_MONSTERS,
   ...parseMonsters(MONSTERS_COMPACT),
   ...parseMonsters(MONSTERS_COMPACT_2),
@@ -6815,8 +6821,24 @@ export const RU_BESTIARY: StatBlock[] = [
   ...parseMonsters(MONSTERS_COMPACT_5),
   ...parseMonsters(ADD_A),
   ...parseMonsters(ADD_B),
-  ...parseMonsters(ADD_C)
+  ...parseMonsters(ADD_C),
+  ...parseMonsters(ADD_D),
+  ...parseMonsters(ADD_E),
+  ...parseMonsters(ADD_F),
+  ...parseMonsters(ADD_G),
+  ...parseMonsters(ADD_H),
+  ...parseMonsters(ADD_I)
 ].map((m) => (m.flavor ? m : { ...m, flavor: MONSTER_FLAVOR[m.name] }))
+
+/** Trial build: only low-danger creatures (CR ≤ 2), first 50 alphabetically. */
+function trialSubset(list: StatBlock[]): StatBlock[] {
+  return list
+    .filter((m) => m.challengeRating <= 2)
+    .sort((a, b) => a.name.localeCompare(b.name, 'ru'))
+    .slice(0, 50)
+}
+
+export const RU_BESTIARY: StatBlock[] = __TRIAL__ ? trialSubset(FULL_BESTIARY) : FULL_BESTIARY
 
 // ════════════════════════════ English (EN) overlay ════════════════════════════
 // RU is the source of truth. `monstersFor('en')` overlays the free-text fields

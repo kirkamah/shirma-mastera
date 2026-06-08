@@ -10,6 +10,7 @@ import Modal from '../components/Modal'
 import { applyFilters, collectOptions, DEFAULT_FILTERS, type Filters } from '../utils/filters'
 import { emptyStatBlock } from '../utils/monster'
 import { confirmDialog } from '../store/dialog'
+import { IS_TRIAL, TRIAL_LIMIT, showTrialLimitDialog } from '../trial'
 import type { StatBlock as SB } from '@shared/types'
 
 export default function MyMonsters(): JSX.Element {
@@ -44,7 +45,16 @@ export default function MyMonsters(): JSX.Element {
       title={t('myMonsters.title')}
       actions={
         <>
-          <button onClick={() => navigate('/editor', { state: { monster: emptyStatBlock() } })} className={`${btn} bg-accent text-parchment hover:bg-accent/80`}>
+          <button
+            onClick={() => {
+              if (IS_TRIAL && monsters.length >= TRIAL_LIMIT) {
+                void showTrialLimitDialog()
+                return
+              }
+              navigate('/editor', { state: { monster: emptyStatBlock() } })
+            }}
+            className={`${btn} bg-accent text-parchment hover:bg-accent/80`}
+          >
             + {t('myMonsters.create')}
           </button>
         </>

@@ -29,6 +29,12 @@ interface CustomEquip {
   cost: string
   weight: string
   props: string
+  /** armor only: which armor subgroup it belongs to */
+  tier?: ArmorTier
+  /** mounts only: which transport subgroup it belongs to */
+  mountTier?: MountTier
+  /** weapons only: ranged vs melee subgroup */
+  ranged?: boolean
 }
 
 /** Renders an item description: splits into sections, bolds the leading keyword
@@ -103,15 +109,17 @@ function subgroups(category: EquipCategory, items: EquipItem[], lang: string, t:
   }
   if (category === 'armor') {
     const order: ArmorTier[] = ['light', 'medium', 'heavy', 'shield']
-    return order
-      .map((tier) => ({ label: armorTierLabel(tier, lang), items: items.filter((i) => i.tier === tier) }))
-      .filter((g) => g.items.length)
+    const out: SubGroup[] = order.map((tier) => ({ label: armorTierLabel(tier, lang), items: items.filter((i) => i.tier === tier) }))
+    const rest = items.filter((i) => !i.tier)
+    if (rest.length) out.push({ label: t('equip.otherGroup'), items: rest })
+    return out.filter((g) => g.items.length)
   }
   if (category === 'mounts') {
     const order: MountTier[] = ['beast', 'tack', 'cart', 'ship']
-    return order
-      .map((tier) => ({ label: mountTierLabel(tier, lang), items: items.filter((i) => i.mountTier === tier) }))
-      .filter((g) => g.items.length)
+    const out: SubGroup[] = order.map((tier) => ({ label: mountTierLabel(tier, lang), items: items.filter((i) => i.mountTier === tier) }))
+    const rest = items.filter((i) => !i.mountTier)
+    if (rest.length) out.push({ label: t('equip.otherGroup'), items: rest })
+    return out.filter((g) => g.items.length)
   }
   return [{ label: null, items }]
 }
@@ -126,6 +134,21 @@ export default function Equipment(): JSX.Element {
     () => [
       { key: 'name', label: t('equip.fName') },
       { key: 'category', label: t('equip.fCategory'), type: 'select', options: EQUIP_CATEGORIES.map((c) => ({ value: c.id, label: categoryLabel(c, lang) })) },
+      {
+        key: 'tier',
+        label: t('equip.fTier'),
+        type: 'select',
+        options: (['light', 'medium', 'heavy', 'shield'] as ArmorTier[]).map((tr) => ({ value: tr, label: armorTierLabel(tr, lang) })),
+        showIf: (v) => v.category === 'armor'
+      },
+      {
+        key: 'mountTier',
+        label: t('equip.fMountTier'),
+        type: 'select',
+        options: (['beast', 'tack', 'cart', 'ship'] as MountTier[]).map((tr) => ({ value: tr, label: mountTierLabel(tr, lang) })),
+        showIf: (v) => v.category === 'mounts'
+      },
+      { key: 'ranged', label: t('equip.fRanged'), type: 'checkbox', showIf: (v) => v.category === 'weapon-simple' || v.category === 'weapon-martial' },
       { key: 'cost', label: t('equip.cost'), placeholder: t('equip.costPh') },
       { key: 'weight', label: t('equip.weight'), placeholder: t('equip.weightPh') },
       { key: 'props', label: t('equip.fProps'), type: 'textarea' }
@@ -170,6 +193,24 @@ export default function Equipment(): JSX.Element {
   const selIsOverride = selected ? customKeys.has(selected.id) && builtinIds.has(selected.id) : false
   const selIsCustomOnly = selected ? customKeys.has(selected.id) && !builtinIds.has(selected.id) : false
 
+  const tile = (e: EquipItem): JSX.Element => (
+    <button
+      key={e.id}
+      onClick={() => setSelectedId(e.id)}
+      title={e.name}
+      className={`flex h-11 items-center justify-center rounded border px-1.5 text-center text-[13px] font-semibold leading-tight transition-all ${
+        selected?.id === e.id
+          ? 'border-accent bg-accent/25 text-accent shadow-sm'
+          : 'border-ink-brown/20 bg-parchment-dark/30 text-ink-brown/90 hover:border-accent/60 hover:bg-parchment/60'
+      }`}
+    >
+      <span className="line-clamp-2">
+        {customKeys.has(e.id) && '✎ '}
+        {e.name}
+      </span>
+    </button>
+  )
+
   const chip = (id: EquipCategory | 'all', label: string, Icon?: IconType): JSX.Element => (
     <button
       onClick={() => setCat(id)}
@@ -185,7 +226,7 @@ export default function Equipment(): JSX.Element {
       title={t('equip.title')}
       subtitle={t('equip.subtitle')}
       actions={
-        <button onClick={() => setEditing({ key: null, values: { category: cat === 'all' ? 'gear' : cat } })} className="rounded bg-accent px-3 py-1.5 text-sm font-semibold text-parchment hover:bg-accent/80">
+        <button onClick={() => setEditing({ key: null, values: { category: cat === 'all' ? 'gear' : cat, tier: 'medium', mountTier: 'beast', ranged: false } })} className="rounded bg-accent px-3 py-1.5 text-sm font-semibold text-parchment hover:bg-accent/80">
           {t('equip.addItem')}
         </button>
       }
@@ -212,35 +253,32 @@ export default function Equipment(): JSX.Element {
                 <div className="flex items-center gap-1.5 bg-accent/10 px-3 py-1 font-serif text-sm font-semibold text-accent">
                   <Icon className="text-base" /> {categoryLabel(c, lang)}
                 </div>
-                {subgroups(c.id, filtered.filter((e) => e.category === c.id), lang, t).map((sg, i) => (
-                  <Fragment key={i}>
-                    {sg.label && (
-                      <div className="flex items-center gap-2 px-3 pt-1.5 text-[10px] uppercase tracking-wide text-ink-brown/45">
-                        <span>{sg.label}</span>
-                        <span className="h-px flex-1 bg-ink-brown/20" />
-                      </div>
-                    )}
-                    <div className="grid grid-cols-2 gap-1 p-1">
-                      {sg.items.map((e) => (
-                        <button
-                          key={e.id}
-                          onClick={() => setSelectedId(e.id)}
-                          title={e.name}
-                          className={`flex h-11 items-center justify-center rounded border px-1.5 text-center text-[13px] font-semibold leading-tight transition-all ${
-                            selected?.id === e.id
-                              ? 'border-accent bg-accent/25 text-accent shadow-sm'
-                              : 'border-ink-brown/20 bg-parchment-dark/30 text-ink-brown/90 hover:border-accent/60 hover:bg-parchment/60'
-                          }`}
-                        >
-                          <span className="line-clamp-2">
-                            {customKeys.has(e.id) && '✎ '}
-                            {e.name}
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-                  </Fragment>
-                ))}
+                {subgroups(c.id, filtered.filter((e) => e.category === c.id), lang, t).map((sg, i) => {
+                  // Custom-only items (not overrides of a built-in) get split off behind a divider.
+                  const official = sg.items.filter((e) => !(customKeys.has(e.id) && !builtinIds.has(e.id)))
+                  const mine = sg.items.filter((e) => customKeys.has(e.id) && !builtinIds.has(e.id))
+                  return (
+                    <Fragment key={i}>
+                      {sg.label && (
+                        <div className="flex items-center gap-2 px-3 pt-1.5 text-[10px] uppercase tracking-wide text-ink-brown/45">
+                          <span>{sg.label}</span>
+                          <span className="h-px flex-1 bg-ink-brown/20" />
+                        </div>
+                      )}
+                      {official.length > 0 && <div className="grid grid-cols-2 gap-1 p-1">{official.map(tile)}</div>}
+                      {mine.length > 0 && (
+                        <>
+                          <div className="flex items-center gap-2 px-3 py-1 text-[10px] uppercase tracking-wide text-accent/70">
+                            <span className="h-px flex-1 bg-accent/30" />
+                            <span>{t('equip.customGroup')}</span>
+                            <span className="h-px flex-1 bg-accent/30" />
+                          </div>
+                          <div className="grid grid-cols-2 gap-1 p-1">{mine.map(tile)}</div>
+                        </>
+                      )}
+                    </Fragment>
+                  )
+                })}
               </div>
             )
           })}
@@ -254,7 +292,7 @@ export default function Equipment(): JSX.Element {
                 <h2 className="font-serif text-3xl font-bold text-accent">{selected.name}</h2>
                 <div className="flex shrink-0 gap-1">
                   <button
-                    onClick={() => setEditing({ key: selected.id, values: { name: selected.name, category: selected.category, cost: selected.cost, weight: selected.weight, props: selected.props } })}
+                    onClick={() => setEditing({ key: selected.id, values: { name: selected.name, category: selected.category, cost: selected.cost, weight: selected.weight, props: selected.props, tier: selected.tier ?? 'medium', mountTier: selected.mountTier ?? 'beast', ranged: selected.ranged ?? false } })}
                     title={t('common.edit')}
                     className="rounded border border-accent/50 px-2 py-1 text-xs text-accent hover:bg-accent/10"
                   >
@@ -311,13 +349,17 @@ export default function Equipment(): JSX.Element {
             const base = editing.key
             const key = mode === 'copy' || base === null ? uid('cequip') : base
             const name = mode === 'copy' && !/\(копия\)/i.test(String(v.name)) ? `${v.name} (копия)` : String(v.name || 'Без названия')
+            const category = (String(v.category) as EquipCategory) || 'gear'
             save({
               key,
               name,
-              category: (String(v.category) as EquipCategory) || 'gear',
+              category,
               cost: String(v.cost || '—'),
               weight: String(v.weight || '—'),
-              props: String(v.props || '')
+              props: String(v.props || ''),
+              tier: category === 'armor' ? (String(v.tier || 'medium') as ArmorTier) : undefined,
+              mountTier: category === 'mounts' ? (String(v.mountTier || 'beast') as MountTier) : undefined,
+              ranged: category === 'weapon-simple' || category === 'weapon-martial' ? Boolean(v.ranged) : undefined
             })
             setSelectedId(key)
             setEditing(null)

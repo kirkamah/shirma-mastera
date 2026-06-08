@@ -9,6 +9,7 @@ import { crToDisplay } from '@shared/open5e-mapper'
 import type { NamedEntry, StatBlock as SB } from '@shared/types'
 import { emptyEntry, emptyStatBlock, statBlockToHtml, uid } from '../utils/monster'
 import { parseStatBlock } from '../utils/parseStatBlock'
+import { IS_TRIAL, TRIAL_LIMIT, showTrialLimitDialog } from '../trial'
 
 type EntryKey = 'traits' | 'actions' | 'bonusActions' | 'reactions' | 'legendaryActions'
 const ABILS: (keyof SB['abilities'])[] = ['str', 'dex', 'con', 'int', 'wis', 'cha']
@@ -104,6 +105,17 @@ export default function MonsterEditor(): JSX.Element {
   const saveAs = async (mode: 'overwrite' | 'copy'): Promise<void> => {
     const isCopy = mode === 'copy'
     const key = isCopy ? uid('custom') : m.key
+    // Trial: at most TRIAL_LIMIT saved custom monsters. Overwriting an
+    // existing one is fine; creating a new entry beyond the limit is not.
+    if (IS_TRIAL) {
+      const existing = await window.api.db.listMonsters()
+      const isNew = !existing.some((x) => x.key === key)
+      if (isNew && existing.length >= TRIAL_LIMIT) {
+        setSaveMenuOpen(false)
+        await showTrialLimitDialog()
+        return
+      }
+    }
     const name = isCopy && !/\(копия\)/i.test(m.name) ? `${m.name} (копия)` : m.name
     const toSave: SB = { ...m, key, name, crDisplay: crToDisplay(m.challengeRating), source: 'custom' }
     await window.api.db.saveMonster(toSave)

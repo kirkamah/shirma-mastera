@@ -35,6 +35,7 @@ import CustomBuildEditor, { type BuildKind } from '../components/character/Custo
 import { useCustomBuilds } from '../store/customBuilds'
 import { isCustomBuildId, findRace, findClass, findBackground } from '../data/custom-builds'
 import { confirmDialog } from '../store/dialog'
+import { IS_TRIAL, TRIAL_LIMIT, showTrialLimitDialog } from '../trial'
 
 type Tab = 'races' | 'classes' | 'feats' | 'backgrounds' | 'create'
 
@@ -632,7 +633,14 @@ export default function CharacterBuild(): JSX.Element {
           <div className="w-52 shrink-0 overflow-y-auto rounded-lg border border-ink-brown/20 bg-parchment-dark/30 py-1">
             {customKind && (
               <button
-                onClick={() => setEditor({ kind: customKind, initial: null })}
+                onClick={() => {
+                  // Trial: at most TRIAL_LIMIT custom builds (races+classes+backgrounds).
+                  if (IS_TRIAL && customRaces.length + customClasses.length + customBackgrounds.length >= TRIAL_LIMIT) {
+                    void showTrialLimitDialog()
+                    return
+                  }
+                  setEditor({ kind: customKind, initial: null })
+                }}
                 className="mx-1 mb-1 flex w-[calc(100%-0.5rem)] items-center justify-center gap-1 rounded border border-dashed border-gold/60 px-2 py-1.5 font-serif text-sm font-bold text-gold transition-colors hover:bg-gold/15"
               >
                 {t('build.createOwn')}

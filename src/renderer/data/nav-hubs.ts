@@ -5,7 +5,8 @@ import {
   GiKnapsack,
   GiScrollQuill,
   GiCharacter,
-  GiBookCover
+  GiBookCover,
+  GiWorld
 } from 'react-icons/gi'
 
 /** One destination inside a hub (a former top-level page). */
@@ -63,9 +64,21 @@ export const HUBS: Hub[] = [
     id: 'character',
     icon: GiCharacter,
     key: 'hub.character',
+    routes: [{ to: '/character', key: 'nav.character' }]
+  },
+  {
+    id: 'lore',
+    icon: GiWorld,
+    key: 'hub.lore',
+    // Lore reference + GM worldbuilding toolkit. Pages are skeletons for now; each
+    // gains its real UI as the feature lands (curses → NPCs → mutations → region → rooms).
     routes: [
-      { to: '/character', key: 'nav.character' },
-      { to: '/races', key: 'nav.races' }
+      { to: '/races', key: 'nav.races' },
+      { to: '/curses', key: 'nav.curses' },
+      { to: '/mutations', key: 'nav.mutations' },
+      { to: '/npc-generator', key: 'nav.npcGen' },
+      { to: '/rooms', key: 'nav.rooms' },
+      { to: '/region', key: 'nav.region' }
     ]
   },
   {

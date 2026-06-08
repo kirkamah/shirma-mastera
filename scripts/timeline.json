@@ -1,0 +1,148 @@
+{
+  "rawPath": "C:\\projects\\shirma-mastera\\video\\tour\\page@f0163fa80870c93fd8cdc42303ff38ec.webm",
+  "refWall": 1780751581894,
+  "totalActive": 604130,
+  "LEAD": 700,
+  "W": 2560,
+  "H": 1080,
+  "timeline": [
+    {
+      "id": "intro",
+      "startMs": 230,
+      "audioMs": 46299,
+      "wav": "C:\\projects\\shirma-mastera\\video\\audio\\scene_intro.wav"
+    },
+    {
+      "id": "notebook",
+      "startMs": 47977,
+      "audioMs": 26199,
+      "wav": "C:\\projects\\shirma-mastera\\video\\audio\\scene_notebook.wav"
+    },
+    {
+      "id": "bestiary-overview",
+      "startMs": 75620,
+      "audioMs": 24967,
+      "wav": "C:\\projects\\shirma-mastera\\video\\audio\\scene_bestiary-overview.wav"
+    },
+    {
+      "id": "bestiary-aboleth",
+      "startMs": 102039,
+      "audioMs": 24402,
+      "wav": "C:\\projects\\shirma-mastera\\video\\audio\\scene_bestiary-aboleth.wav"
+    },
+    {
+      "id": "editor",
+      "startMs": 130327,
+      "audioMs": 35377,
+      "wav": "C:\\projects\\shirma-mastera\\video\\audio\\scene_editor.wav"
+    },
+    {
+      "id": "my-monsters",
+      "startMs": 183257,
+      "audioMs": 21918,
+      "wav": "C:\\projects\\shirma-mastera\\video\\audio\\scene_my-monsters.wav"
+    },
+    {
+      "id": "spells",
+      "startMs": 207932,
+      "audioMs": 33432,
+      "wav": "C:\\projects\\shirma-mastera\\video\\audio\\scene_spells.wav"
+    },
+    {
+      "id": "equipment",
+      "startMs": 244203,
+      "audioMs": 32468,
+      "wav": "C:\\projects\\shirma-mastera\\video\\audio\\scene_equipment.wav"
+    },
+    {
+      "id": "rules-overview",
+      "startMs": 279428,
+      "audioMs": 27112,
+      "wav": "C:\\projects\\shirma-mastera\\video\\audio\\scene_rules-overview.wav"
+    },
+    {
+      "id": "conditions",
+      "startMs": 310276,
+      "audioMs": 18635,
+      "wav": "C:\\projects\\shirma-mastera\\video\\audio\\scene_conditions.wav"
+    },
+    {
+      "id": "hazards",
+      "startMs": 332695,
+      "audioMs": 19619,
+      "wav": "C:\\projects\\shirma-mastera\\video\\audio\\scene_hazards.wav"
+    },
+    {
+      "id": "character-races",
+      "startMs": 355068,
+      "audioMs": 18524,
+      "wav": "C:\\projects\\shirma-mastera\\video\\audio\\scene_character-races.wav"
+    },
+    {
+      "id": "character-classes",
+      "startMs": 375036,
+      "audioMs": 20920,
+      "wav": "C:\\projects\\shirma-mastera\\video\\audio\\scene_character-classes.wav"
+    },
+    {
+      "id": "character-feats",
+      "startMs": 397394,
+      "audioMs": 12261,
+      "wav": "C:\\projects\\shirma-mastera\\video\\audio\\scene_character-feats.wav"
+    },
+    {
+      "id": "character-backgrounds",
+      "startMs": 411092,
+      "audioMs": 13225,
+      "wav": "C:\\projects\\shirma-mastera\\video\\audio\\scene_character-backgrounds.wav"
+    },
+    {
+      "id": "character-constructor",
+      "startMs": 425758,
+      "audioMs": 16778,
+      "wav": "C:\\projects\\shirma-mastera\\video\\audio\\scene_character-constructor.wav"
+    },
+    {
+      "id": "races-lore",
+      "startMs": 446398,
+      "audioMs": 17625,
+      "wav": "C:\\projects\\shirma-mastera\\video\\audio\\scene_races-lore.wav"
+    },
+    {
+      "id": "lore-curses",
+      "startMs": 467775,
+      "audioMs": 22796,
+      "wav": "C:\\projects\\shirma-mastera\\video\\audio\\scene_lore-curses.wav"
+    },
+    {
+      "id": "lore-mutations",
+      "startMs": 494357,
+      "audioMs": 20300,
+      "wav": "C:\\projects\\shirma-mastera\\video\\audio\\scene_lore-mutations.wav"
+    },
+    {
+      "id": "codex-npc",
+      "startMs": 517417,
+      "audioMs": 24516,
+      "wav": "C:\\projects\\shirma-mastera\\video\\audio\\scene_codex-npc.wav"
+    },
+    {
+      "id": "codex-location",
+      "startMs": 543369,
+      "audioMs": 20811,
+      "wav": "C:\\projects\\shirma-mastera\\video\\audio\\scene_codex-location.wav"
+    },
+    {
+      "id": "codex-artifact",
+      "startMs": 567686,
+      "audioMs": 19801,
+      "wav": "C:\\projects\\shirma-mastera\\video\\audio\\scene_codex-artifact.wav"
+    },
+    {
+      "id": "outro",
+      "startMs": 591788,
+      "audioMs": 11124,
+      "wav": "C:\\projects\\shirma-mastera\\video\\audio\\scene_outro.wav"
+    }
+  ]
+}

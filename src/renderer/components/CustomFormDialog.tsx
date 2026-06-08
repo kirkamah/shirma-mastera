@@ -9,6 +9,8 @@ export interface FormField {
   placeholder?: string
   /** Autocomplete pool for `type: 'tags'` — existing tags to suggest/dedupe against. */
   suggestions?: string[]
+  /** Optional predicate — render this field only when it returns true for the current values. */
+  showIf?: (values: FormValues) => boolean
 }
 
 export type FormValues = Record<string, string | number | boolean>
@@ -43,7 +45,7 @@ export default function CustomFormDialog({ title, fields, initial, onSave, onClo
         </div>
 
         <div className="space-y-2">
-          {fields.map((f) => (
+          {fields.filter((f) => !f.showIf || f.showIf(values)).map((f) => (
             <label key={f.key} className="block text-xs text-parchment/70">
               {f.label}
               {f.type === 'textarea' ? (

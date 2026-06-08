@@ -1,4 +1,4 @@
-import { useMemo, useState, type JSX } from 'react'
+import { useEffect, useMemo, useRef, useState, type JSX } from 'react'
 import { useTranslation } from 'react-i18next'
 import { GiRollingDices } from 'react-icons/gi'
 import PageFrame from '../components/PageFrame'
@@ -72,6 +72,13 @@ export default function RandomTables(): JSX.Element {
 
   const selected = tables.find((t) => t.id === selectedId) ?? tables[0]
   const rolledEntry = selected && rolled && rolled.id === selected.id ? entryForRoll(selected, rolled.roll) : null
+
+  // After a roll, bring the matching row into view so the result is never
+  // missed when the table is long enough to scroll.
+  const hitRowRef = useRef<HTMLTableRowElement>(null)
+  useEffect(() => {
+    if (rolled) hitRowRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, [rolled])
 
   // Группировка списка по категориям (порядок появления).
   const groups = useMemo(() => {
@@ -207,6 +214,7 @@ export default function RandomTables(): JSX.Element {
                     return (
                       <tr
                         key={i}
+                        ref={hit ? hitRowRef : undefined}
                         className={`border-b border-ink-brown/10 ${hit ? 'bg-accent/15' : i % 2 ? 'bg-black/[0.02]' : ''}`}
                       >
                         <td className="w-16 whitespace-nowrap py-1.5 pr-3 align-top font-mono font-bold text-accent">

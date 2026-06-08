@@ -50,6 +50,9 @@ const api: BridgeApi = {
   exportData: () => ipcRenderer.invoke('app:exportData'),
   importData: () => ipcRenderer.invoke('app:importData'),
   exportPdf: (html: string, suggestedName: string) => ipcRenderer.invoke('app:exportPdf', html, suggestedName),
+  savePng: (html: string, width: number, suggestedName: string) =>
+    ipcRenderer.invoke('app:savePng', html, width, suggestedName),
+  readClipboardImage: () => ipcRenderer.invoke('app:readClipboardImage'),
   setZoom: (factor: number) => webFrame.setZoomFactor(factor),
   getZoom: () => webFrame.getZoomFactor()
 }

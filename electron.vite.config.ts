@@ -21,6 +21,10 @@ export default defineConfig({
   },
   renderer: {
     root: 'src/renderer',
+    // Trial build flag: `TRIAL=1 electron-vite build` produces the limited
+    // trial bundle. A normal build (no env var) compiles __TRIAL__ to false,
+    // so all trial branches are dead-code-eliminated.
+    define: { __TRIAL__: JSON.stringify(process.env.TRIAL === '1') },
     resolve: {
       alias: {
         '@': resolve(__dirname, 'src/renderer'),

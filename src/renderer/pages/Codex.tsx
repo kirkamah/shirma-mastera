@@ -5,8 +5,23 @@ import FormatHelp from '../components/FormatHelp'
 import DiceText from '../components/DiceText'
 import { uid } from '../utils/monster'
 import TagInput from '../components/TagInput'
+import CodexCardModal from '../components/CodexCardModal'
 import { alertDialog, confirmDialog } from '../store/dialog'
-import type { CodexCategory, CodexEntry, CodexKind } from '@shared/types'
+import { fileToScaledDataUrl, pickImageFile, urlToScaledDataUrl } from '../utils/image'
+import type { CodexCategory, CodexEntry, CodexImageAspect, CodexKind } from '@shared/types'
+
+const ASPECT_CSS: Record<CodexImageAspect, string> = { wide: '16 / 9', square: '1 / 1', tall: '3 / 4' }
+const ASPECT_LABEL: Record<CodexImageAspect, string> = {
+  wide: 'Широкий',
+  square: 'Квадрат',
+  tall: 'Вертикальный'
+}
+/** Display width per aspect in the read view (keeps tall/square from dominating). */
+const ASPECT_WIDTH: Record<CodexImageAspect, string> = {
+  wide: '100%',
+  square: 'min(100%, 360px)',
+  tall: 'min(100%, 300px)'
+}
 
 const PRESET_FIELDS: Record<string, string[]> = {
   npc: ['Раса', 'Занятие', 'Местонахождение', 'Мотив', 'Секрет'],
@@ -47,6 +62,7 @@ export default function Codex(): JSX.Element {
   const [isNew, setIsNew] = useState(false)
   const [snapshot, setSnapshot] = useState<CodexEntry | null>(null)
   const [savedFlash, setSavedFlash] = useState(false)
+  const [showCard, setShowCard] = useState(false)
   // Инлайновый ввод названия блока (window.prompt не поддерживается в Electron).
   const [editor, setEditor] = useState<{ mode: 'add' | 'rename'; value: string } | null>(null)
 
@@ -72,6 +88,41 @@ export default function Codex(): JSX.Element {
     loadEntries()
     loadCats()
   }, [])
+
+  // Ctrl+V while editing an entry: paste a photo straight from the clipboard as
+  // a new attached image (DOM clipboard items first, native bitmap as fallback).
+  useEffect(() => {
+    if (!editing) return
+    const onPaste = async (e: ClipboardEvent): Promise<void> => {
+      const items = e.clipboardData ? Array.from(e.clipboardData.items) : []
+      const imgItem = items.find((it) => it.kind === 'file' && it.type.startsWith('image/'))
+      if (imgItem) {
+        const file = imgItem.getAsFile()
+        if (file) {
+          e.preventDefault()
+          try {
+            appendImageSrc(await fileToScaledDataUrl(file, IMG_OPTS))
+          } catch (err) {
+            await alertDialog((err as Error).message)
+          }
+        }
+        return
+      }
+      // No DOM image item — some sources only expose a native bitmap.
+      const native = await window.api.readClipboardImage()
+      if (native) {
+        e.preventDefault()
+        try {
+          appendImageSrc(await urlToScaledDataUrl(native, IMG_OPTS))
+        } catch {
+          /* not a usable image — ignore */
+        }
+      }
+    }
+    window.addEventListener('paste', onPaste)
+    return () => window.removeEventListener('paste', onPaste)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editing])
 
   const list = useMemo(() => entries.filter((e) => e.kind === kind), [entries, kind])
   const activeCat = useMemo(() => cats.find((c) => c.key === kind), [cats, kind])
@@ -105,6 +156,56 @@ export default function Codex(): JSX.Element {
   }
 
   const set = (patch: Partial<CodexEntry>): void => setDraft((d) => (d ? { ...d, ...patch } : d))
+
+  // Apply a change AND persist it immediately (used by the player-card modal,
+  // which edits the entry while it's in read mode — portrait, hide-toggles).
+  const patchAndSave = async (patch: Partial<CodexEntry>): Promise<void> => {
+    if (!draft) return
+    const next = { ...draft, ...patch }
+    setDraft(next)
+    setEntries((prev) => prev.map((e) => (e.key === next.key ? next : e)))
+    await window.api.db.saveCodex(next)
+  }
+
+  // ---- image helpers (edit mode) ----
+  const IMG_OPTS = { maxDim: 1600, format: 'jpeg' as const, quality: 0.85 }
+  // Functional update so it's safe to call from the (stale-closure) paste listener.
+  const appendImageSrc = (src: string): void =>
+    setDraft((d) => (d ? { ...d, images: [...(d.images ?? []), { src, aspect: 'wide' as const }] } : d))
+  const addImage = async (): Promise<void> => {
+    const file = await pickImageFile()
+    if (!file) return
+    try {
+      appendImageSrc(await fileToScaledDataUrl(file, IMG_OPTS))
+    } catch (e) {
+      await alertDialog((e as Error).message)
+    }
+  }
+  const addImageFromClipboard = async (): Promise<void> => {
+    const dataUrl = await window.api.readClipboardImage()
+    if (!dataUrl) {
+      await alertDialog('В буфере обмена нет изображения. Скопируйте картинку и попробуйте снова.')
+      return
+    }
+    try {
+      appendImageSrc(await urlToScaledDataUrl(dataUrl, IMG_OPTS))
+    } catch (e) {
+      await alertDialog((e as Error).message)
+    }
+  }
+  const patchImage = (i: number, patch: Partial<{ aspect: CodexImageAspect; caption: string }>): void =>
+    set({ images: (draft?.images ?? []).map((x, j) => (j === i ? { ...x, ...patch } : x)) })
+  const removeImage = (i: number): void => set({ images: (draft?.images ?? []).filter((_, j) => j !== i) })
+  const choosePortrait = async (): Promise<void> => {
+    const file = await pickImageFile()
+    if (!file) return
+    try {
+      const src = await fileToScaledDataUrl(file, { maxDim: 640, format: 'png' })
+      set({ portrait: src })
+    } catch (e) {
+      await alertDialog((e as Error).message)
+    }
+  }
 
   const save = async (): Promise<void> => {
     if (!draft) return
@@ -280,19 +381,45 @@ export default function Codex(): JSX.Element {
               /* ---------- EDIT MODE ---------- */
               <div className="parchment-texture tome-border rounded-lg p-5 shadow-panel">
                 <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1 space-y-2">
-                    <input
-                      value={draft.name}
-                      onChange={(e) => set({ name: e.target.value })}
-                      placeholder="Имя / название"
-                      className={`${inputCls} font-serif text-xl font-bold text-accent`}
-                    />
-                    <input
-                      value={draft.subtitle ?? ''}
-                      onChange={(e) => set({ subtitle: e.target.value })}
-                      placeholder="Подзаголовок (напр. «Человек · Трактирщик»)"
-                      className={inputCls}
-                    />
+                  <div className="flex flex-1 gap-3">
+                    {/* Portrait */}
+                    <div className="flex w-20 shrink-0 flex-col items-center gap-1">
+                      <button
+                        onClick={choosePortrait}
+                        title="Загрузить портрет"
+                        className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-lg border-2 border-gold/60 bg-parchment-dark/40 text-2xl text-ink-brown/40 hover:border-accent"
+                      >
+                        {draft.portrait ? (
+                          <img src={draft.portrait} alt="" className="h-full w-full object-cover" />
+                        ) : (
+                          '＋'
+                        )}
+                      </button>
+                      {draft.portrait ? (
+                        <button
+                          onClick={() => set({ portrait: undefined })}
+                          className="text-[11px] text-ink-brown/60 hover:text-red-700"
+                        >
+                          убрать
+                        </button>
+                      ) : (
+                        <span className="text-[10px] text-ink-brown/40">портрет</span>
+                      )}
+                    </div>
+                    <div className="flex-1 space-y-2">
+                      <input
+                        value={draft.name}
+                        onChange={(e) => set({ name: e.target.value })}
+                        placeholder="Имя / название"
+                        className={`${inputCls} font-serif text-xl font-bold text-accent`}
+                      />
+                      <input
+                        value={draft.subtitle ?? ''}
+                        onChange={(e) => set({ subtitle: e.target.value })}
+                        placeholder="Подзаголовок (напр. «Человек · Трактирщик»)"
+                        className={inputCls}
+                      />
+                    </div>
                   </div>
                   <div className="flex shrink-0 flex-col gap-1">
                     <button
@@ -374,7 +501,73 @@ export default function Codex(): JSX.Element {
                   </div>
                 )}
 
-                <label className="mt-2 block text-xs font-semibold text-accent">Теги</label>
+                <hr className="fleuron" />
+
+                {/* Images */}
+                <div className="mb-1 flex items-center justify-between">
+                  <label className="text-xs font-semibold text-accent">Изображения</label>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={addImageFromClipboard}
+                      title="Вставить картинку из буфера обмена (Ctrl+V)"
+                      className="rounded-full border border-accent/40 px-2 py-0.5 text-xs font-semibold text-accent hover:bg-accent/10"
+                    >
+                      📋 Из буфера
+                    </button>
+                    <button
+                      onClick={addImage}
+                      className="rounded-full border border-accent/40 px-2 py-0.5 text-xs font-semibold text-accent hover:bg-accent/10"
+                    >
+                      + изображение
+                    </button>
+                  </div>
+                </div>
+                {(draft.images?.length ?? 0) === 0 ? (
+                  <p className="text-xs text-ink-brown/40">
+                    Добавьте карты, портреты, виды локаций. Можно просто скопировать фото и нажать Ctrl+V. Для
+                    каждого выберите формат.
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    {draft.images!.map((img, i) => (
+                      <div
+                        key={i}
+                        className="flex items-start gap-2 rounded border border-ink-brown/15 bg-parchment/40 p-2"
+                      >
+                        <div
+                          className="shrink-0 overflow-hidden rounded border border-ink-brown/20"
+                          style={{ width: 72, aspectRatio: ASPECT_CSS[img.aspect] }}
+                        >
+                          <img src={img.src} alt="" className="h-full w-full object-cover" />
+                        </div>
+                        <div className="min-w-0 flex-1 space-y-1.5">
+                          <div className="flex flex-wrap gap-1">
+                            {(['wide', 'square', 'tall'] as CodexImageAspect[]).map((a) => (
+                              <button
+                                key={a}
+                                onClick={() => patchImage(i, { aspect: a })}
+                                className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${img.aspect === a ? 'bg-accent text-parchment' : 'border border-ink-brown/30 text-ink-brown/70 hover:border-accent/60'}`}
+                              >
+                                {ASPECT_LABEL[a]}
+                              </button>
+                            ))}
+                          </div>
+                          <input
+                            value={img.caption ?? ''}
+                            onChange={(e) => patchImage(i, { caption: e.target.value })}
+                            placeholder="Подпись (необязательно)"
+                            className={`${inputCls} text-xs`}
+                          />
+                        </div>
+                        <button onClick={() => removeImage(i)} className="text-accent hover:text-red-700" title="Удалить">
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <label className="mt-3 block text-xs font-semibold text-accent">Теги</label>
                 <div className="mt-1">
                   <TagInput
                     variant="parchment"
@@ -389,11 +582,27 @@ export default function Codex(): JSX.Element {
               /* ---------- VIEW MODE ---------- */
               <div className="parchment-texture tome-border rounded-lg p-5 shadow-panel">
                 <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0 flex-1">
-                    <h2 className="font-serif text-2xl font-bold text-accent">{draft.name}</h2>
-                    {draft.subtitle && <div className="text-sm text-ink-brown/60">{draft.subtitle}</div>}
+                  <div className="flex min-w-0 flex-1 items-start gap-3">
+                    {draft.portrait && (
+                      <img
+                        src={draft.portrait}
+                        alt=""
+                        className="h-16 w-16 shrink-0 rounded-lg border-2 border-gold/60 object-cover"
+                      />
+                    )}
+                    <div className="min-w-0">
+                      <h2 className="font-serif text-2xl font-bold text-accent">{draft.name}</h2>
+                      {draft.subtitle && <div className="text-sm text-ink-brown/60">{draft.subtitle}</div>}
+                    </div>
                   </div>
                   <div className="flex shrink-0 flex-col gap-1">
+                    <button
+                      onClick={() => setShowCard(true)}
+                      className="rounded bg-gold/90 px-3 py-1 text-xs font-semibold text-ink-brown hover:bg-gold"
+                      title="Создать PNG-карточку для показа игрокам"
+                    >
+                      🎴 Карточка
+                    </button>
                     <button
                       onClick={startEdit}
                       className="rounded bg-accent px-3 py-1 text-xs font-semibold text-parchment hover:bg-accent/80"
@@ -435,6 +644,26 @@ export default function Codex(): JSX.Element {
                   </>
                 )}
 
+                {(draft.images?.length ?? 0) > 0 && (
+                  <div className="mt-4 space-y-3">
+                    {draft.images!.map((img, i) => (
+                      <figure key={i} className="flex flex-col items-center">
+                        <div
+                          className="overflow-hidden rounded-lg border border-gold/40 shadow-panel"
+                          style={{ width: ASPECT_WIDTH[img.aspect], aspectRatio: ASPECT_CSS[img.aspect] }}
+                        >
+                          <img src={img.src} alt={img.caption ?? ''} className="h-full w-full object-cover" />
+                        </div>
+                        {img.caption && (
+                          <figcaption className="mt-1 text-center text-xs italic text-ink-brown/60">
+                            {img.caption}
+                          </figcaption>
+                        )}
+                      </figure>
+                    ))}
+                  </div>
+                )}
+
                 {draft.tags.length > 0 && (
                   <div className="mt-3 flex flex-wrap gap-1">
                     {draft.tags.map((t) => (
@@ -456,6 +685,10 @@ export default function Codex(): JSX.Element {
           )}
         </div>
       </div>
+
+      {showCard && draft && (
+        <CodexCardModal entry={draft} onChange={patchAndSave} onClose={() => setShowCard(false)} />
+      )}
     </PageFrame>
   )
 }

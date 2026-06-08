@@ -2,6 +2,7 @@ import { type JSX } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { HUBS, hubForPath } from '../data/nav-hubs'
+import { IS_TRIAL, openBoosty } from '../trial'
 
 export default function Sidebar(): JSX.Element {
   const { t } = useTranslation()
@@ -32,6 +33,17 @@ export default function Sidebar(): JSX.Element {
           </button>
         )
       })}
+      {IS_TRIAL && (
+        <div className="mt-auto rounded-md border border-gold/40 bg-black/25 px-1.5 py-2 text-center">
+          <div className="font-serif text-[11px] font-semibold leading-tight text-gold-soft">{t('trial.badge')}</div>
+          <button
+            onClick={openBoosty}
+            className="mt-1 text-[10px] leading-tight text-gold underline decoration-dotted underline-offset-2 hover:text-parchment"
+          >
+            {t('trial.fullOnBoosty')}
+          </button>
+        </div>
+      )}
     </nav>
   )
 }

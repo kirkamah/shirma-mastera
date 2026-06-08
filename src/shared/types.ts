@@ -143,6 +143,19 @@ export interface CodexCategory {
 export interface CodexField {
   label: string
   value: string
+  /** Hidden on the player-facing PNG card (e.g. мотив, секрет). */
+  hidden?: boolean
+}
+
+/** Aspect ratio for an image attached to a codex entry. */
+export type CodexImageAspect = 'wide' | 'square' | 'tall'
+
+export interface CodexImage {
+  /** data: URI (downscaled on import). */
+  src: string
+  aspect: CodexImageAspect
+  /** Optional caption shown under the image. */
+  caption?: string
 }
 
 export interface CodexEntry {
@@ -153,6 +166,16 @@ export interface CodexEntry {
   description: string
   fields: CodexField[]
   tags: string[]
+  /** Portrait shown on the player card (data: URI). */
+  portrait?: string
+  /** Aspect ratio of the portrait on the player card. */
+  portraitAspect?: CodexImageAspect
+  /** Reference images attached to the entry, with a chosen aspect ratio. */
+  images?: CodexImage[]
+  /** Hide these blocks on the player-facing card. */
+  hideName?: boolean
+  hideSubtitle?: boolean
+  hideDescription?: boolean
 }
 
 // ---- IPC bridge surface (exposed on window.api) ----
@@ -226,6 +249,10 @@ export interface BridgeApi {
   exportData: () => Promise<BackupResult>
   importData: () => Promise<BackupResult>
   exportPdf: (html: string, suggestedName: string) => Promise<BackupResult>
+  /** Render card HTML at a fixed width to a PNG file (save dialog). */
+  savePng: (html: string, width: number, suggestedName: string) => Promise<BackupResult>
+  /** PNG data URI of the image on the OS clipboard, or null if there's none. */
+  readClipboardImage: () => Promise<string | null>
   /** Real browser zoom of the whole window (Ctrl+= style). Scales UI and
    *  content together while keeping layout height and scrolling correct
    *  (unlike CSS `zoom`, which breaks 100vh and clips the page). */

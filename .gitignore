@@ -12,3 +12,14 @@ se.log
 # personal reference files at repo root (screenshots with serial numbers, PDFs)
 /*.png
 /*.pdf
+# scratch / working files (content-extraction throwaways)
+scripts/_*
+/.run-log.txt
+/extract_spells.js
+/tmp_fetch_spell.js
+/heal_tmp.html
+/sp_list.txt
+/sp_list_raw.html
+/sp_out.txt
+# large generated media (tour video + frames/audio, ~250MB)
+video/

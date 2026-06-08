@@ -8,6 +8,7 @@ import CharacterCreationGuide from './CharacterCreationGuide'
 import CharacterSheetEditor from './CharacterSheetEditor'
 import CharacterConstructor from './CharacterConstructor'
 import InteractiveSheet from './InteractiveSheet'
+import { IS_TRIAL, TRIAL_LIMIT, showTrialLimitDialog } from '../../trial'
 
 type Mode = 'landing' | 'guide' | 'manual' | 'constructor' | 'view'
 
@@ -21,6 +22,11 @@ export default function CreateHub(): JSX.Element {
   const onChange = (patch: Partial<CharacterSheet>): void => setDraft((d) => (d ? { ...d, ...patch } : d))
 
   const openNew = (m: 'manual' | 'constructor'): void => {
+    // Trial: at most TRIAL_LIMIT saved characters.
+    if (IS_TRIAL && items.length >= TRIAL_LIMIT) {
+      void showTrialLimitDialog()
+      return
+    }
     setDraft(emptyCharacterSheet(m))
     setMode(m)
   }

@@ -1,4 +1,4 @@
-import { app, BrowserWindow, dialog, ipcMain, net } from 'electron'
+import { app, BrowserWindow, clipboard, dialog, ipcMain, net } from 'electron'
 import { writeFile, readFile } from 'fs/promises'
 import { join } from 'path'
 import type { CodexEntry, Edition, SearchParams, StatBlock } from '../shared/types'
@@ -123,6 +123,14 @@ export function registerIpc(): void {
     }
   })
 
+  // Read a bitmap image from the OS clipboard (screenshots, "copy image" from a
+  // browser, file managers) as a PNG data URI, or null if there's no image.
+  ipcMain.handle('app:readClipboardImage', () => {
+    const img = clipboard.readImage()
+    if (img.isEmpty()) return null
+    return img.toDataURL()
+  })
+
   // Render arbitrary HTML to a PDF file.
   ipcMain.handle('app:exportPdf', async (_e, html: string, suggestedName: string) => {
     const { canceled, filePath } = await dialog.showSaveDialog({
@@ -136,6 +144,56 @@ export function registerIpc(): void {
       await win.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(html))
       const pdf = await win.webContents.printToPDF({ printBackground: true, pageSize: 'A4' })
       await writeFile(filePath, pdf)
+      return { ok: true, path: filePath }
+    } catch (e) {
+      return { ok: false, error: (e as Error).message }
+    } finally {
+      win.destroy()
+    }
+  })
+
+  // Render card HTML (fixed CSS width) to a crisp PNG. The offscreen window is
+  // sized to the rendered content height so the whole card is captured.
+  ipcMain.handle('app:savePng', async (_e, html: string, width: number, suggestedName: string) => {
+    const { canceled, filePath } = await dialog.showSaveDialog({
+      title: 'Сохранить карточку (PNG)',
+      defaultPath: join(app.getPath('documents'), `${suggestedName || 'card'}.png`),
+      filters: [{ name: 'PNG', extensions: ['png'] }]
+    })
+    if (canceled || !filePath) return { ok: false }
+    // Render at 2× (CSS zoom) so the exported PNG is sharp on any display.
+    const SCALE = 2
+    const w = Math.max(200, Math.round(width || 640)) * SCALE
+    const win = new BrowserWindow({
+      show: false,
+      // Positioned far off-screen: shown (so the page is composited and
+      // capturePage is reliable) but never visible to the user.
+      x: -20000,
+      y: -20000,
+      width: w,
+      height: 800,
+      useContentSize: true,
+      // Transparent + frameless so the rounded-corner card exports onto a
+      // transparent PNG background instead of a white rectangle.
+      transparent: true,
+      frame: false,
+      backgroundColor: '#00000000',
+      webPreferences: { sandbox: true }
+    })
+    try {
+      await win.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(html))
+      // Measure the card at its natural (1×) height, then zoom to 2× and size the
+      // window so capturePage covers the whole card with no clipping.
+      const baseHeight = (await win.webContents.executeJavaScript(
+        'Math.ceil((document.querySelector(".card") || document.body).getBoundingClientRect().height)'
+      )) as number
+      await win.webContents.executeJavaScript(`document.body.style.zoom='${SCALE}'`)
+      win.setContentSize(w, Math.max(200, Math.ceil(baseHeight * SCALE)))
+      win.showInactive()
+      // Let layout/paint settle after the resize before capturing.
+      await new Promise((r) => setTimeout(r, 150))
+      const image = await win.webContents.capturePage()
+      await writeFile(filePath, image.toPNG())
       return { ok: true, path: filePath }
     } catch (e) {
       return { ok: false, error: (e as Error).message }

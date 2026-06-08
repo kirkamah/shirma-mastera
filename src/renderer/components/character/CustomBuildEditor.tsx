@@ -10,6 +10,7 @@ import {
   newCustomBuildId
 } from '../../data/custom-builds'
 import { useCustomBuilds } from '../../store/customBuilds'
+import { IS_TRIAL, TRIAL_LIMIT, showTrialLimitDialog } from '../../trial'
 
 export type BuildKind = 'race' | 'class' | 'background'
 
@@ -126,6 +127,15 @@ export default function CustomBuildEditor({
   const upd = (patch: Record<string, unknown>): void => setForm((prev) => ({ ...prev, ...patch }))
 
   const save = async (): Promise<void> => {
+    // Trial: at most TRIAL_LIMIT new custom builds (races+classes+backgrounds);
+    // editing an existing one stays allowed.
+    if (IS_TRIAL && !initial) {
+      const s = useCustomBuilds.getState()
+      if (s.races.length + s.classes.length + s.backgrounds.length >= TRIAL_LIMIT) {
+        await showTrialLimitDialog()
+        return
+      }
+    }
     const id = (initial?.id as string) || newCustomBuildId()
     const name = f('name').trim() || '—'
     let entry: AnyBuild
