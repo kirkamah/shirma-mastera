@@ -49,7 +49,9 @@ mac:
   # Cyrillic volume name). The recipient unzips and drags it to Applications.
   target:
     - zip
-  artifactName: ${productName}-${version}-mac-${arch}.${ext}
+  # ASCII, version-less name so the website can link a stable URL
+  # (ShirmaMastera-mac-x64.zip / ShirmaMastera-mac-arm64.zip).
+  artifactName: ShirmaMastera-mac-${arch}.${ext}
 # Disable electron-builder's own native rebuild: CI cross-compiles better-sqlite3
 # for the target arch explicitly (electron-builder install-app-deps --arch=…)
 # BEFORE packaging, and letting electron-builder rebuild again would overwrite it
